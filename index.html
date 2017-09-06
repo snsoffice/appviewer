@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <title>远景网</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0" /> -->
+    <!-- Disable zooming capabilities on mobile devices -->
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <style type="text/css">
+      html {
+          height: 100%;
+      }
+      body {
+          padding: 0;
+          margin: 0;
+          overflow: hidden;
+          font-size: 100%;
+          line-height: 1.42857143;
+      }
+      .dx-splash {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 0;
+          bottom: 0;
+          z-index: 1024;
+          background-color: #fff;
+          text-align: center;
+      }
+      .dx-splash > .slogan {
+          font-size: 2.0em;
+          font-weight:bold;
+          padding: .8em 0;
+          max-height: 20%;
+      }
+      .dx-splash > img {
+          margin: 0 auto;
+          height: 38%;
+      }
+      .dx-splash > .footer {
+          padding: 6px 0;
+          font-size: 1.0em;
+      }
+      .dx-splash > .footer > .copyright {
+          padding: 6px 0;
+          font-size: 0.8em;
+          font-style: italic;
+          color: #555;
+      }
+    </style>
+    <script data-main="js/main" src="js/require.js"></script>
+  </head>
+
+  <body>
+    <div class="dx-splash">
+      <div class="slogan">咫尺天涯 纵横人生</div>
+      <img alt="心连心" src="images/global.png"/>
+      <div class="footer">
+        <div>远景网</div>
+        <div class="copyright">版权所有 @ 2017 德新科技. 保留所有权利</div>
+      </div>
+    </div>
+
+    <div id="global-message"></div>
+
+    <div id="navbar" class="dx-navbar">
+      <div class="navbar-brand">
+        <img alt="远景网" src="css/logo.png"/><div class="navbar-title">远景网</div>
+      </div>
+
+      <!-- <form class="navbar-form navbar-right hidden-xs" role="search"> -->
+      <!--   <div class="intro form-group"> -->
+      <!--     <div class="input-group"> -->
+      <!--       <input type="text" class="form-control" placeholder="搜索"> -->
+      <!--     </div> -->
+      <!--     <\!-- /.input-group -\-> -->
+      <!--   </div> -->
+      <!--   <\!-- /.form-group -\-> -->
+      <!-- </form> -->
+      <!-- <div class="navbar-form navbar-right visible-xs-block "> -->
+      <!--   <div class="intro input-group xs-search-form"> -->
+      <!--     <input type="text" class="form-control" title="搜索"> -->
+      <!--     <span class="form-control-feedback" aria-hidden="true"><i class="fa fa-lg fa-search"></i></span> -->
+      <!--   </div> -->
+      <!--   <\!-- /.input-group -\-> -->
+      <!-- </div> -->
+    </div>
+
+    <div id="sidebar" class="dx-sidebar"></div>
+    <div id="footbar" class="dx-footbar"></div>
+  </body>
+</html>
