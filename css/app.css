@@ -29,52 +29,6 @@
     z-index: -1;
 }
 
-.dx-navbar {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 0;
-    padding: 6px;
-    z-index: 10;
-}
-
-.navbar-brand {
-    float: left;
-    color: #EC6D51;
-    cursor: pointer;
-    font-size: 1.0em;
-    font-weight: bold;
-    vertical-align: middle;
-}
-
-.navbar-brand > img {    
-    vertical-align: text-bottom;
-    width: 1.2em;
-    height: 1.2em;
-}
-
-div.author {
-    position: absolute;
-    right: .5em;
-    bottom: .5em;
-    cursor: default;
-}
-
-#intro-canvas {
-    position: absolute;
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url(data/preview/park.jpg),
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
-    z-index: -1;
-}
-
 #global-message {
     position: absolute;
     left: 0;
@@ -82,85 +36,6 @@ div.author {
     top: 0;
     font-size: 1.3em;
     z-index: 1024;
-}
-
-#controls-wrapper {
-    padding: 0px;
-}
-
-.intro-controls {
-    position: absolute;
-    top: 9.5em;
-    right: 1.5em;
-    max-width: 3em;
-    z-index: 2;
-}
-
-.frame-container {
-    position: absolute;
-    left: 0;
-    top: 0;
-    border: 0;
-    padding: 0;
-    margin: 0;
-    overflow: hidden;
-    background: transparent;
-}
-
-#pano-view-wrapper1 {
-    left: 0;
-    top: 0;
-    right: 0;
-    bottom: 0;
-
-    height: 100%;
-    width: 100%;
-
-    z-index: -1;
-}
-
-#house-view-wrapper {
-    z-index: 1;
-}
-
-
-/*
- *
- * House card in park
- *
- */
-
-.house-card {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 5.2em;
-    height: 5.2em;
-    border-radius: 2.6em;
-    margin-left: -2.6em;
-    margin-top: -2.6em;
-    border: 0px solid #cccccc;
-    background: transparent;
-    outline: 0 !important;
-    /* opacity: 0; */
-    /* animation: show8 6.1s infinite linear; */
-}
-
-.house-card > img {
-    width: 5.2em;
-    height: 5.2em;
-    border-radius: 2.6em;
-    opacity: 1.0;
-    animation: show8 6.1s infinite linear;
-}
-
-.house-card-preview {
-    position: absolute;
-    width: 5.2em;
-    height: 5.2em;
-    border-radius: 2.6em;
-    opacity: 0;
-    z-index: -1;
 }
 
 /*
@@ -200,6 +75,47 @@ div.author {
     opacity: .6;
 }
 
+.search-result-list {
+    position: absolute;
+    z-index: 1024;
+    max-width: 200px;
+    top: 50px;
+    right: 6px;
+}
+
+.dx-navbar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    padding: 6px;
+    z-index: 10;
+}
+
+.navbar-brand {
+    float: left;
+    color: #EC6D51;
+    cursor: pointer;
+    font-size: 1.0em;
+    font-weight: bold;
+    vertical-align: middle;
+}
+
+.navbar-brand > img {    
+    vertical-align: text-bottom;
+    width: 1.2em;
+    height: 1.2em;
+}
+
+#main-panel {
+    display: none;
+    background: #f5f5f5;
+    z-index: 1024;
+}
+
+#main-panel > .close {
+    margin: 10px;
+}
 
 /*
  *
@@ -507,3 +423,105 @@ img.house-card-preview {
         opacity: 0
     }
 }
+
+div.author {
+    position: absolute;
+    right: .5em;
+    bottom: .5em;
+    cursor: default;
+}
+
+#intro-canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url(data/preview/park.jpg),
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    z-index: -1;
+}
+
+#controls-wrapper {
+    padding: 0px;
+}
+
+.intro-controls {
+    position: absolute;
+    top: 9.5em;
+    right: 1.5em;
+    max-width: 3em;
+    z-index: 2;
+}
+
+.frame-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    background: transparent;
+}
+
+#pano-view-wrapper1 {
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+
+    height: 100%;
+    width: 100%;
+
+    z-index: -1;
+}
+
+#house-view-wrapper {
+    z-index: 1;
+}
+
+
+/*
+ *
+ * House card in park
+ *
+ */
+
+.house-card {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 5.2em;
+    height: 5.2em;
+    border-radius: 2.6em;
+    margin-left: -2.6em;
+    margin-top: -2.6em;
+    border: 0px solid #cccccc;
+    background: transparent;
+    outline: 0 !important;
+    /* opacity: 0; */
+    /* animation: show8 6.1s infinite linear; */
+}
+
+.house-card > img {
+    width: 5.2em;
+    height: 5.2em;
+    border-radius: 2.6em;
+    opacity: 1.0;
+    animation: show8 6.1s infinite linear;
+}
+
+.house-card-preview {
+    position: absolute;
+    width: 5.2em;
+    height: 5.2em;
+    border-radius: 2.6em;
+    opacity: 0;
+    z-index: -1;
+}
+

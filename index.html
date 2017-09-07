@@ -56,7 +56,7 @@
   </head>
 
   <body>
-    <div class="dx-splash">
+    <div id="splash" class="dx-splash">
       <div class="slogan">天 涯 若 比 邻</div>
       <img alt="心连心" src="images/splash-logo.png"/>
       <div class="footer">
@@ -71,11 +71,10 @@
     <!--   <div class="navbar-brand"><img src="images/logo.png"><span> 远景网</span></div> -->
     <!-- </div> -->
 
-    <nav class="navbar navbar-default">
+    <nav id="navbar" class="navbar navbar-default">
       <div class="container-fluid">
         <div class="navbar-header">
-          <a class="navbar-brand" href="#">
-            <!-- <img alt="远景网" src="images/logo.png">&nbsp;远景网 -->
+          <a class="navbar-brand" href="">
             <i class="fa fa-globe fa-lg"></i>&nbsp;远景网
           </a>
         </div>
@@ -86,7 +85,6 @@
               <input type="text" class="form-control" title="搜索">
               <span class="form-control-feedback" aria-hidden="true"><i class="fa fa-lg fa-search"></i></span>
             </div>
-            <!-- /.input-group -->
           </li>
         </ul>
         <!-- <ul class="nav navbar-nav navbar-right"> -->
@@ -95,6 +93,16 @@
       </div>
       <!-- /.container-fluid -->
     </nav>
+    
+    <div id="main-panel" class="dx-fullscreen">
+      <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <ul class="nav nav-tabs">
+        <li role="presentation" class="active"><a href="#">收藏</a></li>
+        <li role="presentation"><a href="#">功能</a></li>
+        <li role="presentation"><a href="#">登录</a></li>
+        <li role="presentation"><a href="#">帮助</a></li>
+      </ul>
+    </div>
 
     <div id="map" class="dx-fullscreen"></div>
     <div id="sidebar" class="dx-sidebar"></div>
