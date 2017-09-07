@@ -24,9 +24,9 @@
           right: 0;
           top: 0;
           bottom: 0;
-          z-index: 1024;
           background-color: #fff;
           text-align: center;
+          z-index: 1025;
       }
       .dx-splash > .slogan {
           font-size: 2.0em;
@@ -49,13 +49,16 @@
           color: #555;
       }
     </style>
+    <link rel="stylesheet" href="css/font-awesome/font-awesome.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/bootstrap/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/app.css" type="text/css" />
     <script data-main="js/main" src="js/require.js"></script>
   </head>
 
   <body>
     <div class="dx-splash">
-      <div class="slogan">咫尺天涯 纵横人生</div>
-      <img alt="心连心" src="images/global.png"/>
+      <div class="slogan">天 涯 若 比 邻</div>
+      <img alt="心连心" src="images/splash-logo.png"/>
       <div class="footer">
         <div>远景网</div>
         <div class="copyright">版权所有 @ 2017 德新科技. 保留所有权利</div>
@@ -64,29 +67,36 @@
 
     <div id="global-message"></div>
 
-    <div id="navbar" class="dx-navbar">
-      <div class="navbar-brand">
-        <img alt="远景网" src="css/logo.png"/><div class="navbar-title">远景网</div>
+    <!-- <div id="navbar" class="dx-navbar"> -->
+    <!--   <div class="navbar-brand"><img src="images/logo.png"><span> 远景网</span></div> -->
+    <!-- </div> -->
+
+    <nav class="navbar navbar-default">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">
+            <!-- <img alt="远景网" src="images/logo.png">&nbsp;远景网 -->
+            <i class="fa fa-globe fa-lg"></i>&nbsp;远景网
+          </a>
+        </div>
+        <!-- /.navbar-header -->
+        <ul class="nav navbar-nav navbar-right">
+          <li>
+            <div class="input-group xs-search-form">
+              <input type="text" class="form-control" title="搜索">
+              <span class="form-control-feedback" aria-hidden="true"><i class="fa fa-lg fa-search"></i></span>
+            </div>
+            <!-- /.input-group -->
+          </li>
+        </ul>
+        <!-- <ul class="nav navbar-nav navbar-right"> -->
+        <!--   <li><a class="navbar-link" href="#" title="搜索"><i class="fa fa-search fa-lg"></i></a></li> -->
+        <!-- </ul> -->
       </div>
+      <!-- /.container-fluid -->
+    </nav>
 
-      <!-- <form class="navbar-form navbar-right hidden-xs" role="search"> -->
-      <!--   <div class="intro form-group"> -->
-      <!--     <div class="input-group"> -->
-      <!--       <input type="text" class="form-control" placeholder="搜索"> -->
-      <!--     </div> -->
-      <!--     <\!-- /.input-group -\-> -->
-      <!--   </div> -->
-      <!--   <\!-- /.form-group -\-> -->
-      <!-- </form> -->
-      <!-- <div class="navbar-form navbar-right visible-xs-block "> -->
-      <!--   <div class="intro input-group xs-search-form"> -->
-      <!--     <input type="text" class="form-control" title="搜索"> -->
-      <!--     <span class="form-control-feedback" aria-hidden="true"><i class="fa fa-lg fa-search"></i></span> -->
-      <!--   </div> -->
-      <!--   <\!-- /.input-group -\-> -->
-      <!-- </div> -->
-    </div>
-
+    <div id="map" class="dx-fullscreen"></div>
     <div id="sidebar" class="dx-sidebar"></div>
     <div id="footbar" class="dx-footbar"></div>
   </body>
