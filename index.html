@@ -52,7 +52,7 @@
     <link rel="stylesheet" href="css/font-awesome/font-awesome.min.css" type="text/css" />
     <link rel="stylesheet" href="css/bootstrap/css/bootstrap.min.css" type="text/css" />
     <link rel="stylesheet" href="css/app.css" type="text/css" />
-    <script data-main="js/main" src="js/require.js"></script>
+    <script data-main="app" src="js/lib/require.js"></script>
   </head>
 
   <body>
@@ -65,7 +65,7 @@
       </div>
     </div>
 
-    <div id="global-message"></div>
+    <div id="global-message">message</div>
 
     <!-- <div id="navbar" class="dx-navbar"> -->
     <!--   <div class="navbar-brand"><img src="images/logo.png"><span> 远景网</span></div> -->
@@ -94,14 +94,20 @@
       <!-- /.container-fluid -->
     </nav>
     
-    <div id="main-panel" class="dx-fullscreen">
+    <div id="dashboard" class="dx-fullscreen">
       <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
       <ul class="nav nav-tabs">
-        <li role="presentation" class="active"><a href="#">收藏</a></li>
-        <li role="presentation"><a href="#">功能</a></li>
-        <li role="presentation"><a href="#">登录</a></li>
-        <li role="presentation"><a href="#">帮助</a></li>
+        <li role="presentation" tab-name="#favorite-tab" class="active"><a href="#">收藏</a></li>
+        <li role="presentation" tab-name="#message-tab"><a href="#">消息</a></li>
+        <li role="presentation" tab-name="#profile-tab"><a href="#">我的</a></li>
+        <li role="presentation" tab-name="#function-tab"><a href="#">功能</a></li>
       </ul>
+      <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="favorite-tab">你还没有任何收藏</div>
+        <div role="tabpanel" class="tab-pane" id="message-tab">你还没有任何消息</div>
+        <div role="tabpanel" class="tab-pane" id="profile-tab">登录、注册、注销和设置</div>
+        <div role="tabpanel" class="tab-pane" id="function-tab">帮助、关于</div>
+      </div>
     </div>
 
     <div id="map" class="dx-fullscreen"></div>

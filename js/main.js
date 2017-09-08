@@ -1,11 +1,12 @@
-require.config({
-    paths: {
-        ol: 'lib/ol-4.3.2/ol',
-        dexie: 'lib/dexie-1.5.1/dexie'
-    }
-});
-
 requirejs(['dexie', 'ol'], function(dexie, ol) {
+
+    var globalMessage = document.getElementById('global-message');
+    var showMessage = function (msg) {
+        globalMessage.innerHTML = '<div class="alert alert-warning" role="alert">' +
+            '<button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+            '<strong>Warning!</strong> ' + msg + '</div>';
+        globalMessage.style.display = 'block';
+    };
 
     var location = [-251.03894817,  34.22705742];
     var zoom = 8;
@@ -27,9 +28,8 @@ requirejs(['dexie', 'ol'], function(dexie, ol) {
 
     var navbar = document.getElementById('navbar');
     Array.prototype.forEach.call(navbar.getElementsByClassName('navbar-brand'), function (element) {
-        element.addEventListener('mousedown', function (e) {
-            document.getElementById('main-panel').style.display = 'block';
-            e.stopPropagation();
+        element.addEventListener('click', function (e) {
+            document.getElementById('dashboard').style.display = 'block';
             e.preventDefault();
         }, false);
     });
@@ -49,7 +49,7 @@ requirejs(['dexie', 'ol'], function(dexie, ol) {
         e.target.className += ' active';
     }, false);
     document.body.appendChild(searchResults);
-    
+
     Array.prototype.forEach.call(navbar.getElementsByClassName('xs-search-form'), function (element) {
         element.addEventListener('mousedown', function (e) {
             if (document.hasFocus() && document.activeElement === e.target && searchResults.hasChildNodes() && searchResults.style.display === 'none') {
@@ -67,8 +67,28 @@ requirejs(['dexie', 'ol'], function(dexie, ol) {
         // searchResults.innerHTML = '';
     };
 
+    var dashboard = document.getElementById('dashboard');
+    dashboard.firstElementChild.nextElementSibling.addEventListener('mousedown', function (e) {
+        if (e.target.tagName === 'A') {
+            var li = e.target.parentElement;
+            if (li.className !== 'active') {
+                Array.prototype.forEach.call(li.parentElement.querySelectorAll('ul > li'), function (item) {
+                    item.className = '';
+                    var tabname = item.getAttribute('tab-name');
+                    dashboard.lastElementChild.querySelector(tabname).className = 'tab-pane';
+                });
+                li.className = 'active';
+                var tabname = li.getAttribute('tab-name');
+                dashboard.lastElementChild.querySelector(tabname).className += ' active';
+            }
+            e.stopPropagation();
+            e.preventDefault();
+        }
+    }, false);
+
     document.addEventListener('mousedown', function (e) {
         searchResults.style.display = 'none';
-        document.getElementById('main-panel').style.display = 'none';
+        dashboard.style.display = 'none';
+        document.getElementById('global-message').style.display = 'none';
     }, false);
 });
