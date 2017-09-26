@@ -50,8 +50,10 @@
       }
     </style>
     <link rel="stylesheet" href="css/font-awesome/font-awesome.min.css" type="text/css" />
-    <link rel="stylesheet" href="css/bootstrap/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
     <link rel="stylesheet" href="css/app.css" type="text/css" />
+    <script type="text/javascript" src="js/lib/jquery.min.js"></script>
+    <script type="text/javascript" src="js/lib/bootstrap.min.js"></script>
     <script data-main="app" src="js/lib/require.js"></script>
   </head>
 
@@ -82,7 +84,7 @@
         <ul class="nav navbar-nav navbar-right">
           <li>
             <div class="input-group xs-search-form">
-              <input type="text" class="form-control" title="搜索">
+              <input name="search" type="text" class="form-control" title="搜索">
               <span class="form-control-feedback" aria-hidden="true"><i class="fa fa-lg fa-search"></i></span>
             </div>
           </li>
@@ -97,21 +99,31 @@
     <div id="dashboard" class="dx-fullscreen">
       <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
       <ul class="nav nav-tabs">
-        <li role="presentation" tab-name="#favorite-tab" class="active"><a href="#">收藏</a></li>
-        <li role="presentation" tab-name="#message-tab"><a href="#">消息</a></li>
-        <li role="presentation" tab-name="#profile-tab"><a href="#">我的</a></li>
+        <li role="presentation" tab-name="#message-tab" class="active"><a href="#">消息</a></li>
+        <li role="presentation" tab-name="#favorite-tab"><a href="#">收藏</a></li>
+        <li role="presentation" tab-name="#search-tab"><a href="#">发现</a></li>
         <li role="presentation" tab-name="#function-tab"><a href="#">功能</a></li>
+        <li role="presentation" tab-name="#profile-tab"><a href="#">我的</a></li>
       </ul>
       <div class="tab-content">
-        <div role="tabpanel" class="tab-pane active" id="favorite-tab">你还没有任何收藏</div>
-        <div role="tabpanel" class="tab-pane" id="message-tab">你还没有任何消息</div>
-        <div role="tabpanel" class="tab-pane" id="profile-tab">登录、注册、注销和设置</div>
-        <div role="tabpanel" class="tab-pane" id="function-tab">帮助、关于</div>
+        <div role="tabpanel" class="tab-pane active" id="message-tab">你还没有任何消息</div>
+        <div role="tabpanel" class="tab-pane" id="favorite-tab">你还没有任何收藏</div>
+        <div role="tabpanel" class="tab-pane" id="search-tab">高级搜索</div>
+        <div role="tabpanel" class="tab-pane" id="function-tab">常用功能</div>
+        <div role="tabpanel" class="tab-pane" id="profile-tab">登录、注册、注销、设置、帮助、关于</div>
       </div>
     </div>
 
     <div id="map" class="dx-fullscreen"></div>
-    <div id="sidebar" class="dx-sidebar"></div>
+    <div id="overview" class="dx-overview"></div>
+
+    <div id="photo" class="dx-showcase"></div>
+    <div id="video" class="dx-showcase"></div>
+    <div id="panorama" class="dx-showcase"></div>
+    <div id="live" class="dx-showcase"></div>
+
+    <div id="leftbar" class="dx-leftbar"></div>
+    <div id="rightbar" class="dx-rightbar"></div>
     <div id="footbar" class="dx-footbar"></div>
   </body>
 </html>
