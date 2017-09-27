@@ -74,14 +74,14 @@ define( [ 'ol', 'db' ], function ( ol, db ) {
     var _featureLoader = function ( extent, resolution, projection ) {
 
         var source = this;
-        var fmt = ol.format.WKT();
+        var fmt = new ol.format.WKT();
 
         db.query( function ( items ) {
             items.forEach( function ( item ) {
                 var feature = fmt.readFeature( item.gemoetry );
                 if ( feature ) {
-                    if ( item.icon )
-                        feature.setStyle( new ol.style.Icon( { src: item.icon } ) );
+                    feature.setId( item.id );
+                    feature.setProperties( { icon: item.icon, url: item.url }, true );
                     source.addFeature( feature );
                 }
             } );
@@ -119,8 +119,19 @@ define( [ 'ol', 'db' ], function ( ol, db ) {
         } );
       };
 
-      var maxFeatureCount;
-      function calculateClusterInfo( resolution ) {
+    var defaultStyle = new ol.style.Style( {
+        image: new ol.style.RegularShape( {
+            radius1: 20,
+            radius2: 3,
+            points: 5,
+            angle: Math.PI,
+            fill: spriteFill,
+            stroke: spriteStroke
+        } )
+    } );
+
+    var maxFeatureCount;
+    function calculateClusterInfo( resolution ) {
         maxFeatureCount = 0;
         var features = _layer.getSource().getFeatures();
         var feature, radius;
@@ -167,7 +178,7 @@ define( [ 'ol', 'db' ], function ( ol, db ) {
             var originalFeature = feature.get( 'features' )[ 0 ];
             style = originalFeature.getStyle();
             if ( style === null )
-                style = createDefaultStyle( originalFeature );
+                style = defaultStyle;
         }
 
         return style;

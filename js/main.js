@@ -1,4 +1,4 @@
-define( [ 'dxmap', 'dashboard', 'utils' ], function( dxmap, dashboard, utils ) {
+define( [ 'dxmap', 'dashboard', 'search', 'utils' ], function( dxmap, dashboard, search, utils ) {
 
     var navbar = document.getElementById( 'navbar' );
 
