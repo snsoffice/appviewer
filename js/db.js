@@ -13,7 +13,7 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
     _db.version( 1 ).stores( {
 
         settings: "++id, &name, value, description",
-        features: "++id, &title, geometry, preview, url",
+        features: "id, &title, geometry, preview, url",
 
     } );
 
@@ -116,10 +116,12 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
     //
     function queryFeatures( callback, title ) {
 
-        if ( title === undefined )
-            _db.features.toArray().then( callback );
-        else
-            _db.features.where( 'title' ).startsWith( title ).toArray().then( callback );
+        _db.transaction( 'r', _db.features, function () {
+            if ( title === undefined )
+                _db.features.toArray().then( callback );
+            else
+                _db.features.where( 'title' ).startsWith( title ).toArray().then( callback );
+        } );
 
     }
 
