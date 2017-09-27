@@ -16,7 +16,7 @@ define( [ 'ol', 'db' ], function ( ol, db ) {
                 preload: Infinity,
                 source: new ol.source.BingMaps( {
                     key: 'AtHtvweLfmjJag2BTGXsX0kW-2ExduYJXOU-78cgNz4Y_m7UylYgMmfbEwlYyPPb',
-                    imagerySet: 'Aerial',
+                    imagerySet: 'AerialWithLabels',
                     // use maxZoom 19 to see stretched tiles instead of the BingMaps
                     // "no photos at this zoom level" tiles
                     maxZoom: 19
@@ -36,7 +36,7 @@ define( [ 'ol', 'db' ], function ( ol, db ) {
 
         }
 
-        else if ( verder === 'osm' ) {
+        else if ( vendor === 'osm' ) {
 
             return new ol.layer.Tile( {
                 source: new ol.source.OSM()
@@ -192,9 +192,9 @@ define( [ 'ol', 'db' ], function ( ol, db ) {
 
 
     var _location = [ -251.03894817, 34.22705742 ];
-    var _zoom = 8;
+    var _zoom = 10;
     var _distance = 40;
-    var _baseLayer = _publicMap( 'gaode' );
+    var _baseLayer = _publicMap( 'bings' );
     var _layer = new ol.layer.Vector( {
         source: new ol.source.Cluster( {
             distance: _distance,

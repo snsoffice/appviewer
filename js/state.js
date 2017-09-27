@@ -6,7 +6,8 @@ define( function () {
 
     return {
 
-        online: _online
+        online: _online,
+        settings: {},
 
     }
 

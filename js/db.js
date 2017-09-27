@@ -18,7 +18,6 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
     } );
 
     var SettingItem = _db.settings.defineClass( {
-
         id: Number,
         name: String,
         value: String,
@@ -30,6 +29,31 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
 
         return db.settings.put( this );
 
+    }
+
+    function querySettings() {
+        _db.transaction( 'r', _db.settings, function () {
+            var settings = state.settings;
+            _db.settings.each( function ( item ) {
+                settings[item.name] = item.value;
+            } );
+        } );
+    }
+
+    function saveSettings() {
+        _db.transaction( 'rw', _db.settings, function () {
+            var settings = state.settings;
+            _db.settings.modify( function( item ) {
+                item.value = settings[ item.name ];
+            } );
+        } );
+    }
+
+    function newSetting( name, value ) {
+        _db.settings.add( {
+            name: name,
+            value: valude,
+        } );
     }
 
     var MapFeature = _db.features.defineClass( {
@@ -141,11 +165,21 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
     // App 启动进行数据同步操作
     synchronizeHandler();
 
+    // 
+    // 初始化 state.settings
+    // 
+    querySettings();
+
     return {
 
         synchronize: synchronizeHandler,
 
         query: queryFeatures,
+
+        newSetting: newSetting,
+
+        saveSettings: saveSettings,
+
     }
 
 });
