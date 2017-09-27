@@ -78,7 +78,7 @@ define( [ 'ol', 'db' ], function ( ol, db ) {
 
         db.query( function ( items ) {
             items.forEach( function ( item ) {
-                var feature = fmt.readFeature( item.gemoetry );
+                var feature = fmt.readFeature( item.geometry );
                 if ( feature ) {
                     feature.setId( item.id );
                     feature.setProperties( { icon: item.icon, url: item.url }, true );
