@@ -12,8 +12,8 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
 
     _db.version( 1 ).stores( {
 
-        settings: "++id, &name, value, description",
-        features: "id, &title, geometry, preview, url",
+        settings: '++id, &name, value, description',
+        features: 'id, &title, geometry, icon, url',
 
     } );
 
@@ -157,17 +157,17 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
     window.addEventListener( 'online', synchronizeHandler, false );
 
     // 登录成功之后进行数据同步操作
-    document.addEventListener( "login", synchronizeHandler, false );
+    document.addEventListener( 'login', synchronizeHandler, false );
 
     // App 后台切换到前台时候进行数据同步操作
-    document.addEventListener( "resume", synchronizeHandler, false );
+    document.addEventListener( 'resume', synchronizeHandler, false );
 
     // App 启动进行数据同步操作
     synchronizeHandler();
 
-    // 
+    //
     // 初始化 state.settings
-    // 
+    //
     querySettings();
 
     return {
