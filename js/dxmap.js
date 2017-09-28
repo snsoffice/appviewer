@@ -81,7 +81,7 @@ define( [ 'ol', 'db' ], function ( ol, db ) {
                 var feature = fmt.readFeature( item.geometry );
                 if ( feature ) {
                     feature.setId( item.id );
-                    feature.setProperties( { icon: item.icon, url: item.url }, true );
+                    feature.setProperties( { url: item.url }, true );
                     source.addFeature( feature );
                 }
             } );
@@ -191,6 +191,64 @@ define( [ 'ol', 'db' ], function ( ol, db ) {
     Map.prototype.save = function () {}
 
 
+    /**
+     * @constructor
+     * @extends {ol.interaction.Pointer}
+     */
+    var ClickAction = function() {
+
+        ol.interaction.Pointer.call(this, {
+          handleDownEvent: ClickAction.prototype.handleDownEvent
+        });
+
+        /**
+         * @type {ol.Pixel}
+         * @private
+         */
+        this.coordinate_ = null;
+
+        /**
+         * @type {string|undefined}
+         * @private
+         */
+        this.cursor_ = 'pointer';
+
+        /**
+         * @type {ol.Feature}
+         * @private
+         */
+        this.feature_ = null;
+
+        /**
+         * @type {string|undefined}
+         * @private
+         */
+        this.previousCursor_ = undefined;
+
+    };
+    ol.inherits( ClickAction, ol.interaction.Pointer );
+
+
+    /**
+     * @param {ol.MapBrowserEvent} evt Map browser event.
+     * @return {boolean} `true` to start the drag sequence.
+     */
+    ClickAction.prototype.handleDownEvent = function( evt ) {
+
+        var map = evt.map;
+
+        var feature = map.forEachFeatureAtPixel(evt.pixel, function( feature, layer ) {
+            var featuerLayer = layer;
+            return feature;
+        } );
+
+        if ( feature ) {
+            this.coordinate_ = evt.coordinate;
+            this.feature_ = feature;
+        }
+
+    };
+
     var _location = [ -251.03894817, 34.22705742 ];
     var _zoom = 10;
     var _distance = 40;
@@ -203,8 +261,10 @@ define( [ 'ol', 'db' ], function ( ol, db ) {
         style: styleFunction
       } );
 
+    
     var _map = new ol.Map( {
         target: 'map',
+        interactions: ol.interaction.defaults().extend( [ new ClickAction() ] ),
         layers: [ _baseLayer, _layer ],
         view: new ol.View( {
             center: ol.proj.fromLonLat( _location ),
