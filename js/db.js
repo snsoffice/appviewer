@@ -81,28 +81,28 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
                     id: 1,
                     title: '华清池御汤酒店',
                     geometry: 'POINT (12156763.90 4077916.87)',
-                    icon: '',
+                    icon: 'hotel',
                     url: 'http://owtayt1td.bkt.clouddn.com/huaqingchi',
                 } );
                 _db.features.add( {
                     id: 2,
                     title: '西北大学长安校区',
                     geometry: 'POINT (12119354.46 4048989.50)',
-                    icon: '',
+                    icon: 'school',
                     url: 'http://owtayt1td.bkt.clouddn.com/xibeidaxue/changanxiaoqu',
                 } );
                 _db.features.add( {
                     id: 3,
                     title: '绿地世纪城',
                     geometry: 'POINT (12119428.31 4055374.30)',
-                    icon: '',
+                    icon: 'village',
                     url: 'http://owtayt1td.bkt.clouddn.com/lvdishijicheng',
                 } );
                 _db.features.add( {
                     id: 4,
                     title: '咸阳国际机场',
                     geometry: 'POINT (12107045.45 4088525.52)',
-                    icon: '',
+                    icon: 'airport',
                     url: 'http://owtayt1td.bkt.clouddn.com/xianyangguojijichang',
                 } );
                 return 4;
