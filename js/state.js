@@ -8,6 +8,7 @@ define( function () {
 
         online: _online,
         settings: {},
+        layerIconPrefix: 'images/icons',
 
     }
 
