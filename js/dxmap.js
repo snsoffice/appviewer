@@ -1,4 +1,4 @@
-define( [ 'ol', 'db' ], function ( ol, db ) {
+define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
 
     var _publicMap = function ( vendor ) {
 
@@ -81,13 +81,40 @@ define( [ 'ol', 'db' ], function ( ol, db ) {
                 var feature = fmt.readFeature( item.geometry );
                 if ( feature ) {
                     feature.setId( item.id );
-                    feature.setProperties( { url: item.url }, true );
+                    feature.setProperties( { icon: item.icon, url: item.url }, true );
                     source.addFeature( feature );
                 }
             } );
         } );
 
     };
+
+    function createOverlay( map ) {
+
+        var element = document.createElement( 'DIV' );
+        element.style.textAlign = 'center';
+        // element.style.border = '2px solid #000';
+        var img1 = document.createElement( 'IMG' );
+        img1.src = utils.createVisualization();
+        img1.style.opacity = 0.168;
+        var img2 = document.createElement( 'IMG' );
+        img2.src = 'images/marker.png';
+        img2.width = 32;
+        img2.height = 32;
+        element.appendChild( img1 );
+        element.appendChild( document.createElement( 'DIV' ) );
+        element.appendChild( img2 );
+
+        var marker = new ol.Overlay({
+            element: element,
+            positioning: 'bottom-center',
+            stopEvent: false,
+            offset: [ 0, -32 ]
+        });
+        map.addOverlay( marker );
+        marker.setPosition( map.getView().getCenter() );
+
+    }
 
     var spriteFill = new ol.style.Fill( {
         color: 'rgba(255, 153, 0, 0.8)'
@@ -104,20 +131,7 @@ define( [ 'ol', 'db' ], function ( ol, db ) {
         width: 3
     } );
 
-    var createDefaultStyle = function ( feature ) {
-        var radius = 20;
-        return new ol.style.Style( {
-          geometry: feature.getGeometry(),
-          image: new ol.style.RegularShape( {
-            radius1: radius,
-            radius2: 3,
-            points: 5,
-            angle: Math.PI,
-            fill: spriteFill,
-            stroke: spriteStroke
-          } )
-        } );
-      };
+    var defaultIconStyles = {};
 
     var defaultStyle = new ol.style.Style( {
         image: new ol.style.RegularShape( {
@@ -129,6 +143,26 @@ define( [ 'ol', 'db' ], function ( ol, db ) {
             stroke: spriteStroke
         } )
     } );
+
+    var createDefaultStyle = function ( feature ) {
+        var icon = feature.get( 'icon' );
+        if ( ! typeof icon === 'string' )
+            return defaultStyle;
+        var style = defaultIconStyles.get( icon );
+        if ( style )
+            return style;
+        var url = 'images/icons/' + icon + '.png';
+        style =  new ol.style.Style( {
+            image: new ol.style.Icon( {
+                anchor: [0.5, 46],
+                anchorXUnits: 'fraction',
+                anchorYUnits: 'pixels',
+                src: url
+            } )
+        } );
+        defaultIconStyles[ icon ] = style;
+        return style;
+      };
 
     var maxFeatureCount;
     function calculateClusterInfo( resolution ) {
@@ -261,7 +295,7 @@ define( [ 'ol', 'db' ], function ( ol, db ) {
         style: styleFunction
       } );
 
-    
+
     var _map = new ol.Map( {
         target: 'map',
         interactions: ol.interaction.defaults().extend( [ new ClickAction() ] ),
@@ -275,6 +309,8 @@ define( [ 'ol', 'db' ], function ( ol, db ) {
     _baseLayer.once( 'postcompose', function ( e ) {
         document.getElementById( 'splash' ).remove();
     } );
+
+    createOverlay( _map );
 
     return Map( _map );
 
