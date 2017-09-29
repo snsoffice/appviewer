@@ -1,4 +1,4 @@
-requirejs( [ 'easyrtc', 'utils' ], function ( easyrtc, utils ) {
+define( [ 'easyrtc', 'utils' ], function ( easyrtc, utils ) {
 
     var _server = 'http://snsoffice.com:9090';
     var _appname = 'plone-nowadays';

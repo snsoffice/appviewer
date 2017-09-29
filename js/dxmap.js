@@ -1,4 +1,4 @@
-define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
+define( [ 'ol', 'db', 'overview', 'utils' ], function ( ol, db, Overview, utils ) {
 
     var _publicMap = function ( vendor ) {
 
@@ -108,7 +108,6 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
         var marker = new ol.Overlay({
             element: element,
             positioning: 'bottom-center',
-            stopEvent: false,
             offset: [ 0, -32 ]
         });
         map.addOverlay( marker );
@@ -299,6 +298,7 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
     var _map = new ol.Map( {
         target: 'map',
         interactions: ol.interaction.defaults().extend( [ new ClickAction() ] ),
+        controls: new ol.Collection(),
         layers: [ _baseLayer, _layer ],
         view: new ol.View( {
             center: ol.proj.fromLonLat( _location ),

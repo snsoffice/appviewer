@@ -1,4 +1,4 @@
-requirejs( [], function () {
+define( [], function () {
 
     var _user = {
         name: window.localStorage.getItem('userName', ''),

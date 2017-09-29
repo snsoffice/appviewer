@@ -1,13 +1,12 @@
-requirejs( [], function () {
+define( [ 'ol' ], function ( ol ) {
 
     // Class
-    function Overview(path, description) {
-        this.path = path;
-        this.description = description; 
+    function Overview( map ) {
+        this.map = map;
+        
     }
 
-    Overview.prototype.save = function () {
-        return db.folders.put(this);
+    Overview.prototype.addLayer = function () {
     }
 
     return Overview;

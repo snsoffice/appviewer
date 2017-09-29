@@ -1,4 +1,4 @@
-requirejs( [ 'db', 'state', 'utils' ], function ( db, state, utils ) {
+define( [ 'db', 'state', 'utils' ], function ( db, state, utils ) {
 
     var _searchResults = document.createElement('UL');
     _searchResults.className = 'list-group search-result-list';
