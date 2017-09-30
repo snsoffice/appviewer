@@ -10,7 +10,7 @@ define( [ 'db', 'state', 'utils' ], function ( db, state, utils ) {
         } );
         e.target.className += ' active';
     }, false);
-    document.body.appendChild( _searchResults );
+    document.getElementById( 'navbar' ).appendChild( _searchResults );
 
     var html = window.localStorage.getItem('searchResults');
     _searchResults.innerHTML = html === null ? '' : html;
