@@ -18,11 +18,11 @@ define( [ 'dxmap', 'dashboard', 'search', 'utils' ], function( dxmap, dashboard,
         var visible = element.style.visibility === 'visible';
         if ( visible ) {
             element.style.visibility = 'hidden';
-            e.target.firstElementChild.className = 'fa fa-angle-double-left';
+            e.currentTarget.firstElementChild.className = 'fa fa-angle-double-left';
         }
         else {
             element.style.visibility = 'visible';
-            e.target.firstElementChild.className = 'fa fa-angle-double-right';
+            e.currentTarget.firstElementChild.className = 'fa fa-angle-double-right';
         }
     } );
 
