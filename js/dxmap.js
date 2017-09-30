@@ -44,6 +44,14 @@ define( [ 'ol', 'db', 'overview', 'utils' ], function ( ol, db, Overview, utils 
 
         }
 
+        else if ( vendor === 'stamen' ) {
+
+            return new ol.layer.Tile( {
+                source: new ol.source.Stamen( {
+                    layer: 'watercolor'
+                } )
+            } )
+        }
         else {
 
             // 中文 Bings Road
@@ -93,6 +101,7 @@ define( [ 'ol', 'db', 'overview', 'utils' ], function ( ol, db, Overview, utils 
 
         var element = document.createElement( 'DIV' );
         element.style.textAlign = 'center';
+        element.style.pointerEvents = 'none';
         // element.style.border = '2px solid #000';
         var img1 = document.createElement( 'IMG' );
         img1.src = utils.createVisualization();
@@ -108,6 +117,7 @@ define( [ 'ol', 'db', 'overview', 'utils' ], function ( ol, db, Overview, utils 
         var marker = new ol.Overlay({
             element: element,
             positioning: 'bottom-center',
+            stopEvent: false,
             offset: [ 0, -32 ]
         });
         map.addOverlay( marker );
@@ -285,7 +295,7 @@ define( [ 'ol', 'db', 'overview', 'utils' ], function ( ol, db, Overview, utils 
     var _location = [ -251.03894817, 34.22705742 ];
     var _zoom = 10;
     var _distance = 40;
-    var _baseLayer = _publicMap( 'bings' );
+    var _baseLayer = _publicMap( 'stamen' );
     var _layer = new ol.layer.Vector( {
         source: new ol.source.Cluster( {
             distance: _distance,
@@ -311,6 +321,8 @@ define( [ 'ol', 'db', 'overview', 'utils' ], function ( ol, db, Overview, utils 
     } );
 
     createOverlay( _map );
+
+    var _ovmap = new Overview( _map );
 
     return Map( _map );
 

@@ -96,7 +96,7 @@
       </div>
       <!-- /.container-fluid -->
     </nav>
-    
+
     <div id="dashboard" class="dx-fullscreen">
       <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
       <ul class="nav nav-tabs">
@@ -116,15 +116,21 @@
     </div>
 
     <div id="map" class="dx-fullscreen"></div>
-    <div id="overview" class="dx-overview"></div>
 
-    <div id="photo" class="dx-showcase"></div>
-    <div id="video" class="dx-showcase"></div>
-    <div id="panorama" class="dx-showcase"></div>
-    <div id="live" class="dx-showcase"></div>
+    <div id="overview" class="dx-mini dx-overview">
+      <button type="button" class="btn btn-default btn-lg" id="toggle-overview"><i class="fa fa-angle-double-left"></i></button>
+    </div>
 
-    <div id="leftbar" class="dx-leftbar"></div>
-    <div id="rightbar" class="dx-rightbar"></div>
-    <div id="footbar" class="dx-footbar"></div>
+    <div id="showcase" class="dx-fullscreen hidden">
+      <div id="photo" class="dx-showcase"></div>
+      <div id="video" class="dx-showcase"></div>
+      <div id="panorama" class="dx-showcase"></div>
+      <div id="live" class="dx-showcase"></div>
+
+      <div id="leftbar" class="dx-leftbar"></div>
+      <div id="rightbar" class="dx-rightbar"></div>
+      <div id="footbar" class="dx-footbar"></div>
+    </div>
+
   </body>
 </html>
