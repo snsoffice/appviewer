@@ -51,6 +51,7 @@
     </style>
     <link rel="stylesheet" href="css/font-awesome/font-awesome.min.css" type="text/css" />
     <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/pannellum.css" type="text/css" />
     <link rel="stylesheet" href="css/ol.css" type="text/css" />
     <link rel="stylesheet" href="css/app.css" type="text/css" />
     <script type="text/javascript" src="js/lib/jquery.min.js"></script>
@@ -121,15 +122,65 @@
       <button type="button" class="btn btn-default btn-lg" id="toggle-overview"><i class="fa fa-angle-double-left"></i></button>
     </div>
 
-    <div id="showcase" class="dx-fullscreen hidden">
-      <div id="photo" class="dx-showcase"></div>
-      <div id="video" class="dx-showcase"></div>
-      <div id="panorama" class="dx-showcase"></div>
-      <div id="live" class="dx-showcase"></div>
+    <div id="toolbar" class="dx-toolbar">
+      <button type="button" class="btn btn-default btn-lg" id="toolbar-title">Title</button>
+      <div class="pull-right">
+        <button type="button" class="btn btn-default btn-lg" id="toolbar-message"><i class="fa fa-comment"></i></button>
+        <button type="button" class="btn btn-default btn-lg" id="toolbar-shoot"><i class="fa fa-video-camera"></i></button>
+        <button type="button" class="btn btn-default btn-lg" id="toolbar-return"><i class="fa fa-level-up"></i></button>
+      </div>
+    </div>
 
-      <div id="leftbar" class="dx-leftbar"></div>
-      <div id="rightbar" class="dx-rightbar"></div>
-      <div id="footbar" class="dx-footbar"></div>
+    <div id="showcase" class="dx-fullscreen">
+      <div class="dx-showcase-toolbar">
+        <button type="button" class="btn btn-default"><i class="fa fa-microphone-slash"></i></button>
+        <button type="button" class="btn btn-default"><i class="fa fa-volume-off"></i></button>
+        <button type="button" class="btn btn-default"><i class="fa fa-close"></i></button>
+      </div>
+      <div id="photo" class="dx-showcase">
+        <div id="carousel-showcase" class="carousel slide" data-ride="no-carousel">
+          <!-- Indicators -->
+          <ol class="carousel-indicators">
+            <li data-target="#carousel-showcase" data-slide-to="0" class="active"></li>
+            <li data-target="#carousel-showcase" data-slide-to="1"></li>
+            <li data-target="#carousel-showcase" data-slide-to="2"></li>
+          </ol>
+
+          <!-- Wrapper for slides -->
+          <div class="carousel-inner" role="listbox">
+            <div class="item active">
+              <img class="img-rounded img-responsive center-block" src="data/html/images/cup.png" alt="九龙杯" />
+              <div class="carousel-caption"> 九龙杯 </div>
+            </div>
+            <div class="item">
+              <img class="img-rounded img-responsive center-block" src="data/html/images/chan.jpg" alt="金蝉玉叶" />
+              <div class="carousel-caption"> 金蝉玉叶 </div>
+            </div>
+            <div class="item">
+              <img class="img-rounded img-responsive center-block" src="data/html/images/guifei.jpg" alt="贵妃出浴图" />
+              <div class="carousel-caption"> 贵妃出浴图 </div>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <a class="left carousel-control" href="#carousel-showcase" role="button" data-slide="prev">
+            <span class="glyphicon glyphicon-chevron-left hidden" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a class="right carousel-control" href="#carousel-showcase" role="button" data-slide="next">
+            <span class="glyphicon glyphicon-chevron-right hidden" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>
+        </div>
+      </div>
+      <div id="video" class="dx-showcase">
+      </div>
+      <div id="panorama" class="dx-showcase" style="visibility: visible;">
+        <div id="panorama-container"></div>
+      </div>
+      <div id="live" class="dx-showcase">
+        <canvas id="live-canvas"></canvas>
+      </div>
     </div>
 
   </body>
