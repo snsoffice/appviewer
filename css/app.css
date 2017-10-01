@@ -150,7 +150,6 @@
 
 .owl-carousel .owl-item img {
     width: auto;
-    object-fit: contain;
 }
 
 .owl-theme .owl-dots {
