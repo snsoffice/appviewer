@@ -36,8 +36,8 @@
     position: absolute;
     right: 2px;
     bottom: 2px;
-    width: 300px;
-    height: 200px;
+    width: 240px;
+    height: 180px;
 }
 
 @media (max-device-width: 480px) and (orientation: landscape) {
@@ -80,7 +80,6 @@
     z-index: 10;
 
     visibility: hidden;
-    user-select: none;
 }
 
 .dx-toolbar button {
@@ -135,7 +134,7 @@
     position: absolute;
     right: 0;
     top: 0;
-    z-index: 1;
+    z-index: 10;
 }
 
 #live-canvas, #panorama-container {
@@ -143,6 +142,7 @@
     height: 100%;
 }
 
+#photo > .owl-stage-outer,
 #carousel-showcase.carousel {
     position: absolute;
     left: 0;
@@ -182,6 +182,15 @@
     filter: alpha(opacity=90);
     outline: 0;
     opacity: .9;
+}
+
+#showcase, .dx-toolbar, button {
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 /*
