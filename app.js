@@ -7,6 +7,8 @@ require.config( {
         easyrtc: 'lib/easyrtc.min',
         dexie: 'lib/dexie-1.5.1/dexie.min',
         three: 'lib/three.min',
+        pannellum: 'lib/pannellum',
+        libpannellum: 'lib/libpannellum',
         'socket.io': 'lib/socket.io.min',
     }
 
