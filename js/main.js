@@ -1,4 +1,4 @@
-define( [ 'dxmap', 'dashboard', 'search', 'utils' ], function( dxmap, dashboard, search, utils ) {
+define( [ 'dxmap', 'dashboard', 'search', 'utils', 'carousel' ], function( dxmap, dashboard, search, utils, carousel ) {
 
     var navbar = document.getElementById( 'navbar' );
 
@@ -26,5 +26,17 @@ define( [ 'dxmap', 'dashboard', 'search', 'utils' ], function( dxmap, dashboard,
         }
     } );
 
+    document.getElementById( 'showcase' ).addEventListener( 'dblclick', function ( e ) {
+        var element = e.currentTarget;
+        element.className = ( element.className === 'dx-mini') ? 'dx-fullscreen' : 'dx-mini';
+    } );
+
+    document.getElementById( 'toggle-showcase' ).addEventListener( 'click', function ( e ) {
+        var element = document.getElementById( 'showcase' );
+        var mini = ( element.className === 'dx-mini' );
+        e.currentTarget.firstElementChild.className =  mini ? 'fa fa-chevron-down' : 'fa fa-chevron-up';
+        element.className = mini ? 'dx-fullscreen' : 'dx-mini';
+        document.dispatchEvent( new Event( 'toggle-showcase' ) );
+    } );
 
 } );
