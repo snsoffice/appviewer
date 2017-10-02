@@ -1,11 +1,18 @@
-define( [ 'dxmap', 'dashboard', 'search', 'utils', 'carousel' ], function( dxmap, dashboard, search, utils, carousel ) {
+define( [ 'dxmap', 'search', 'utils' ], function( dxmap, search, utils ) {
 
     var navbar = document.getElementById( 'navbar' );
 
     Array.prototype.forEach.call( navbar.getElementsByClassName( 'navbar-brand' ), function ( element ) {
         element.addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            document.getElementById( 'dashboard' ).style.display = 'block';
+            document.getElementById( 'org-dashboard' ).style.display = 'block';
+        }, false );
+    });
+
+    Array.prototype.forEach.call( navbar.getElementsByClassName( 'dx-user' ), function ( element ) {
+        element.addEventListener( 'click', function ( e ) {
+            e.preventDefault();
+            document.getElementById( 'my-dashboard' ).style.display = 'block';
         }, false );
     });
 
@@ -26,17 +33,24 @@ define( [ 'dxmap', 'dashboard', 'search', 'utils', 'carousel' ], function( dxmap
         }
     } );
 
-    document.getElementById( 'showcase' ).addEventListener( 'dblclick', function ( e ) {
-        var element = e.currentTarget;
-        element.className = ( element.className === 'dx-mini') ? 'dx-fullscreen' : 'dx-mini';
-    } );
 
-    document.getElementById( 'toggle-carousels' ).addEventListener( 'click', function ( e ) {
+    function toggleShowcase() {
         var element = document.getElementById( 'showcase' );
         var mini = ( element.className === 'dx-mini' );
         e.currentTarget.firstElementChild.className =  mini ? 'fa fa-chevron-down' : 'fa fa-chevron-up';
         element.className = mini ? 'dx-fullscreen' : 'dx-mini';
-        document.dispatchEvent( new Event( 'toggle-carousels' ) );
-    } );
+        document.dispatchEvent( new Event( 'toggle-showcase' ) );
+    }
+
+    function hideShowcase() {
+        var element = document.getElementById( 'showcase' );
+        element.style.visibility = 'hidden';
+        document.dispatchEvent( new Event( 'hide-showcase' ) );
+    }
+
+    document.getElementById( 'showcase' ).addEventListener( 'dblclick', toggleShowcase,  false );
+    document.getElementById( 'toggle-showcase' ).addEventListener( 'click', toggleShowcase,  false );
+    document.getElementById( 'close-showcase' ).addEventListener( 'click', hideShowcase,  false );
+
 
 } );

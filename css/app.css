@@ -12,24 +12,12 @@
     z-index: -1;
 }
 
-.dxmap-control {
-    z-index: -1;
-}
-
 .dx-fullscreen {
     position: absolute;
     left: 0;
     right: 0;
     top: 0;
     bottom: 0;
-}
-
-.dx-carousel {
-}
-
-.dx-float {
-    position: absolute;
-    z-index: 10;
 }
 
 .dx-mini {
@@ -118,7 +106,7 @@
 
 #showcase {
     z-index: 80;
-    /* visibility: hidden; */
+    visibility: hidden;
 }
 
 .dx-showcase {
@@ -330,13 +318,15 @@
     vertical-align: top;
 }
 
-#dashboard {
+#org-dashboard,
+#my-dashboard {
     display: none;
     background: #f5f5f5;
     z-index: 1024;
 }
 
-#dashboard > .close {
+#org-dashboard > .close,
+#my-dashboard > .close {
     margin: 10px;
 }
 

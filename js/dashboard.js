@@ -1,6 +1,6 @@
 define( [ 'utils' ], function ( utils ) {
 
-    var dashboard = document.getElementById( 'dashboard' );
+    var dashboard = document.getElementById( 'my-dashboard' );
 
     dashboard.firstElementChild.nextElementSibling.addEventListener( 'click', function ( e ) {
         e.preventDefault();
