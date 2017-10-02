@@ -102,6 +102,7 @@ define( [ 'ol', 'db', 'overview', 'utils' ], function ( ol, db, Overview, utils 
         var element = document.createElement( 'DIV' );
         element.style.textAlign = 'center';
         element.style.pointerEvents = 'none';
+        element.style.userSelect = 'none';
         // element.style.border = '2px solid #000';
         var img1 = document.createElement( 'IMG' );
         img1.src = utils.createVisualization();

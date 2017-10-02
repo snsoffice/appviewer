@@ -1,30 +1,9 @@
-define( [ 'easyrtc', 'utils' ], function ( easyrtc, utils ) {
+define( [ 'pannellum', 'utils' ], function ( pannellum, utils ) {
 
-    var _server = 'http://snsoffice.com:9090';
-    var _appname = 'plone-nowadays';
-    var _easyrid = undefined;
+    var panoConfig = { panorama: 'data/html/examplepano.jpg' };
+    var panoViewer = pannellum.viewer( 'panorama-container', panoConfig );
 
-    function Overview(path, description) {
-        this.path = path;
-        this.description = description;
+    return {
     }
-
-    Overview.prototype.save = function () {
-        return db.folders.put(this);
-    }
-
-
-    function onConnect( rid, room ) {
-        _easyrid = rid;
-    }
-
-    function onFailed( event, msg ) {
-        utils.warning( '连接 WebRTC 服务 ' + _server + ' 失败: ' + msg );
-    }
-
-    easyrtc.setSocketUrl( _server );
-    easyrtc.connect( _appname,onConnect, onFailed );
-
-    return Overview;
 
 });
