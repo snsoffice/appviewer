@@ -50,6 +50,7 @@
       }
     </style>
 
+    <link rel="stylesheet" href="css/video-js.min.css" type="text/css" />
     <link rel="stylesheet" href="css/owl.carousel.min.css" type="text/css" />
     <link rel="stylesheet" href="css/font-awesome/font-awesome.min.css" type="text/css" />
     <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
@@ -84,17 +85,24 @@
       <div class="container-fluid">
         <div class="navbar-header">
           <a class="navbar-brand" href="">
-            <i class="fa fa-globe fa-lg"></i>&nbsp;远景网
-          </a>
+            <i class="fa fa-camera fa-lg"></i>&nbsp;远景网
+          </a>          
         </div>
         <!-- /.navbar-header -->
         <ul class="nav navbar-nav navbar-right">
           <li>
-            <form class="input-group xs-search-form">
-              <input name="search" type="text" class="form-control" title="搜索">
-              <span class="form-control-feedback" aria-hidden="true"><i class="fa fa-lg fa-search"></i></span>
-            </form>
+            <button class="btn btn-default dx-user" type="button" id="navbar-user">
+              <i class="fa fa-lg fa-user"></i><span class="fa fa-circle"></span>
+            </button>
           </li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <li>
+            <form class="input-group xs-search-form">
+              <span class="form-control-feedback" aria-hidden="true"><i class="fa fa-lg fa-search"></i></span>
+              <input name="search" type="text" class="form-control" title="搜索">
+            </form>
+          </li>          
         </ul>
         <!-- <ul class="nav navbar-nav navbar-right"> -->
         <!--   <li><a class="navbar-link" href="#" title="搜索"><i class="fa fa-search fa-lg"></i></a></li> -->
@@ -130,7 +138,7 @@
     <div id="toolbar" class="dx-toolbar">
       <button type="button" class="btn btn-default btn-lg" id="toolbar-title">Title</button>
       <div class="pull-right">
-        <button type="button" class="btn btn-default btn-lg" id="toolbar-message"><i class="fa fa-comment"></i></button>
+        <button type="button" class="btn btn-default btn-lg dx-user" id="toolbar-user"><i class="fa fa-user"></i><span class="fa fa-circle"></span></button>
         <button type="button" class="btn btn-default btn-lg" id="toolbar-shoot"><i class="fa fa-video-camera"></i></button>
         <button type="button" class="btn btn-default btn-lg" id="toolbar-return"><i class="fa fa-level-up"></i></button>
       </div>
@@ -144,12 +152,36 @@
           <button type="button" class="btn btn-default"><i class="fa fa-close"></i></button>
         </div>
         <div class="owl-carousel owl-theme">
+          <!-- <div> -->
+          <!--   <video -->
+          <!--      id="my-player" -->
+          <!--      class="video-js" -->
+          <!--      controls -->
+          <!--      preload="auto" -->
+          <!--      poster="//vjs.zencdn.net/v/oceans.png" -->
+          <!--      data-setup='{}'> -->
+          <!--     <source src="//vjs.zencdn.net/v/oceans.mp4" type="video/mp4"></source> -->
+          <!--     <source src="//vjs.zencdn.net/v/oceans.webm" type="video/webm"></source> -->
+          <!--     <source src="//vjs.zencdn.net/v/oceans.ogv" type="video/ogg"></source> -->
+          <!--     <p class="vjs-no-js"> -->
+          <!--       To view this video please enable JavaScript, and consider upgrading to a -->
+          <!--       web browser that -->
+          <!--       <a href="http://videojs.com/html5-video-support/" target="_blank"> -->
+          <!--         supports HTML5 video -->
+          <!--       </a> -->
+          <!--     </p> -->
+          <!--   </video> -->
+          <!-- </div> -->
           <div><img class="img-rounded img-responsive center-block" src="data/html/images/cup.png" alt="九龙杯" /></div>
           <div><img class="img-rounded img-responsive center-block" src="data/html/images/chan.jpg" alt="金蝉玉叶" /></div>
           <div><img class="img-rounded img-responsive center-block" src="data/html/images/guifei.jpg" alt="贵妃出浴图" /></div>
           <div class="item-video owl-video-frame">
             <div class="owl-video-wrapper">
-              <video src="data/html/sintel.ogv"></video>
+              <!-- <video> -->
+              <!--   <source src="//vjs.zencdn.net/v/oceans.mp4" type="video/mp4"></source> -->
+              <!--   <source src="//vjs.zencdn.net/v/oceans.webm" type="video/webm"></source> -->
+              <!--   <source src="//vjs.zencdn.net/v/oceans.ogv" type="video/ogg"></source> -->
+              <!-- </video> -->
               <div class="dx-video-play-icon"></div>
             </div>
           </div>
