@@ -1,4 +1,4 @@
-define( [ 'utils' ], function ( utils ) {
+define( [ 'owl', 'utils' ], function ( owl, utils ) {
 
     /**
      * Creates the fit view plugin.
@@ -12,6 +12,13 @@ define( [ 'utils' ], function ( utils ) {
 	 * @type {Owl}
 	 */
 	this._core = carousel;
+
+        /**
+	 * Current playing item.
+	 * @protected
+	 * @type {jQuery}
+	 */
+	this._playing = null;
 
 	/**
 	 * All event handlers.
@@ -38,8 +45,12 @@ define( [ 'utils' ], function ( utils ) {
 	// register event handlers
 	this._core.$element.on(this._handlers);
 
-        // document.addEventListener( 'toggle-showcase', this._core.onResize.bind(this._core), false );
-        this._core.on( document, 'toggle-showcase', this._core.onResize.bind(this._core) );
+        // document.addEventListener( 'toggle-carousels', this._core.onResize.bind(this._core), false );
+        this._core.on( document, 'toggle-carousels', this._core.onResize.bind(this._core) );
+
+        this._core.$element.on('click.dx.video', '.dx-video-play-icon', $.proxy(function(e) {
+	    this.play(e);
+	}, this));
     };
 
     /**
@@ -82,6 +93,44 @@ define( [ 'utils' ], function ( utils ) {
     };
 
     /**
+     * Stops the current video.
+     * @public
+     */
+    FitView.prototype.stop = function() {
+	this._core.trigger('stop', null, 'video');
+	this._playing.find('.owl-video-frame').remove();
+	this._playing.removeClass('owl-video-playing');
+	this._playing = null;
+	this._core.leave('playing');
+	this._core.trigger('stopped', null, 'video');
+    };
+
+    /**
+     * Starts the current video.
+     * @public
+     * @param {Event} event - The event arguments.
+     */
+    FitView.prototype.play = function(event) {
+	var target = $(event.target),
+	item = target.closest('.' + this._core.settings.itemClass);
+
+	if (this._playing) {
+	    return;
+	}
+
+	this._core.enter('playing');
+	this._core.trigger('play', null, 'video');
+
+	item = this._core.items(this._core.relative(item.index()));
+
+	this._core.reset(item.index());
+
+        $( 'video', item).get(0).play();
+
+	this._playing = item.addClass('owl-video-playing');
+    };
+
+    /**
      * Destroys the plugin.
      */
     FitView.prototype.destroy = function() {
@@ -93,8 +142,10 @@ define( [ 'utils' ], function ( utils ) {
 	for (property in Object.getOwnPropertyNames(this)) {
 	    typeof this[property] != 'function' && (this[property] = null);
 	}
-        // document.removeEventListener( 'toggle-showcase', this._core.onResize, false );
-        this._core.off( document, 'toggle-showcase' );
+        // document.removeEventListener( 'toggle-carousels', this._core.onResize, false );
+        this._core.off( document, 'toggle-carousels' );
+
+        this._core.$element.off('click.dx.video');
     };
 
     $.fn.owlCarousel.Constructor.Plugins.FitView = FitView;
