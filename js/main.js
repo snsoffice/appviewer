@@ -1,18 +1,18 @@
-define( [ 'dxmap', 'search', 'utils' ], function( dxmap, search, utils ) {
+define( [ 'dxmap', 'dashboard', 'search', 'utils' ], function( dxmap, dashboard, search, utils ) {
 
     var navbar = document.getElementById( 'navbar' );
 
     Array.prototype.forEach.call( navbar.getElementsByClassName( 'navbar-brand' ), function ( element ) {
         element.addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            document.getElementById( 'org-dashboard' ).style.display = 'block';
+            alert( '拍照记录生活');
         }, false );
     });
 
     Array.prototype.forEach.call( navbar.getElementsByClassName( 'dx-user' ), function ( element ) {
         element.addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            document.getElementById( 'my-dashboard' ).style.display = 'block';
+            document.getElementById( 'dashboard' ).style.display = 'block';
         }, false );
     });
 

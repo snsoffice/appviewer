@@ -111,8 +111,23 @@
       <!-- /.container-fluid -->
     </nav>
 
-    <div id="my-dashboard" class="dx-fullscreen"></div>
-    <div id="org-dashboard" class="dx-fullscreen"></div>
+    <div id="dashboard" class="dx-fullscreen">
+      <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <ul class="nav nav-tabs">
+        <li role="presentation" tab-name="#message-tab" class="active"><a href="#">消息</a></li>
+        <li role="presentation" tab-name="#favorite-tab"><a href="#">收藏</a></li>
+        <li role="presentation" tab-name="#search-tab"><a href="#">发现</a></li>
+        <li role="presentation" tab-name="#function-tab"><a href="#">功能</a></li>
+        <li role="presentation" tab-name="#profile-tab"><a href="#">我的</a></li>
+      </ul>
+      <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="message-tab">你还没有任何消息</div>
+        <div role="tabpanel" class="tab-pane" id="favorite-tab">你还没有任何收藏</div>
+        <div role="tabpanel" class="tab-pane" id="search-tab">高级搜索</div>
+        <div role="tabpanel" class="tab-pane" id="function-tab">常用功能</div>
+        <div role="tabpanel" class="tab-pane" id="profile-tab">登录、注册、注销、设置、帮助、关于</div>
+      </div>
+    </div>
 
     <div id="map" class="dx-fullscreen"></div>
 
