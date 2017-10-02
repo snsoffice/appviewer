@@ -144,7 +144,7 @@
 
 .owl-carousel .owl-item {
     display: flex;
-    align-items: center; 
+    align-items: center;
     justify-content: center;
 }
 
@@ -318,6 +318,18 @@
     height: 1.2em;
 }
 
+#navbar-user {
+    background: transparent;
+    border: 0px;
+    padding: 8px 12px 6px 30px;
+}
+
+.dx-user span {
+    font-size: 0.6em;
+    color: red;
+    vertical-align: top;
+}
+
 #dashboard {
     display: none;
     background: #f5f5f5;
@@ -326,6 +338,22 @@
 
 #dashboard > .close {
     margin: 10px;
+}
+
+.ol-rotate {
+    margin: 0;
+    padding: 0;
+    top: 3.6em;
+    left: .5em;
+    right: unset;    
+    border-radius: .8em;
+}
+
+.ol-rotate button {
+    margin: 0;
+    width: 1.6em;
+    height: 1.6em;
+    border-radius: .8em;
 }
 
 /*

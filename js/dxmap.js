@@ -305,11 +305,15 @@ define( [ 'ol', 'db', 'overview', 'utils' ], function ( ol, db, Overview, utils 
         style: styleFunction
       } );
 
-
+    var span = document.createElement( 'SPAN' );
+    span.className = 'fa fa-arrow-up';
+    var _rotate = new ol.control.Rotate( {
+        label: span,
+    } );
     var _map = new ol.Map( {
         target: 'map',
         interactions: ol.interaction.defaults().extend( [ new ClickAction() ] ),
-        controls: new ol.Collection(),
+        controls: [  _rotate ],
         layers: [ _baseLayer, _layer ],
         view: new ol.View( {
             center: ol.proj.fromLonLat( _location ),
