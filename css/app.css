@@ -92,6 +92,27 @@ button:hover, button:focus {
     z-index: 1024;
     visibility: hidden;
     overflow: auto;
+    background: #f5f5f5;
+}
+
+#close-thumbnail {
+    position: fixed;
+    top: .5em;
+    right: 1.2em;
+
+    padding: 2px 6px;
+    border-radius: 16px;
+    opacity: .6;
+
+}
+
+#trash-thumbnail {
+    position: fixed;
+    bottom: .5em;
+    left: 50%;
+    margin-left: -16px;
+    border-radius: 32px;
+    opacity: .6;
 }
 
 #living-canvas {
