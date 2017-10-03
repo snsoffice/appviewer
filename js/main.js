@@ -1,11 +1,12 @@
-define( [ 'dxmap', 'dashboard', 'search', 'utils' ], function( dxmap, dashboard, search, utils ) {
+define( [ 'dxmap', 'dashboard', 'search', 'utils', 'toolbox' ], function( dxmap, dashboard, search, utils, Toolbox ) {
 
     var navbar = document.getElementById( 'navbar' );
 
     Array.prototype.forEach.call( navbar.getElementsByClassName( 'navbar-brand' ), function ( element ) {
         element.addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            alert( '拍照记录生活');
+            var toolbox = new Toolbox();
+            toolbox.show();
         }, false );
     });
 
@@ -17,7 +18,7 @@ define( [ 'dxmap', 'dashboard', 'search', 'utils' ], function( dxmap, dashboard,
     });
 
     document.addEventListener( 'click', function ( e ) {
-        document.getElementById( 'global-message' ).style.display = 'none';
+        document.getElementById( 'message' ).style.display = 'none';
     }, false );
 
     document.getElementById( 'toggle-overview' ).addEventListener( 'click', function ( e ) {
@@ -33,6 +34,13 @@ define( [ 'dxmap', 'dashboard', 'search', 'utils' ], function( dxmap, dashboard,
         }
     } );
 
+    document.getElementById( 'manage-showcase' ).addEventListener( 'click', function ( e ) {
+        document.getElementById( 'thumbnail' ).style.visibility = 'visible';
+    } );
+
+    document.getElementById( 'thumbnail' ).addEventListener( 'click', function ( e ) {
+        document.getElementById( 'thumbnail' ).style.visibility = 'hidden';
+    } );
 
     function toggleShowcase() {
         var element = document.getElementById( 'showcase' );
@@ -50,7 +58,6 @@ define( [ 'dxmap', 'dashboard', 'search', 'utils' ], function( dxmap, dashboard,
 
     document.getElementById( 'showcase' ).addEventListener( 'dblclick', toggleShowcase,  false );
     document.getElementById( 'toggle-showcase' ).addEventListener( 'click', toggleShowcase,  false );
-    document.getElementById( 'close-showcase' ).addEventListener( 'click', hideShowcase,  false );
-
+    document.getElementById( 'remove-case' ).addEventListener( 'click', hideShowcase,  false );
 
 } );

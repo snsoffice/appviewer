@@ -1,6 +1,6 @@
 define( function () {
 
-    var _elementMessage = document.getElementById( 'global-message' );
+    var _elementMessage = document.getElementById( 'message' );
     var _showMessage = function ( msg, className ) {
         _elementMessage.innerHTML = '<div class="alert alert-' + className + '" role="alert">' +
             '<button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +

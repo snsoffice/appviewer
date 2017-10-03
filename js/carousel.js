@@ -1,5 +1,7 @@
 define( [ 'owl', 'utils' ], function ( owl, utils ) {
 
+    // Plugins: Video5, RichMime, Fleet
+
     /**
      * Creates the fit view plugin.
      * @class The FitView Plugin
@@ -150,6 +152,7 @@ define( [ 'owl', 'utils' ], function ( owl, utils ) {
 
     $.fn.owlCarousel.Constructor.Plugins.FitView = FitView;
 
+    
     var $carousel = $( '.owl-carousel' ).owlCarousel( {
         items: 1,
         merge: false,
