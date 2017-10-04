@@ -1,13 +1,13 @@
 define( [ 'ol' ], function ( ol ) {
 
     // Class
-    function Overview( map ) {
-        this.map_ = map;     
+    function Overview( options ) {
+        this.map_ = options.dxmap.getMap();
         this.view_ = new ol.View( {
-            center: map.getView().getCenter(),
+            center: this.map_.getView().getCenter(),
             zoom: 6,
         } );
-        var layer = map.getLayers().item( 0 );
+        var layer = this.map_.getLayers().item( 0 );
         var layer = new ol.layer.Tile( { source: new ol.source.OSM() } );
         var layer = new ol.layer.Tile( {
             preload: Infinity,
@@ -28,17 +28,23 @@ define( [ 'ol' ], function ( ol ) {
         //     })
         // });
         this.ovmap_ = new ol.Map( {
-            target: 'overview',
+            target: options.target,
             controls: new ol.Collection(),
             interactions: new ol.Collection(),
             layers: [ layer ],
             view: this.view_,
         } );
+        this.visible_ = !!options.visible;
     }
 
-    Overview.prototype.getOverview = function () {
-        return this.ovmap_;
-    }
+    Overview.prototype.toggle = function () {
+
+        var element = this.ovmap_.getTargetElement();
+        this.visible_ = ! this.visible_;
+        element.style.visibility = this.visible_ ? 'visible' : 'hidden';
+        return this.visible_;
+
+    };
 
     return Overview;
 

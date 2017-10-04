@@ -1,5 +1,8 @@
 define( function () {
 
+    //
+    // Message box
+    //
     var _elementMessage = document.getElementById( 'message' );
     var _showMessage = function ( msg, className ) {
         _elementMessage.innerHTML = '<div class="alert alert-' + className + '" role="alert">' +
@@ -8,16 +11,24 @@ define( function () {
         _elementMessage.style.display = 'block';
     };
 
-    function createVisualization( angle, distance ) {
+    document.addEventListener( 'click', function ( e ) {
+        _elementMessage.style.display = 'none';
+    }, false );
+
+
+    //
+    // Map Visualization
+    //
+    function _createVisualization( angle, distance ) {
         var angle = ( angle === undefined ? 45 : angle ) / 180 * Math.PI;
         var distance = distance === undefined ? 100 : distance;
         var color = '#ff1493';
         var opacity = 0.20;
 
-        var canvas = document.createElement( 'CANVAS' );        
+        var canvas = document.createElement( 'CANVAS' );
         var ctx = canvas.getContext('2d');
 
-        var t = Math.tan( angle / 2.0 );        
+        var t = Math.tan( angle / 2.0 );
         var x = parseInt( distance * t ), y = 0;
         var xm = x, ym = parseInt( distance * 1.1 );
         var x1 = 0, y1 = - distance;
@@ -42,8 +53,8 @@ define( function () {
         return canvas.toDataURL();
     }
 
-
     return {
+
         warning: function ( msg ) {
             _showMessage( msg, 'warning' );
         },
@@ -52,7 +63,8 @@ define( function () {
             _showMessage( msg, 'info' );
         },
 
-        createVisualization: createVisualization,
+        createVisualization: _createVisualization,
+     
     }
 
 } );

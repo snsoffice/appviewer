@@ -152,6 +152,9 @@ define( [ 'owl', 'utils' ], function ( owl, utils ) {
 
     $.fn.owlCarousel.Constructor.Plugins.FitView = FitView;
 
+
+    // $.fn.owlCarousel.Constructor.Plugins.Video5 = Video5;
+    // $.fn.owlCarousel.Constructor.Plugins.RichMime = RichMime;
     
     var $carousel = $( '.owl-carousel' ).owlCarousel( {
         items: 1,
@@ -162,6 +165,10 @@ define( [ 'owl', 'utils' ], function ( owl, utils ) {
         center: true,
         responsiveBaseElement: document.getElementById( 'carousels' )
     } );
+
+    // Draw video to canvas
+    // ctx.drawImage(this.video, 0, 0, this.width, this.height);
+    //
 
     // var wrapper = document.getElementById( 'carousels' );
     // $( '.owl-stage', $carousel).css('height' , wrapper.clientHeight + 'px');
@@ -174,8 +181,9 @@ define( [ 'owl', 'utils' ], function ( owl, utils ) {
     //     $( '.owl-item img', $carousel).css('max-height', wrapper.clientHeight + 'px');
     // } );
 
-    return {
-        carousel: $carousel,
+    function Carousel ( options ) {
     }
+
+    return Carousel;
 
 });

@@ -29,7 +29,7 @@ define( [], function () {
             '</div>';
 
         this.backdrop.addEventListener( 'click', Toolbox.prototype.hide.bind( this ), false);
-        document.body.append( this.backdrop );
+        document.body.appendChild( this.backdrop );
 
         var handler = function ( e ) {
             document.dispatchEvent( new Event( e.currentTarget.getAttribute( 'data-trigger' ) ) );

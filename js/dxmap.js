@@ -1,85 +1,6 @@
-define( [ 'ol', 'db', 'overview', 'utils' ], function ( ol, db, Overview, utils ) {
+define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
 
-    var _publicMap = function ( vendor ) {
-
-        if ( vendor === 'bings' ) {
-
-            var styles = [
-                'Road',
-                'Aerial',
-                'AerialWithLabels',
-                'collinsBart',
-                'ordnanceSurvey'
-            ];
-
-            return new ol.layer.Tile( {
-                preload: Infinity,
-                source: new ol.source.BingMaps( {
-                    key: 'AtHtvweLfmjJag2BTGXsX0kW-2ExduYJXOU-78cgNz4Y_m7UylYgMmfbEwlYyPPb',
-                    imagerySet: 'AerialWithLabels',
-                    // use maxZoom 19 to see stretched tiles instead of the BingMaps
-                    // "no photos at this zoom level" tiles
-                    maxZoom: 19
-                } )
-            } );
-
-        }
-
-        else if ( vendor === 'gaode' ) {
-
-            return new ol.layer.Tile( {
-                source: new ol.source.XYZ( {
-                    crossOrigin: 'anonymous',
-                    url:'http://webst0{1-4}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
-                } )
-            } )
-
-        }
-
-        else if ( vendor === 'osm' ) {
-
-            return new ol.layer.Tile( {
-                source: new ol.source.OSM()
-            } )
-
-        }
-
-        else if ( vendor === 'stamen' ) {
-
-            return new ol.layer.Tile( {
-                source: new ol.source.Stamen( {
-                    layer: 'watercolor'
-                } )
-            } )
-        }
-        else {
-
-            // 中文 Bings Road
-            return new ol.layer.Tile({
-                source: new ol.source.XYZ( {
-                    crossOrigin: 'anonymous',
-                    tilePixelRatio: 2,
-                    tileUrlFunction: function( tileCoord ) {
-                        var z = tileCoord[ 0 ];
-                        var x = tileCoord[ 1 ];
-                        var y = -tileCoord[ 2 ] - 1;
-                        var result = '', zIndex = 0;
-                        for( ; zIndex < z; zIndex ++ ) {
-                            result = ( ( x & 1 ) + 2 * ( y & 1 ) ).toString() + result;
-                            x >>= 1;
-                            y >>= 1;
-                        }
-                        return 'http://dynamic.t0.tiles.ditu.live.com/comp/ch/' + result + '?it=G,VE,BX,L,LA&mkt=zh-cn,syr&n=z&og=111&ur=CN';
-                    }
-                } )
-            } );
-
-        }
-
-    };
-
-
-    var _featureLoader = function ( extent, resolution, projection ) {
+    var featureLoader = function ( extent, resolution, projection ) {
 
         var source = this;
         var fmt = new ol.format.WKT();
@@ -125,6 +46,92 @@ define( [ 'ol', 'db', 'overview', 'utils' ], function ( ol, db, Overview, utils 
         marker.setPosition( map.getView().getCenter() );
 
     }
+
+    var createPublicMap = function ( options ) {
+
+        var vendor = options.vendor;
+
+        if ( vendor === 'bings' ) {
+
+            var styles = [
+                'Road',
+                'Aerial',
+                'AerialWithLabels',
+                'collinsBart',
+                'ordnanceSurvey'
+            ];
+
+            var style = options.imagerySet ? options.imagerySet : 'AerialWithLabels';
+            var key = options.key ? options.key : 'AtHtvweLfmjJag2BTGXsX0kW-2ExduYJXOU-78cgNz4Y_m7UylYgMmfbEwlYyPPb';
+            return new ol.layer.Tile( {
+                preload: Infinity,
+                source: new ol.source.BingMaps( {
+                    key: key,
+                    imagerySet: style,
+                    // use maxZoom 19 to see stretched tiles instead of the BingMaps
+                    // "no photos at this zoom level" tiles
+                    maxZoom: 19
+                } )
+            } );
+
+        }
+
+        else if ( vendor === 'gaode' ) {
+
+            return new ol.layer.Tile( {
+                source: new ol.source.XYZ( {
+                    crossOrigin: 'anonymous',
+                    url:'http://webst0{1-4}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
+                } )
+            } )
+
+        }
+
+        else if ( vendor === 'osm' ) {
+
+            return new ol.layer.Tile( {
+                source: new ol.source.OSM()
+            } )
+
+        }
+
+        else if ( vendor === 'stamen' ) {
+
+            var layer = options.layer ? options.layer : 'watercolor';
+            return new ol.layer.Tile( {
+                source: new ol.source.Stamen( {
+                    layer: layer
+                } )
+            } )
+
+        }
+
+        else {
+
+            // 中文 Bings Road
+            return new ol.layer.Tile({
+                source: new ol.source.XYZ( {
+                    crossOrigin: 'anonymous',
+                    tilePixelRatio: 2,
+                    tileUrlFunction: function( tileCoord ) {
+                        var z = tileCoord[ 0 ];
+                        var x = tileCoord[ 1 ];
+                        var y = -tileCoord[ 2 ] - 1;
+                        var result = '', zIndex = 0;
+                        for( ; zIndex < z; zIndex ++ ) {
+                            result = ( ( x & 1 ) + 2 * ( y & 1 ) ).toString() + result;
+                            x >>= 1;
+                            y >>= 1;
+                        }
+                        return 'http://dynamic.t0.tiles.ditu.live.com/comp/ch/' + result + '?it=G,VE,BX,L,LA&mkt=zh-cn,syr&n=z&og=111&ur=CN';
+                    }
+                } )
+            } );
+
+        }
+
+    }
+
 
     var spriteFill = new ol.style.Fill( {
         color: 'rgba(255, 153, 0, 0.8)'
@@ -228,13 +235,6 @@ define( [ 'ol', 'db', 'overview', 'utils' ], function ( ol, db, Overview, utils 
         return style;
       }
 
-    function Map( map ) {
-        this.map = map;
-    }
-
-    Map.prototype.save = function () {}
-
-
     /**
      * @constructor
      * @extends {ol.interaction.Pointer}
@@ -296,39 +296,47 @@ define( [ 'ol', 'db', 'overview', 'utils' ], function ( ol, db, Overview, utils 
     var _location = [ -251.03894817, 34.22705742 ];
     var _zoom = 10;
     var _distance = 40;
-    var _baseLayer = _publicMap( 'stamen' );
-    var _layer = new ol.layer.Vector( {
-        source: new ol.source.Cluster( {
-            distance: _distance,
-            source: new ol.source.Vector( { loader: _featureLoader, } ),
-        } ),
-        style: styleFunction
-      } );
 
-    var span = document.createElement( 'SPAN' );
-    span.className = 'fa fa-arrow-up';
-    var _rotate = new ol.control.Rotate( {
-        label: span,
-    } );
-    var _map = new ol.Map( {
-        target: 'map',
-        interactions: ol.interaction.defaults().extend( [ new ClickAction() ] ),
-        controls: [  _rotate ],
-        layers: [ _baseLayer, _layer ],
-        view: new ol.View( {
-            center: ol.proj.fromLonLat( _location ),
-            zoom: _zoom
-        } )
-    } );
+    function Map( options ) {
+        var _baseLayer = createPublicMap( { vendor: 'stamen' } );
+        var _layer = new ol.layer.Vector( {
+            source: new ol.source.Cluster( {
+                distance: _distance,
+                source: new ol.source.Vector( { loader: featureLoader, } ),
+            } ),
+            style: styleFunction
+        } );
 
-    _baseLayer.once( 'postcompose', function ( e ) {
-        document.getElementById( 'splash' ).remove();
-    } );
+        var span = document.createElement( 'SPAN' );
+        span.className = 'fa fa-arrow-up';
+        var _rotate = new ol.control.Rotate( {
+            label: span,
+        } );
 
-    createOverlay( _map );
+        var _map = new ol.Map( {
+            target: options.target ? options.target : 'map',
+            interactions: ol.interaction.defaults().extend( [ new ClickAction() ] ),
+            controls: [  _rotate ],
+            layers: [ _baseLayer, _layer ],
+            view: new ol.View( {
+                center: ol.proj.fromLonLat( _location ),
+                zoom: _zoom
+            } )
+        } );
 
-    var _ovmap = new Overview( _map );
+        _baseLayer.once( 'postcompose', function ( e ) {
+            document.getElementById( 'splash' ).remove();
+        } );
 
-    return Map( _map );
+        createOverlay( _map );
+
+        this.map = _map;
+    }
+
+    Map.prototype.getMap = function () {
+        return this.map;
+    }
+
+    return Map;
 
 } );

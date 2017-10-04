@@ -1,63 +1,63 @@
-define( [ 'dxmap', 'dashboard', 'search', 'utils', 'toolbox' ], function( dxmap, dashboard, search, utils, Toolbox ) {
+define( [ 'search', 'utils', 'user',
+          'dashboard', 'toolbox', 'dxmap', 'overview', 'showcase' ],
 
-    var navbar = document.getElementById( 'navbar' );
+function( search, utils,
+          User, Dashboard, Toolbox, Dxmap, Overview, Showcase ) {
 
-    Array.prototype.forEach.call( navbar.getElementsByClassName( 'navbar-brand' ), function ( element ) {
-        element.addEventListener( 'click', function ( e ) {
-            e.preventDefault();
-            var toolbox = new Toolbox();
-            toolbox.show();
-        }, false );
-    });
+    var navbar;
+    var user;
+    var dashboard;
+    var map;
+    var overview;
+    var showcase;
 
-    Array.prototype.forEach.call( navbar.getElementsByClassName( 'dx-user' ), function ( element ) {
-        element.addEventListener( 'click', function ( e ) {
-            e.preventDefault();
-            document.getElementById( 'dashboard' ).style.display = 'block';
-        }, false );
-    });
+    //
+    // navbar
+    //
+    navbar = document.getElementById( 'navbar' );
 
-    document.addEventListener( 'click', function ( e ) {
-        document.getElementById( 'message' ).style.display = 'none';
+    navbar.querySelector( '.navbar-brand' ).addEventListener( 'click', function ( e ) {
+        e.preventDefault();
+        new Toolbox().show();
     }, false );
 
+    navbar.querySelector( '.dx-user' ).addEventListener( 'click', function ( e ) {
+        e.preventDefault();
+        if ( dashboard === undefined )
+            dashboard = new Dashboard();
+        dashboard.show();
+    }, false );
+
+    //
+    // map
+    //
+    map = new Dxmap( {
+        user: user,
+        target: 'map'
+    } );
+
+
+    //
+    // overview
+    //
+    overview = new Overview( {
+        dxmap: map,
+        target: 'overview'
+    } );
     document.getElementById( 'toggle-overview' ).addEventListener( 'click', function ( e ) {
-        var element = document.getElementById( 'overview' );
-        var visible = element.style.visibility === 'visible';
-        if ( visible ) {
-            element.style.visibility = 'hidden';
-            e.currentTarget.firstElementChild.className = 'fa fa-angle-double-left';
-        }
-        else {
-            element.style.visibility = 'visible';
-            e.currentTarget.firstElementChild.className = 'fa fa-angle-double-right';
-        }
-    } );
+        var visible = overview.toggle();
+        e.currentTarget.firstElementChild.className = 'fa fa-angle-double-' + ( visible ? 'right' : 'left' );
+    }, false );
 
+
+    //
+    // showcase
+    //
+    showcase = new Showcase( {
+        target: 'showcase',
+    } );
     document.getElementById( 'manage-showcase' ).addEventListener( 'click', function ( e ) {
-        document.getElementById( 'thumbnail' ).style.visibility = 'visible';
-    } );
-
-    document.getElementById( 'thumbnail' ).addEventListener( 'click', function ( e ) {
-        document.getElementById( 'thumbnail' ).style.visibility = 'hidden';
-    } );
-
-    function toggleShowcase() {
-        var element = document.getElementById( 'showcase' );
-        var mini = ( element.className === 'dx-mini' );
-        e.currentTarget.firstElementChild.className =  mini ? 'fa fa-chevron-down' : 'fa fa-chevron-up';
-        element.className = mini ? 'dx-fullscreen' : 'dx-mini';
-        document.dispatchEvent( new Event( 'toggle-showcase' ) );
-    }
-
-    function hideShowcase() {
-        var element = document.getElementById( 'showcase' );
-        element.style.visibility = 'hidden';
-        document.dispatchEvent( new Event( 'hide-showcase' ) );
-    }
-
-    document.getElementById( 'showcase' ).addEventListener( 'dblclick', toggleShowcase,  false );
-    document.getElementById( 'toggle-showcase' ).addEventListener( 'click', toggleShowcase,  false );
-    document.getElementById( 'remove-case' ).addEventListener( 'click', hideShowcase,  false );
+        showcase.showThumbnail();
+    }, false );
 
 } );

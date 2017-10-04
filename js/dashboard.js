@@ -19,13 +19,11 @@ define( [ 'utils' ], function ( utils ) {
         }
     }, false );
 
-    function Dashboard(path, description) {
-        this.path = path;
-        this.description = description;
+    function Dashboard() {
     }
 
-    Dashboard.prototype.save = function () {
-        return db.folders.put(this);
+    Dashboard.prototype.show = function () {
+        dashboard.style.display = 'block';
     }
 
     // dashboard.firstElementChild.nextElementSibling.addEventListener('click', function (e) {
