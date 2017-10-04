@@ -88,9 +88,8 @@ button:hover, button:focus {
     visibility: hidden;
 }
 
-#thumbnail {
+.dx-thumbnail {
     z-index: 1024;
-    visibility: hidden;
     overflow: auto;
     background: #f5f5f5;
 }
@@ -103,7 +102,7 @@ button:hover, button:focus {
     padding: 2px 6px;
     border-radius: 16px;
     opacity: .6;
-
+    z-index: 10;
 }
 
 #trash-thumbnail {
@@ -113,9 +112,37 @@ button:hover, button:focus {
     margin-left: -16px;
     border-radius: 32px;
     opacity: .6;
+    z-index: 10;
 }
 
-#living-canvas {
+.dx-thumbnail .col-xs-6,
+.dx-thumbnail .col-md-3 {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.dx-thumbnail a.thumbnail {
+    margin-bottom: 0;
+}
+
+@media (orientation: landscape) {
+    .dx-thumbnail .col-xs-6 {
+        width: 25%;
+    }
+}
+
+.dx-actionbar {
+    position: absolute;      
+    bottom: 0.5em;
+}
+.dx-actionbar button {
+    padding: 6px;
+    margin-left: 16px;
+    opacity: .38;
+    background: transparent;
+}
+
+#live-canvas {
     width: 100%;
     height: 100%;
 }
@@ -250,7 +277,7 @@ button:hover, button:focus {
     visibility: visible;
 }
 
-#manage-showcase {
+#show-thumbnail {
     left: 2px;
     bottom: 2px;
     color: #fff;
