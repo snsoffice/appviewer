@@ -21,6 +21,12 @@ define( [], function () {
             '    </a>' +
             '  </div>' +
             '  <div class="dx-tool">' +
+            '    <a class="btn btn-lg btn-default" href="#" data-trigger="take-forecast">' +
+            '      <i class="fa fa-binoculars fa-3x"></i>' +
+            '      <br><span>预言，彰显智慧</span>' +
+            '    </a>' +
+            '  </div>' +
+            '  <div class="dx-tool">' +
             '    <a class="btn btn-lg btn-default" href="#" data-trigger="take-navigation">' +
             '      <i class="fa fa-road fa-3x"></i>' +
             '      <br><span>导航，指引人生</span>' +

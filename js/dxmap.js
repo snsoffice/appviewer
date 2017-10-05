@@ -10,7 +10,11 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
                 var feature = fmt.readFeature( item.geometry );
                 if ( feature ) {
                     feature.setId( item.id );
-                    feature.setProperties( { icon: item.icon, url: item.url }, true );
+                    feature.setProperties( {
+                        category: item.category,
+                        icon: item.icon,
+                        url: item.url
+                    }, true );
                     source.addFeature( feature );
                 }
             } );
@@ -47,92 +51,6 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
 
     }
 
-    var createPublicMap = function ( options ) {
-
-        var vendor = options.vendor;
-
-        if ( vendor === 'bings' ) {
-
-            var styles = [
-                'Road',
-                'Aerial',
-                'AerialWithLabels',
-                'collinsBart',
-                'ordnanceSurvey'
-            ];
-
-            var style = options.imagerySet ? options.imagerySet : 'AerialWithLabels';
-            var key = options.key ? options.key : 'AtHtvweLfmjJag2BTGXsX0kW-2ExduYJXOU-78cgNz4Y_m7UylYgMmfbEwlYyPPb';
-            return new ol.layer.Tile( {
-                preload: Infinity,
-                source: new ol.source.BingMaps( {
-                    key: key,
-                    imagerySet: style,
-                    // use maxZoom 19 to see stretched tiles instead of the BingMaps
-                    // "no photos at this zoom level" tiles
-                    maxZoom: 19
-                } )
-            } );
-
-        }
-
-        else if ( vendor === 'gaode' ) {
-
-            return new ol.layer.Tile( {
-                source: new ol.source.XYZ( {
-                    crossOrigin: 'anonymous',
-                    url:'http://webst0{1-4}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
-                } )
-            } )
-
-        }
-
-        else if ( vendor === 'osm' ) {
-
-            return new ol.layer.Tile( {
-                source: new ol.source.OSM()
-            } )
-
-        }
-
-        else if ( vendor === 'stamen' ) {
-
-            var layer = options.layer ? options.layer : 'watercolor';
-            return new ol.layer.Tile( {
-                source: new ol.source.Stamen( {
-                    layer: layer
-                } )
-            } )
-
-        }
-
-        else {
-
-            // 中文 Bings Road
-            return new ol.layer.Tile({
-                source: new ol.source.XYZ( {
-                    crossOrigin: 'anonymous',
-                    tilePixelRatio: 2,
-                    tileUrlFunction: function( tileCoord ) {
-                        var z = tileCoord[ 0 ];
-                        var x = tileCoord[ 1 ];
-                        var y = -tileCoord[ 2 ] - 1;
-                        var result = '', zIndex = 0;
-                        for( ; zIndex < z; zIndex ++ ) {
-                            result = ( ( x & 1 ) + 2 * ( y & 1 ) ).toString() + result;
-                            x >>= 1;
-                            y >>= 1;
-                        }
-                        return 'http://dynamic.t0.tiles.ditu.live.com/comp/ch/' + result + '?it=G,VE,BX,L,LA&mkt=zh-cn,syr&n=z&og=111&ur=CN';
-                    }
-                } )
-            } );
-
-        }
-
-    }
-
-
     var spriteFill = new ol.style.Fill( {
         color: 'rgba(255, 153, 0, 0.8)'
     });
@@ -161,16 +79,19 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
         } )
     } );
 
-    var createDefaultStyle = function ( feature ) {
+    var getDefaultStyle = function ( feature ) {
         var icon = feature.get( 'icon' );
         if ( ! typeof icon === 'string' )
             return defaultStyle;
-        var style = defaultIconStyles.get( icon );
-        if ( style )
+
+        var style = defaultIconStyles[ icon ];
+        if ( style instanceof ol.style.Style )
             return style;
-        var url = 'images/icons/' + icon + '.png';
+
+        var url = 'images/icons/small/' + icon + '.png';
         style =  new ol.style.Style( {
             image: new ol.style.Icon( {
+                crossOrigin: 'anonymous',
                 anchor: [0.5, 46],
                 anchorXUnits: 'fraction',
                 anchorYUnits: 'pixels',
@@ -203,19 +124,19 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
       var currentResolution;
       function styleFunction( feature, resolution ) {
 
-        if ( resolution != currentResolution ) {
-          calculateClusterInfo( resolution );
-          currentResolution = resolution;
-        }
+        // if ( resolution != currentResolution ) {
+        //   calculateClusterInfo( resolution );
+        //   currentResolution = resolution;
+        // }
 
         var style;
         var size = feature.get( 'features' ).length;
         if ( size > 1 ) {
             style = new ol.style.Style( {
                 image: new ol.style.Circle({
-                    radius: feature.get( 'radius' ),
+                    radius: 16, // feature.get( 'radius' ),
                     fill: new ol.style.Fill( {
-                        color: [ 255, 153, 0, Math.min( 0.8, 0.4 + ( size / maxFeatureCount ) ) ]
+                        color: [ 255, 153, 0, 0.8 ]
                     } )
                 } ),
                 text: new ol.style.Text( {
@@ -227,22 +148,31 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
 
         } else {
             var originalFeature = feature.get( 'features' )[ 0 ];
-            style = originalFeature.getStyle();
-            if ( style === null )
-                style = defaultStyle;
+            style = getDefaultStyle( originalFeature );
         }
 
         return style;
       }
 
+    function createClusterLayer() {
+        var layer = new ol.layer.Vector( {
+            source: new ol.source.Cluster( {
+                distance: _distance,
+                source: new ol.source.Vector( { loader: featureLoader, } ),
+            } ),
+            style: styleFunction
+        } );
+        return layer;
+    }
+
     /**
      * @constructor
      * @extends {ol.interaction.Pointer}
      */
-    var ClickAction = function() {
+    var FeatureAction = function() {
 
         ol.interaction.Pointer.call(this, {
-          handleDownEvent: ClickAction.prototype.handleDownEvent
+          handleDownEvent: FeatureAction.prototype.handleDownEvent
         });
 
         /**
@@ -270,27 +200,32 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
         this.previousCursor_ = undefined;
 
     };
-    ol.inherits( ClickAction, ol.interaction.Pointer );
+    ol.inherits( FeatureAction, ol.interaction.Pointer );
 
 
     /**
      * @param {ol.MapBrowserEvent} evt Map browser event.
      * @return {boolean} `true` to start the drag sequence.
      */
-    ClickAction.prototype.handleDownEvent = function( evt ) {
+    FeatureAction.prototype.handleDownEvent = function( evt ) {
 
         var map = evt.map;
+        var layer;
 
-        var feature = map.forEachFeatureAtPixel(evt.pixel, function( feature, layer ) {
-            var featuerLayer = layer;
+        var feature = map.forEachFeatureAtPixel(evt.pixel, function( feature, featureLayer ) {
+            layer = featureLayer;
             return feature;
         } );
 
         if ( feature ) {
             this.coordinate_ = evt.coordinate;
-            this.feature_ = feature;
+            if ( layer.getSource() instanceof ol.source.Cluster ) {
+                this.feature_ = feature.get( 'features' )[0];
+                // alert( this.feature_.get('category') + ':' + this.feature_.get('icon'));
+            }
         }
 
+        return false;
     };
 
     var _location = [ -251.03894817, 34.22705742 ];
@@ -298,43 +233,43 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
     var _distance = 40;
 
     function Map( options ) {
-        var _baseLayer = createPublicMap( { vendor: 'stamen' } );
-        var _layer = new ol.layer.Vector( {
-            source: new ol.source.Cluster( {
-                distance: _distance,
-                source: new ol.source.Vector( { loader: featureLoader, } ),
-            } ),
-            style: styleFunction
+
+        var layer1 = utils.createPublicMap( ol, {
+            vendor: 'stamen',
+            layer: 'watercolor'
+        } );
+
+        var layer2 = utils.createPublicMap( ol, {
+            vendor: 'stamen',
+            layer: 'terrain-labels'
+        } );
+
+        var baseLayers = new ol.layer.Group( {
+            layers: [ layer1, layer2 ]
         } );
 
         var span = document.createElement( 'SPAN' );
         span.className = 'fa fa-arrow-up';
-        var _rotate = new ol.control.Rotate( {
+        var rotate = new ol.control.Rotate( {
             label: span,
         } );
 
-        var _map = new ol.Map( {
+        var map = new ol.Map( {
             target: options.target ? options.target : 'map',
-            interactions: ol.interaction.defaults().extend( [ new ClickAction() ] ),
-            controls: [  _rotate ],
-            layers: [ _baseLayer, _layer ],
+            interactions: ol.interaction.defaults().extend( [ new FeatureAction() ] ),
+            controls: [ rotate ],
+            layers: [ baseLayers, createClusterLayer() ],
             view: new ol.View( {
                 center: ol.proj.fromLonLat( _location ),
                 zoom: _zoom
             } )
         } );
 
-        _baseLayer.once( 'postcompose', function ( e ) {
-            document.getElementById( 'splash' ).remove();
-        } );
-
-        createOverlay( _map );
-
-        this.map = _map;
+        this.map_ = map;
     }
 
     Map.prototype.getMap = function () {
-        return this.map;
+        return this.map_;
     }
 
     return Map;

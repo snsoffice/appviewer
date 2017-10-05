@@ -61,7 +61,7 @@ define( [ 'utils' ], function ( utils ) {
     document.addEventListener( 'click', function ( e ) {
 
         var tag = e.target.tagName;
-        if ( ( ! ( tag === 'BUTTON' || tag === 'A' ) ) || ( e.target.className === 'close' ) )
+        if ( ! ( tag === 'BUTTON' || tag === 'A' || tag === 'SPAN' || tag === 'I' ) )
             dashboard.style.display = 'none';
 
     }, false);

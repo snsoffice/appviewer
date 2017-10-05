@@ -53,6 +53,94 @@ define( function () {
         return canvas.toDataURL();
     }
 
+    var _createPublicMap = function ( ol, options ) {
+
+        var vendor = options.vendor;
+
+        if ( vendor === 'bings' ) {
+
+            var styles = [
+                'Road',
+                'Aerial',
+                'AerialWithLabels',
+                'collinsBart',
+                'ordnanceSurvey'
+            ];
+
+            var style = options.imagerySet ? options.imagerySet : 'AerialWithLabels';
+            var key = options.key ? options.key : 'AtHtvweLfmjJag2BTGXsX0kW-2ExduYJXOU-78cgNz4Y_m7UylYgMmfbEwlYyPPb';
+            return new ol.layer.Tile( {
+                preload: Infinity,
+                source: new ol.source.BingMaps( {
+                    key: key,
+                    imagerySet: style,
+                    // use maxZoom 19 to see stretched tiles instead of the BingMaps
+                    // "no photos at this zoom level" tiles
+                    maxZoom: 19
+                } )
+            } );
+
+        }
+
+        else if ( vendor === 'gaode' ) {
+
+            return new ol.layer.Tile( {
+                source: new ol.source.XYZ( {
+                    crossOrigin: 'anonymous',
+                    url:'http://webst0{1-4}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
+                } )
+            } )
+
+        }
+
+        else if ( vendor === 'osm' ) {
+
+            return new ol.layer.Tile( {
+                source: new ol.source.OSM()
+            } )
+
+        }
+
+        else if ( vendor === 'stamen' ) {
+
+            // layer:  terrain, terrain-background, terrain-labels, terrain-lines,
+            //         toner, toner-background, toner-labels, toner-lines, toner-hybrid, toner-lite
+            //         watercolor
+            var layer = options.layer ? options.layer : 'watercolor';
+            return new ol.layer.Tile( {
+                source: new ol.source.Stamen( {
+                    layer: layer
+                } )
+            } )
+
+        }
+
+        else {
+
+            // 中文 Bings Road
+            return new ol.layer.Tile({
+                source: new ol.source.XYZ( {
+                    crossOrigin: 'anonymous',
+                    tilePixelRatio: 2,
+                    tileUrlFunction: function( tileCoord ) {
+                        var z = tileCoord[ 0 ];
+                        var x = tileCoord[ 1 ];
+                        var y = -tileCoord[ 2 ] - 1;
+                        var result = '', zIndex = 0;
+                        for( ; zIndex < z; zIndex ++ ) {
+                            result = ( ( x & 1 ) + 2 * ( y & 1 ) ).toString() + result;
+                            x >>= 1;
+                            y >>= 1;
+                        }
+                        return 'http://dynamic.t0.tiles.ditu.live.com/comp/ch/' + result + '?it=G,VE,BX,L,LA&mkt=zh-cn,syr&n=z&og=111&ur=CN';
+                    }
+                } )
+            } );
+
+        }
+
+    }
+
     return {
 
         warning: function ( msg ) {
@@ -64,7 +152,8 @@ define( function () {
         },
 
         createVisualization: _createVisualization,
-     
+
+        createPublicMap: _createPublicMap,
     }
 
 } );

@@ -274,10 +274,9 @@ button:hover, button:focus {
     bottom: 2px;
     color: #fff;
     background: transparent;
-    visibility: visible;
 }
 
-#show-thumbnail {
+#manage-showcase {
     left: 2px;
     bottom: 2px;
     color: #fff;

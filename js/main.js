@@ -60,4 +60,12 @@ function( search, utils,
         showcase.showThumbnail();
     }, false );
 
+
+    //
+    // Remove splash
+    //
+    window.setTimeout( function ( ) {
+        document.getElementById( 'splash' ).remove();
+    }, 3000 );
+
 } );

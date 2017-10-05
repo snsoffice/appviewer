@@ -1,4 +1,4 @@
-define( [ 'videojs', 'utils' ], function ( videojs, utils ) {
+define( [ 'utils' ], function ( utils ) {
 
     function Video5( options ) {
     }

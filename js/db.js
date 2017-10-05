@@ -13,7 +13,7 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
     _db.version( 1 ).stores( {
 
         settings: '++id, &name, value, description',
-        features: 'id, &title, geometry, icon, url',
+        features: 'id, &title, geometry, category, icon, url',
 
     } );
 
@@ -61,6 +61,7 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
         id: Number,
         title: String,
         geometry: String,
+        category: String,
         icon: String,
         url: String,
 
@@ -81,6 +82,7 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
                     id: 1,
                     title: '华清池御汤酒店',
                     geometry: 'POINT (12156763.90 4077916.87)',
+                    category: 'organization',
                     icon: 'hotel',
                     url: 'http://owtayt1td.bkt.clouddn.com/huaqingchi',
                 } );
@@ -88,6 +90,7 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
                     id: 2,
                     title: '西北大学长安校区',
                     geometry: 'POINT (12119354.46 4048989.50)',
+                    category: 'organization',
                     icon: 'school',
                     url: 'http://owtayt1td.bkt.clouddn.com/xibeidaxue/changanxiaoqu',
                 } );
@@ -95,6 +98,7 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
                     id: 3,
                     title: '绿地世纪城',
                     geometry: 'POINT (12119428.31 4055374.30)',
+                    category: 'organization',
                     icon: 'village',
                     url: 'http://owtayt1td.bkt.clouddn.com/lvdishijicheng',
                 } );
@@ -102,6 +106,7 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
                     id: 4,
                     title: '咸阳国际机场',
                     geometry: 'POINT (12107045.45 4088525.52)',
+                    category: 'organization',
                     icon: 'airport',
                     url: 'http://owtayt1td.bkt.clouddn.com/xianyangguojijichang',
                 } );
@@ -125,7 +130,7 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
         }
 
         _db.transaction('rw', _db.features, function () {
-            // _db.features.clear();
+            _db.features.clear();
             // 通过 ajax 请求服务器数据
             //     user.name
             //     user.token
