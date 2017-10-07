@@ -7,18 +7,14 @@ function ( Carousel, Thumbnail, Panorama, Video5 ) {
         this.visible = false;
         this.mini = true;
         this.viewer = null;
+        this.items = [];
 
         this.carousel_ = new Carousel();
         this.panorama_ = new Panorama();
         this.video_ = new Video5();
 
         this.element_.addEventListener( 'click', Showcase.prototype.play.bind( this ),  false );
-        document.getElementById( 'toggle-showcase' ).addEventListener( 'click', Showcase.prototype.toggle.bind( this ),  false );
-        document.getElementById( 'remove-showcase' ).addEventListener( 'click', Showcase.prototype.remove.bind( this ),  false );
-        document.getElementById( 'close-showcase' ).addEventListener( 'click', Showcase.prototype.close.bind( this ),  false );
-
     }
-
 
     Showcase.prototype.handleFeatureClicked = function ( feature ) {
 
@@ -39,7 +35,7 @@ function ( Carousel, Thumbnail, Panorama, Video5 ) {
     }
 
     Showcase.prototype.showThumbnail = function () {
-        new Thumbnail( this.carousel_ ).show();
+        new Thumbnail( this ).show();
     }
 
     Showcase.prototype.toggle = function () {
@@ -68,12 +64,11 @@ function ( Carousel, Thumbnail, Panorama, Video5 ) {
     }
 
     Showcase.prototype.play = function () {
-        if ( this.viewer !== null ) {
+        if ( this.viewer === null ) {
+            this.viewer = this.panorama_;
+            this.viewer.load();
+            document.querySelector( '#close-showcase > i.fa' ).className = 'fa fa-eject';
         }
-
-        this.viewer = this.panorama_;
-        this.viewer.load();
-        document.querySelector( '#close-showcase > i.fa' ).className = 'fa fa-eject';
     }
 
     Showcase.prototype.close = function () {

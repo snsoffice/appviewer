@@ -11,6 +11,7 @@ function( search, utils,
     var overview;
     var showcase;
 
+
     //
     // navbar
     //
@@ -28,6 +29,7 @@ function( search, utils,
         dashboard.show();
     }, false );
 
+
     //
     // map
     //
@@ -44,7 +46,16 @@ function( search, utils,
         target: 'overview'
     } );
     map.on( 'feature:click', overview.handleFeatureClicked );
-    document.getElementById( 'toggle-overview' ).addEventListener( 'click', function ( e ) {
+    document.getElementById( 'remove-overview' ).addEventListener( 'click', function () {
+        overview.remove();
+    }, false );
+    document.getElementById( 'overview-prev' ).addEventListener( 'click', function () {
+        overview.prev();
+    }, false );
+    document.getElementById( 'overview-next' ).addEventListener( 'click', function () {
+        overview.next();
+    }, false );
+    document.getElementById( 'toggle-overview' ).addEventListener( 'click', function () {
         overview.toggle();
     }, false );
     document.addEventListener( 'toggle-overview', function () {
@@ -59,11 +70,20 @@ function( search, utils,
         target: 'showcase',
     } );
     map.on( 'feature:click', showcase.handleFeatureClicked );
+    document.getElementById( 'toggle-showcase' ).addEventListener( 'click', function () {
+        showcase.toggle();
+    }, false );
+    document.getElementById( 'remove-showcase' ).addEventListener( 'click', function () {
+        showcase.remove();
+    }, false );
+    document.getElementById( 'close-showcase' ).addEventListener( 'click', function () {
+        showcase.close();
+    }, false );
     document.addEventListener( 'toggle-showcase', function () {
         if ( showcase.visible )
             overview.toggle( showcase.mini );
     }, false );
-    document.getElementById( 'manage-showcase' ).addEventListener( 'click', function ( e ) {
+    document.getElementById( 'manage-showcase' ).addEventListener( 'click', function () {
         showcase.showThumbnail();
     }, false );
 

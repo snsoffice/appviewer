@@ -39,6 +39,15 @@ define( [ 'ol', 'utils' ], function ( ol, utils ) {
     Overview.prototype.handleFeatureClicked = function ( feature ) {
     };
 
+    Overview.prototype.remove = function () {
+    };
+
+    Overview.prototype.prev = function () {
+    };
+
+    Overview.prototype.next = function () {
+    };
+
     return Overview;
 
 });
