@@ -20,7 +20,7 @@ define( [], function () {
             '      <br><span>直播，展示风采</span>' +
             '    </a>' +
             '  </div>' +
-            '  <div class="dx-tool">' +
+            '  <div class="dx-tool" style="display: none;">' +
             '    <a class="btn btn-lg btn-default" href="#" data-trigger="take-forecast">' +
             '      <i class="fa fa-binoculars fa-3x"></i>' +
             '      <br><span>预言，彰显智慧</span>' +

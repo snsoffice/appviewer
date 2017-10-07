@@ -1,12 +1,13 @@
 define( [ 'ol', 'utils' ], function ( ol, utils ) {
 
+    var zoom = 2;
     // Class
     function Overview( options ) {
 
-        this.map_ = options.dxmap.getMap();
+        this.map_ = options.map;
         this.view_ = new ol.View( {
-            center: this.map_.getView().getCenter(),
-            zoom: 6,
+            center: this.map_.getMap().getView().getCenter(),
+            zoom: zoom,
         } );
         // var layer = this.map_.getLayers().item( 0 );
         // var layer = new ol.layer.Tile( { source: new ol.source.OSM() } );
@@ -22,16 +23,20 @@ define( [ 'ol', 'utils' ], function ( ol, utils ) {
             layers: [ layer ],
             view: this.view_,
         } );
-        this.visible_ = !!options.visible;
+        this.visible = !!options.visible;
     }
 
-    Overview.prototype.toggle = function () {
+    Overview.prototype.toggle = function ( visible ) {
 
         var element = this.ovmap_.getTargetElement();
-        this.visible_ = ! this.visible_;
-        element.style.visibility = this.visible_ ? 'visible' : 'hidden';
-        return this.visible_;
+        this.visible = ( visible === true || visible === false ) ? visible : ! this.visible;
+        element.style.visibility = this.visible ? 'visible' : 'hidden';
+        document.dispatchEvent( new Event( 'toggle-overview' ) );
 
+    };
+
+
+    Overview.prototype.handleFeatureClicked = function ( feature ) {
     };
 
     return Overview;

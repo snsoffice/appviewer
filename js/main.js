@@ -32,7 +32,6 @@ function( search, utils,
     // map
     //
     map = new Dxmap( {
-        user: user,
         target: 'map'
     } );
 
@@ -41,12 +40,15 @@ function( search, utils,
     // overview
     //
     overview = new Overview( {
-        dxmap: map,
+        map: map,
         target: 'overview'
     } );
+    map.on( 'feature:click', overview.handleFeatureClicked );
     document.getElementById( 'toggle-overview' ).addEventListener( 'click', function ( e ) {
-        var visible = overview.toggle();
-        e.currentTarget.firstElementChild.className = 'fa fa-angle-double-' + ( visible ? 'right' : 'left' );
+        overview.toggle();
+    }, false );
+    document.addEventListener( 'toggle-overview', function () {
+        document.querySelector( '#toggle-overview > i.fa' ).className = 'fa fa-angle-double-' + ( overview.visible ? 'right' : 'left' );
     }, false );
 
 
@@ -56,6 +58,11 @@ function( search, utils,
     showcase = new Showcase( {
         target: 'showcase',
     } );
+    map.on( 'feature:click', showcase.handleFeatureClicked );
+    document.addEventListener( 'toggle-showcase', function () {
+        if ( showcase.visible )
+            overview.toggle( showcase.mini );
+    }, false );
     document.getElementById( 'manage-showcase' ).addEventListener( 'click', function ( e ) {
         showcase.showThumbnail();
     }, false );

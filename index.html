@@ -117,14 +117,12 @@
         <li role="presentation" tab-name="#message-tab" class="active"><a href="#">消息</a></li>
         <li role="presentation" tab-name="#favorite-tab"><a href="#">收藏</a></li>
         <li role="presentation" tab-name="#search-tab"><a href="#">发现</a></li>
-        <li role="presentation" tab-name="#function-tab"><a href="#">功能</a></li>
         <li role="presentation" tab-name="#profile-tab"><a href="#">我的</a></li>
       </ul>
       <div class="tab-content">
         <div role="tabpanel" class="tab-pane active" id="message-tab">你还没有任何消息</div>
         <div role="tabpanel" class="tab-pane" id="favorite-tab">你还没有任何收藏</div>
         <div role="tabpanel" class="tab-pane" id="search-tab">高级搜索</div>
-        <div role="tabpanel" class="tab-pane" id="function-tab">常用功能</div>
         <div role="tabpanel" class="tab-pane" id="profile-tab">登录、注册、注销、设置、帮助、关于</div>
       </div>
     </div>
@@ -133,17 +131,17 @@
 
     <div id="overview" class="dx-overview dx-mini">
       <div class="dx-toolbar">
-        <button type="button" class="btn btn-default btn-lg" id="overview-prev"><i class="fa fa-arrow-left"></i></button>
-        <button type="button" class="btn btn-default btn-lg" id="overview-next"><i class="fa fa-arrow-right"></i></button>
-        <button type="button" class="btn btn-default btn-lg" id="overview-close"><i class="fa fa-close"></i></button>
+        <button type="button" class="btn btn-default btn-lg" id="remove-overview"><i class="fa fa-minus-circle"></i></button>
+        <button type="button" class="btn btn-default btn-lg" id="overview-prev"><i class="fa fa-chevron-circle-left"></i></button>
+        <button type="button" class="btn btn-default btn-lg" id="overview-next"><i class="fa fa-chevron-circle-right"></i></button>
       </div>
     </div>
 
     <div id="showcase" class="dx-fullscreen">
       <div class="dx-toolbar">
-        <button type="button" class="btn btn-default" id="toggle-case"><i class="fa fa-stop-circle-o"></i></button>
+        <button type="button" class="btn btn-default" id="remove-showcase"><i class="fa fa-minus-circle"></i></button>
         <button type="button" class="btn btn-default" id="toggle-showcase"><i class="fa fa-chevron-down"></i></button>
-        <button type="button" class="btn btn-default" id="remove-case"><i class="fa fa-close"></i></button>
+        <button type="button" class="btn btn-default" id="close-showcase"><i class="fa fa-close"></i></button>
       </div>
       <div id="carousels" class="dx-showcase">
         <div class="owl-carousel owl-theme"></div>

@@ -1,46 +1,89 @@
 define( [ 'carousel', 'thumbnail', 'panorama', 'video5' ],
+
 function ( Carousel, Thumbnail, Panorama, Video5 ) {
 
-    function createParkLayer() {
-        // 创建一个图层，Image, 使用俯视图
+    function Showcase( options ) {
+        this.element_ = document.getElementById( options.target ? options.target : 'showcase' );
+        this.visible = false;
+        this.mini = true;
+        this.viewer = null;
 
-        // 创建一个图层，Vector
+        this.carousel_ = new Carousel();
+        this.panorama_ = new Panorama();
+        this.video_ = new Video5();
 
-        // 返回两个图层
+        this.element_.addEventListener( 'click', Showcase.prototype.play.bind( this ),  false );
+        document.getElementById( 'toggle-showcase' ).addEventListener( 'click', Showcase.prototype.toggle.bind( this ),  false );
+        document.getElementById( 'remove-showcase' ).addEventListener( 'click', Showcase.prototype.remove.bind( this ),  false );
+        document.getElementById( 'close-showcase' ).addEventListener( 'click', Showcase.prototype.close.bind( this ),  false );
 
-        // 添加两个图层到大地图
-
-        // 添加俯视图到小地图
-
-        
     }
 
 
-    function toggleShowcase() {
-        var element = document.getElementById( 'showcase' );
+    Showcase.prototype.handleFeatureClicked = function ( feature ) {
+
+        var category = feature.get( 'category' );
+
+        if ( category === 'photo' ) {
+        }
+
+        else if ( category === 'panorama' ) {
+        }
+
+        else if ( category === 'video' ) {
+        }
+
+        else if ( category === 'prophecy' ) {
+        }
+
+    }
+
+    Showcase.prototype.showThumbnail = function () {
+        new Thumbnail( this.carousel_ ).show();
+    }
+
+    Showcase.prototype.toggle = function () {
+        if ( ! this.visible )
+            return;
+        var element = this.element_;
         var mini = ( element.className === 'dx-mini' );
         e.currentTarget.firstElementChild.className =  mini ? 'fa fa-chevron-down' : 'fa fa-chevron-up';
         element.className = mini ? 'dx-fullscreen' : 'dx-mini';
+        this.mini = ! mini;
         document.dispatchEvent( new Event( 'toggle-showcase' ) );
     }
 
-    function hideShowcase() {
-        var element = document.getElementById( 'showcase' );
-        element.style.visibility = 'hidden';
-        document.dispatchEvent( new Event( 'hide-showcase' ) );
+    Showcase.prototype.hide = function () {
+        this.element_.style.visibility = 'hidden';
+        this.visible = false;
     }
 
-    document.getElementById( 'showcase' ).addEventListener( 'dblclick', toggleShowcase,  false );
-    document.getElementById( 'toggle-showcase' ).addEventListener( 'click', toggleShowcase,  false );
-    document.getElementById( 'remove-case' ).addEventListener( 'click', hideShowcase,  false );
-
-    function Showcase( options ) {
-        this.carousel_ = new Carousel();
+    Showcase.prototype.show = function () {
+        this.element_.style.visibility = 'visible';
+        this.visible = true;
+        document.dispatchEvent( new Event( 'toggle-showcase' ) );
     }
 
-    
-    Showcase.prototype.showThumbnail = function () {
-        new Thumbnail( this.carousel_ ).show();
+    Showcase.prototype.remove = function () {
+    }
+
+    Showcase.prototype.play = function () {
+        if ( this.viewer !== null ) {
+        }
+
+        this.viewer = this.panorama_;
+        this.viewer.load();
+        document.querySelector( '#close-showcase > i.fa' ).className = 'fa fa-eject';
+    }
+
+    Showcase.prototype.close = function () {
+        if ( this.viewer === null )
+            this.hide();
+        else {
+            this.viewer.close();
+            this.viewer = null;
+            document.querySelector( '#close-showcase > i.fa' ).className = 'fa fa-close';
+        }
     }
 
     return Showcase;

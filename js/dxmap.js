@@ -166,6 +166,28 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
     }
 
     /**
+     * @classdesc
+     * Events emitted by {@link ol.Collection} instances are instances of this
+     * type.
+     *
+     * @constructor
+     * @extends {ol.events.Event}
+     * @implements {oli.Collection.Event}
+     * @param {ol.CollectionEventType} type Type.
+     * @param {*=} opt_element Element.
+     */
+    var FeatureEvent = function( type, opt_feature ) {
+
+        // ol.events.Event.call( this, type );
+        this.propagationStopped = true;
+        this.type = type;
+        this.target = null;
+        this.feature = opt_feature;
+
+    };
+    // ol.inherits( FeatureEvent, ol.events.Event );
+
+    /**
      * @constructor
      * @extends {ol.interaction.Pointer}
      */
@@ -210,22 +232,70 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
     FeatureAction.prototype.handleDownEvent = function( evt ) {
 
         var map = evt.map;
-        var layer;
-
-        var feature = map.forEachFeatureAtPixel(evt.pixel, function( feature, featureLayer ) {
-            layer = featureLayer;
-            return feature;
+        var selected = map.forEachFeatureAtPixel( evt.pixel, function ( feature, layer ) {
+            return [ feature, layer ];
         } );
 
+        if ( selected === undefined )
+            return false;
+
+        var feature = selected[ 0 ], layer = selected[ 1 ];
         if ( feature ) {
             this.coordinate_ = evt.coordinate;
             if ( layer.getSource() instanceof ol.source.Cluster ) {
+                var features = feature.get( 'features' );
+                var size = features.length;
+                if ( size > 1 ) {
+                    // TODO: 显示特征列表
+                    return false;
+                }
                 this.feature_ = feature.get( 'features' )[0];
-                // alert( this.feature_.get('category') + ':' + this.feature_.get('icon'));
             }
+            else
+                this.feature_ = feature;
+
+            var category = this.feature_.get( 'category' );
+
+            if ( category === 'organization' || category === 'building' ) {
+                var url = this.feature_.get( 'url' );
+                // 发送 ajax request，读取配置文件
+                var path = url.substring( 0, url.lastIndexOf( '/' ) );
+                var config = {};
+
+                // 读取 url 指定的 config
+
+                // 创建 imageLayer
+                var imgLayer = new ol.layer.Image( {
+                    source: new ol.source.ImageStatic( {
+                        crossOrigin: 'anonymous',
+                        imageExtent: config.extent,
+                        url: path + '/' + ( config.image ? config.image : 'planform.png' ),
+                    } ),
+                } );
+                
+
+                // 创建 vectorLayer
+                var fmt = new ol.source.GeoJSON();
+                var features = fmt.readFeatures( {
+                    type: 'FeatureCollection',
+                    features: config.features,
+                } );
+                var layer = new ol.layer.Vector( {
+                    source: new ol.source.Vector( {
+                        features: features,
+                    } ),
+                } );
+                
+                map.dispatchEvent( new FeatureEvent( 'feature:click', this.feature_ ) );
+            }
+
+            else
+                map.dispatchEvent( new FeatureEvent( 'feature:click', this.feature_ ) );
+            
         }
 
         return false;
+
     };
 
     var _location = [ -251.03894817, 34.22705742 ];
@@ -245,7 +315,7 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
         } );
 
         var baseLayers = new ol.layer.Group( {
-            layers: [ layer1, layer2 ]
+            layers: [ layer1 ]
         } );
 
         var span = document.createElement( 'SPAN' );
@@ -266,6 +336,10 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
         } );
 
         this.map_ = map;
+    }
+
+    Map.prototype.on = function ( type, callback ) {
+        this.map_.on( type, callback );
     }
 
     Map.prototype.getMap = function () {
