@@ -1,30 +1,36 @@
 define( [], function () {
 
-    function itemHTML( index, url ) {
-        return
-            '<div class="col-xs-6 col-md-3">' +
-            '  <a href="#" class="thumbnail" data-index="' + index.toString() + '">' +
-            '    <img src="' + url + '" alt="">' +
-            '  </a>' +
-            '  <div class="dx-actionbar" style="visibility: hidden;">' +
+    function itemHTML( id, title, url ) {
+        return '' +
+            '<div class="showcase-item col-xs-6 col-md-3">' +
+            '  <div class="thumbnail" data-id="' + id + '">' +
+            '    <img src="' + url + '" alt="' + title + '">' +
+            '    <div class="caption">' +
+            '      <h3>' + title + '</h3>' +
+            '    </div>' +
+            '  </div>' +
+            '  <!-- <div class="dx-actionbar" style="visibility: hidden;">' +
             '    <button name="uncheck" type="button" class="btn"><i class="fa fa-check-square fa-lg"></i></button>' +
             '    <button name="remove" type="button" class="btn"><i class="fa fa-minus-circle fa-lg"></i></button>' +
-            '  </div>' +
+            '  </div> -->' +
             '</div>';
     }
 
+    function Thumbnail( overview ) {
 
-    function Thumbnail( showcase ) {
-
-        this.showcase = showcase;
-        this.backdrop = document.createElement( 'div' );
+        this.overview = overview;
+        this.backdrop = document.createElement( 'DIV' );
         this.backdrop.className = 'dx-thumbnail dx-fullscreen';
         this.backdrop.style.visibility = 'hidden';
 
         var items = [];
-        showcase.items.forEach( function ( item, index ) {
-            items.push( itemHTML( index, item.url ) );
-        } );
+        // overview.items.forEach( function ( item ) {
+        //     items.push( itemHTML( item.id, item.title, item.preview ) );
+        // } );
+        items.push( itemHTML( 'app-life', '人生史记', 'images/record.jpg' ) );
+        items.push( itemHTML( 'app-house', '远程看房', 'images/house.jpg' ) );
+        items.push( itemHTML( 'app-travel', '交通导航', 'images/travel.jpg' ) );
+
         this.backdrop.innerHTML =
             '<div class="toolbar">' +
             '  <button type="button" class="btn btn-default" id="close-thumbnail"><i class="fa fa-close"></i></button>' +
@@ -35,14 +41,11 @@ define( [], function () {
         this.backdrop.addEventListener( 'click', Thumbnail.prototype.hide.bind( this ), false);
         document.body.appendChild( this.backdrop );
 
-        this.backdrop.getElementById( 'close-thumbnail' ).addEventListener( 'click', Thumbnail.prototype.hide.bind( this ), false );
-        this.backdrop.getElementById( 'trash-thumbnail' ).addEventListener( 'click', Thumbnail.prototype.trash.bind( this ), false );
+        this.backdrop.querySelector( '#close-thumbnail' ).addEventListener( 'click', Thumbnail.prototype.hide.bind( this ), false );
+        this.backdrop.querySelector( '#trash-thumbnail' ).addEventListener( 'click', Thumbnail.prototype.trash.bind( this ), false );
 
-        // var handler = function ( e ) {
-        //     document.dispatchEvent( new Event( e.currentTarget.getAttribute( 'data-trigger' ) ) );
-        // };
-        Array.prototype.forEach.call( this.backdrop.querySelectorAll( 'a.thumbnail' ), function ( a ) {
-            a.addEventListener( 'click', this.handler, false );
+        Array.prototype.forEach.call( this.backdrop.querySelectorAll( 'a.thumbnail' ), function ( element ) {
+            element.addEventListener( 'click', this.handler, false );
         }.bind( this ) );
 
     }

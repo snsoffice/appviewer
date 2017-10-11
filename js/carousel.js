@@ -1,7 +1,5 @@
 define( [ 'owl', 'utils' ], function ( owl, utils ) {
 
-    // Plugins: Video5, RichMime, Fleet
-
     /**
      * Creates the fit view plugin.
      * @class The FitView Plugin
@@ -14,13 +12,6 @@ define( [ 'owl', 'utils' ], function ( owl, utils ) {
 	 * @type {Owl}
 	 */
 	this._core = carousel;
-
-        /**
-	 * Current playing item.
-	 * @protected
-	 * @type {jQuery}
-	 */
-	this._playing = null;
 
 	/**
 	 * All event handlers.
@@ -45,14 +36,11 @@ define( [ 'owl', 'utils' ], function ( owl, utils ) {
 	// this._core.options = $.extend({}, FitView.Defaults, this._core.options);
 
 	// register event handlers
-	this._core.$element.on(this._handlers);
+	this._core.$element.on( this._handlers );
 
-        // document.addEventListener( 'toggle-carousels', this._core.onResize.bind(this._core), false );
-        this._core.on( document, 'toggle-carousels', this._core.onResize.bind(this._core) );
+        this._resizeHandler = this._core.onResize.bind( this._core )
+        this._core.on( document, 'toggle-showcase', this._resizeHandler );
 
-        this._core.$element.on('click.dx.video', '.dx-video-play-icon', $.proxy(function(e) {
-	    this.play(e);
-	}, this));
     };
 
     /**
@@ -95,44 +83,6 @@ define( [ 'owl', 'utils' ], function ( owl, utils ) {
     };
 
     /**
-     * Stops the current video.
-     * @public
-     */
-    FitView.prototype.stop = function() {
-	this._core.trigger('stop', null, 'video');
-	this._playing.find('.owl-video-frame').remove();
-	this._playing.removeClass('owl-video-playing');
-	this._playing = null;
-	this._core.leave('playing');
-	this._core.trigger('stopped', null, 'video');
-    };
-
-    /**
-     * Starts the current video.
-     * @public
-     * @param {Event} event - The event arguments.
-     */
-    FitView.prototype.play = function(event) {
-	var target = $(event.target),
-	item = target.closest('.' + this._core.settings.itemClass);
-
-	if (this._playing) {
-	    return;
-	}
-
-	this._core.enter('playing');
-	this._core.trigger('play', null, 'video');
-
-	item = this._core.items(this._core.relative(item.index()));
-
-	this._core.reset(item.index());
-
-        $( 'video', item).get(0).play();
-
-	this._playing = item.addClass('owl-video-playing');
-    };
-
-    /**
      * Destroys the plugin.
      */
     FitView.prototype.destroy = function() {
@@ -144,27 +94,57 @@ define( [ 'owl', 'utils' ], function ( owl, utils ) {
 	for (property in Object.getOwnPropertyNames(this)) {
 	    typeof this[property] != 'function' && (this[property] = null);
 	}
-        // document.removeEventListener( 'toggle-carousels', this._core.onResize, false );
-        this._core.off( document, 'toggle-carousels' );
+        this._core.off( document, 'toggle-showcase', this._resizeHandler );
 
-        this._core.$element.off('click.dx.video');
     };
 
     $.fn.owlCarousel.Constructor.Plugins.FitView = FitView;
 
+    function Carousel ( options ) {
+        var target = '#carousels > div.owl-carousel';
+        var baseElement = document.getElementById( 'carousels' );
+        this.owl_ = $( target ).owlCarousel( {
+            items: 1,
+            merge: false,
+            loop: true,
+            lazyLoad: true,
+            mergeFit: false,
+            center: true,
+            responsiveBaseElement: baseElement
+        } );        
+    }
+
+    Carousel.prototype.current = function () {
+        return this.owl_.data( 'owl.carousel' ).current();
+    };
+
+    Carousel.prototype.add = function ( item, position ) {
+        this.owl_.trigger( 'add.owl.carousel', [ item, position ] );
+    };
+
+    Carousel.prototype.remove = function ( position ) {
+        this.owl_.trigger( 'remove.owl.carousel', position );
+    };
+
+    Carousel.prototype.replace = function ( data ) {
+        this.owl_.trigger( 'replace.owl.carousel', data );
+    };
+
+    Carousel.prototype.show = function ( position ) {
+        var speed = 1000;
+        this.owl_.trigger( 'to.owl.carousel', [ position, speed ] );
+    };
+
+    Carousel.prototype.destroy = function () {
+        this.owl_.trigger( 'destroy.owl.carousel' );
+    };
+
+    return Carousel;
+
+});
 
     // $.fn.owlCarousel.Constructor.Plugins.Video5 = Video5;
     // $.fn.owlCarousel.Constructor.Plugins.RichMime = RichMime;
-    
-    var $carousel = $( '.owl-carousel' ).owlCarousel( {
-        items: 1,
-        merge: false,
-        loop: true,
-        lazyLoad: true,
-        mergeFit: false,
-        center: true,
-        responsiveBaseElement: document.getElementById( 'carousels' )
-    } );
 
     // Draw video to canvas
     // ctx.drawImage(this.video, 0, 0, this.width, this.height);
@@ -181,9 +161,42 @@ define( [ 'owl', 'utils' ], function ( owl, utils ) {
     //     $( '.owl-item img', $carousel).css('max-height', wrapper.clientHeight + 'px');
     // } );
 
-    function Carousel ( options ) {
-    }
+    // /**
+    //  * Stops the current video.
+    //  * @public
+    //  */
+    // FitView.prototype.stop = function() {
+    //     this._core.trigger('stop', null, 'video');
+    //     this._playing.find('.owl-video-frame').remove();
+    //     this._playing.removeClass('owl-video-playing');
+    //     this._playing = null;
+    //     this._core.leave('playing');
+    //     this._core.trigger('stopped', null, 'video');
+    // };
 
-    return Carousel;
+    // /**
+    //  * Starts the current video.
+    //  * @public
+    //  * @param {Event} event - The event arguments.
+    //  */
+    // FitView.prototype.play = function(event) {
+    //     var target = $(event.target),
+    //     item = target.closest('.' + this._core.settings.itemClass);
 
-});
+    //     if (this._playing) {
+    //         return;
+    //     }
+
+    //     this._core.enter('playing');
+    //     this._core.trigger('play', null, 'video');
+
+    //     item = this._core.items(this._core.relative(item.index()));
+
+    //     this._core.reset(item.index());
+
+    //     $( 'video', item).get(0).play();
+
+    //     this._playing = item.addClass('owl-video-playing');
+    // };
+
+    // this._core.$element.off('click.dx.video');

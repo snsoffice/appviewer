@@ -97,7 +97,7 @@ button:hover, button:focus {
 #close-thumbnail {
     position: fixed;
     top: .5em;
-    right: 1.2em;
+    right: .5em;
 
     padding: 2px 6px;
     border-radius: 16px;
@@ -145,6 +145,10 @@ button:hover, button:focus {
 #live-canvas {
     width: 100%;
     height: 100%;
+}
+
+#carousels {
+    z-index: -1;
 }
 
 .owl-carousel .owl-item {
@@ -276,7 +280,7 @@ button:hover, button:focus {
     background: transparent;
 }
 
-#manage-showcase {
+#manage-appbox {
     left: 2px;
     bottom: 2px;
     color: #fff;
@@ -284,21 +288,28 @@ button:hover, button:focus {
 }
 
 .dx-toolbox {
-    display: flex;
+    position: absolute;
+    top: 3em;
+    margin: .6em;
+    display: flex;    
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
     -webkit-align-items: center;
     -webkit-justify-content: center;
 
-    width: 100%;
-    height: 100%;
-    background: #ccc;
-    opacity: .8;
+    border-radius: .6em;
+    /* background: #f5f5f5; */
+    opacity: 1.0;
+}
+
+@media (orientation: portrait) {
+    .dx-toolbox {
+        flex-direction: column;
+    }
 }
 
 .dx-tool {
-    margin: .6em;
     padding: .6em;
 }
 
@@ -370,13 +381,13 @@ button:hover, button:focus {
     height: 1.2em;
 }
 
-#navbar-user {
+#navbar .navbar-button {
     background: transparent;
     border: 0px;
     padding: 8px 12px 6px 26px;
 }
 
-.dx-user span {
+.navbar-button span {
     font-size: 0.6em;
     color: red;
     vertical-align: top;
@@ -527,11 +538,41 @@ div#settings .content {
     max-width: 380px;
 }
 
-@media (max-width: 768px) and (orientation: landscape) {
-  .col-sm-3 {
-    padding-top: 6px;
-    float: left;
-  }
+/* @media (max-width: 768px) and (orientation: landscape) { */
+/*   .col-sm-3 { */
+/*     padding-top: 6px; */
+/*     float: left; */
+/*   } */
+/* } */
+
+.appbox-content {
+    width: 100%;
+    height: 100%;
+    background: #f5f5f5;
+    padding: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    overflow: auto;
+}
+
+.app-item {
+    width: 33%;
+    padding: 5px;
+}
+
+@media (max-width: 800px) and (orientation: portrait) {
+    .appbox-content {        
+        justify-content: flex-start;
+    }
+    .app-item {
+        width: 50%;
+    }
+}
+
+.app-caption {
+    padding: 6px 2px 0px 2px;
 }
 
 div#showcase .content {

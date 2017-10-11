@@ -165,6 +165,24 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
         return layer;
     }
 
+    function loadLayer( url, callback ) {
+        var request = new XMLHttpRequest();
+        request.onerror = function ( event ) {
+            utils.warning( '装载图层 ' + url + '时出现了错误!' );
+        };
+
+        request.onloadend = function() {
+
+            if (request.status != 200) {
+                utils.warning( '装载图层 ' + url + '失败，服务器返回代码：' + request.status );
+                return;
+            }
+            callback( JSON.parse( request.responseText ) );
+        };
+        request.open('GET', url, true);
+        request.send();
+    }
+
     /**
      * @classdesc
      * Events emitted by {@link ol.Collection} instances are instances of this
@@ -240,7 +258,9 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
             return false;
 
         var feature = selected[ 0 ], layer = selected[ 1 ];
+
         if ( feature ) {
+
             this.coordinate_ = evt.coordinate;
             if ( layer.getSource() instanceof ol.source.Cluster ) {
                 var features = feature.get( 'features' );
@@ -256,42 +276,59 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
 
             var category = this.feature_.get( 'category' );
 
-            if ( category === 'organization' || category === 'building' ) {
+            if ( category === 'layer' ) {
+
+                console.assert ( ! this.feature_.get( 'targetLayer' ) );
+
                 var url = this.feature_.get( 'url' );
-                // 发送 ajax request，读取配置文件
-                var path = url.substring( 0, url.lastIndexOf( '/' ) );
-                var config = {};
 
-                // 读取 url 指定的 config
+                // 发送 ajax request，读取 url 指定的 config
+                loadLayer( url, function ( config ) {
 
-                // 创建 imageLayer
-                var imgLayer = new ol.layer.Image( {
-                    source: new ol.source.ImageStatic( {
-                        crossOrigin: 'anonymous',
-                        imageExtent: config.extent,
-                        url: path + '/' + ( config.image ? config.image : 'planform.png' ),
-                    } ),
-                } );
-                
+                    var path = url.substring( 0, url.lastIndexOf( '/' ) );
 
-                // 创建 vectorLayer
-                var fmt = new ol.source.GeoJSON();
-                var features = fmt.readFeatures( {
-                    type: 'FeatureCollection',
-                    features: config.features,
-                } );
-                var layer = new ol.layer.Vector( {
-                    source: new ol.source.Vector( {
-                        features: features,
-                    } ),
-                } );
-                
-                map.dispatchEvent( new FeatureEvent( 'feature:click', this.feature_ ) );
+                    // 创建 imageLayer
+                    var imgLayer = new ol.layer.Image( {
+                        source: new ol.source.ImageStatic( {
+                            crossOrigin: 'anonymous',
+                            imageExtent: config.extent,
+                            url: path + '/' + ( config.image ? config.image : 'planform.png' ),
+                        } ),
+                    } );
+
+                    // 创建 vectorLayer
+                    var fmt = new ol.source.GeoJSON();
+                    var features = fmt.readFeatures( {
+                        type: 'FeatureCollection',
+                        features: config.features,
+                    } );
+                    var layer = new ol.layer.Vector( {
+                        source: new ol.source.Vector( {
+                            features: features,
+                        } ),
+                    } );
+
+                    var layer = new ol.layer.Group( {
+                        opacity: config.opacity,
+                        extent: config.extent,
+                        minResolution: config.minResolution,
+                        maxResolution: config.maxResolution,
+                        zIndex: config.zIndex,
+                        layers: [ imgLayer, layer ]
+                    } );
+
+                    this.feature_.set( 'targetLayer', layer, true );
+
+                    map.addLayer( layer );
+
+                    map.dispatchEvent( new FeatureEvent( 'feature:click', this.feature_ ) );
+
+                }.bind( this ) );
             }
 
             else
                 map.dispatchEvent( new FeatureEvent( 'feature:click', this.feature_ ) );
-            
+
         }
 
         return false;
@@ -345,6 +382,47 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
     Map.prototype.getMap = function () {
         return this.map_;
     }
+
+    Map.prototype.addItem = function ( item, parent ) {
+        var config = item.config;
+        var imgLayer = new ol.layer.Image( {
+            source: new ol.source.ImageStatic( {
+                crossOrigin: 'anonymous',
+                imageExtent: config.extent,
+                url: path + '/' + ( config.image ? config.image : 'planform.png' ),
+            } ),
+        } );
+        var vecLayer = new ol.layer.Vector( {
+            source: new ol.source.Vector( {
+                features: features,
+            } ),
+        } );
+        var group = new ol.layer.Group( {
+            opacity: config.opacity,
+            extent: config.extent,
+            minResolution: config.minResolution,
+            maxResolution: config.maxResolution,
+            zIndex: config.zIndex,
+            layers: [ imgLayer, vecLayer ]
+        } );
+        item.baseLayer = group;
+        if ( parent instanceof ol.layer.Group ) {
+            parent.getLayers().push( group );
+            group.set( 'parent', parent, true );
+        }
+        else
+            this.map_.addLayer( group );
+        return group;
+    };
+
+    Map.prototype.removeItem = function ( item ) {
+        var layer = item.baseLayer;
+        var parent = layer.get( 'parent' );
+        if ( parent )
+            parent.getLayers().remove( layer );
+        else
+            this.map_.removeLayer( layer );
+    };
 
     return Map;
 

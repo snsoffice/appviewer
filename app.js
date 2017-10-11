@@ -11,6 +11,7 @@ require.config( {
         pannellum: 'lib/pannellum',
         libpannellum: 'lib/libpannellum',
         owl: 'lib/owl.carousel.min',
+        videojs: 'lib/video.min',
         'socket.io': 'lib/socket.io.min',
     }
 

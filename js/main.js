@@ -1,8 +1,8 @@
 define( [ 'search', 'utils', 'user',
-          'dashboard', 'toolbox', 'dxmap', 'overview', 'showcase' ],
+          'dashboard', 'toolbox', 'appbox', 'dxmap', 'overview', 'showcase' ],
 
 function( search, utils,
-          User, Dashboard, Toolbox, Dxmap, Overview, Showcase ) {
+          User, Dashboard, Toolbox, Appbox, Dxmap, Overview, Showcase ) {
 
     var navbar;
     var user;
@@ -19,7 +19,7 @@ function( search, utils,
 
     navbar.querySelector( '.navbar-brand' ).addEventListener( 'click', function ( e ) {
         e.preventDefault();
-        new Toolbox().show();
+        new Appbox().show();
     }, false );
 
     navbar.querySelector( '.dx-user' ).addEventListener( 'click', function ( e ) {
@@ -28,6 +28,15 @@ function( search, utils,
             dashboard = new Dashboard();
         dashboard.show();
     }, false );
+
+
+    //
+    // appbox
+    //
+    // var appbox = new Appbox();
+    // document.getElementById( 'manage-appbox' ).addEventListener( 'click', function () {
+    //     new Appbox().show();
+    // }, false );
 
 
     //
@@ -46,14 +55,11 @@ function( search, utils,
         target: 'overview'
     } );
     map.on( 'feature:click', overview.handleFeatureClicked );
-    document.getElementById( 'remove-overview' ).addEventListener( 'click', function () {
-        overview.remove();
+    document.getElementById( 'close-overview' ).addEventListener( 'click', function () {
+        overview.close();
     }, false );
-    document.getElementById( 'overview-prev' ).addEventListener( 'click', function () {
-        overview.prev();
-    }, false );
-    document.getElementById( 'overview-next' ).addEventListener( 'click', function () {
-        overview.next();
+    document.getElementById( 'open-overview' ).addEventListener( 'click', function () {
+        overview.open();
     }, false );
     document.getElementById( 'toggle-overview' ).addEventListener( 'click', function () {
         overview.toggle();
@@ -62,19 +68,16 @@ function( search, utils,
         document.querySelector( '#toggle-overview > i.fa' ).className = 'fa fa-angle-double-' + ( overview.visible ? 'right' : 'left' );
     }, false );
 
-
     //
     // showcase
     //
     showcase = new Showcase( {
         target: 'showcase',
     } );
-    map.on( 'feature:click', showcase.handleFeatureClicked );
+    overview.on( 'item:open', showcase.openItem );
+    overview.on( 'item:show', showcase.showFeature );
     document.getElementById( 'toggle-showcase' ).addEventListener( 'click', function () {
         showcase.toggle();
-    }, false );
-    document.getElementById( 'remove-showcase' ).addEventListener( 'click', function () {
-        showcase.remove();
     }, false );
     document.getElementById( 'close-showcase' ).addEventListener( 'click', function () {
         showcase.close();
@@ -82,9 +85,6 @@ function( search, utils,
     document.addEventListener( 'toggle-showcase', function () {
         if ( showcase.visible )
             overview.toggle( showcase.mini );
-    }, false );
-    document.getElementById( 'manage-showcase' ).addEventListener( 'click', function () {
-        showcase.showThumbnail();
     }, false );
 
 
