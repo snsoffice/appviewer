@@ -19,6 +19,11 @@
           line-height: 1.42857143;
       }
       .dx-splash {
+          display: flex;
+          flex-wrap: wrap;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
           position: absolute;
           left: 0;
           right: 0;
@@ -90,20 +95,21 @@
         </div>
         <!-- /.navbar-header -->
         <ul class="nav navbar-nav navbar-right">
+          <!-- <li><a href="#" title="搜索"><i class="fa fa-search fa-lg"></i></a></li> -->
           <li>
             <button class="btn btn-default navbar-button dx-user" type="button" id="navbar-user">
               <i class="fa fa-lg fa-user"></i><span class="fa fa-circle"></span>
             </button>
           </li>
         </ul>
-        <ul class="nav navbar-nav navbar-right">
-          <li>
-            <form class="input-group xs-search-form">
-              <span class="form-control-feedback" aria-hidden="true"><i class="fa fa-lg fa-search"></i></span>
-              <input name="search" type="text" class="form-control" title="搜索">
-            </form>
-          </li>
-        </ul>
+        <!-- <ul class="nav navbar-nav navbar-right"> -->
+        <!--   <li> -->
+        <!--     <form class="input-group xs-search-form"> -->
+        <!--       <span class="form-control-feedback" aria-hidden="true"><i class="fa fa-lg fa-search"></i></span> -->
+        <!--       <input name="search" type="text" class="form-control" title="搜索"> -->
+        <!--     </form> -->
+        <!--   </li> -->
+        <!-- </ul> -->
         <!-- <ul class="nav navbar-nav navbar-right"> -->
         <!--   <li><a class="navbar-link" href="#" title="搜索"><i class="fa fa-search fa-lg"></i></a></li> -->
         <!-- </ul> -->
@@ -159,7 +165,7 @@
 
     <div class="dx-footbar">
       <button type="button" class="btn btn-default btn-lg" id="toggle-overview"><i class="fa fa-angle-double-left"></i></button>
-      <button type="button" class="btn btn-default btn-lg" id="manage-appbox"><i class="fa fa-th"></i></button>
+      <button type="button" class="btn btn-default btn-lg" id="manage-thumbnail"><i class="fa fa-th"></i></button>
     </div>
 
   </body>
