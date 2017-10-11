@@ -6,10 +6,10 @@ define( [], function () {
             '  <div class="thumbnail" data-id="' + id + '">' +
             '    <img src="' + url + '" alt="' + title + '">' +
             '    <div class="app-caption">' +
-            '      <button name="take-photo" type="button" class="btn btn-success btn-sm pull-right">' +
-            '        <i class="fa fa-' + icon + '"></i> ' + action + '</button>' +
             '      <p><strong>' + title + '</strong></p>' +
             '      <p>' + description + '</p>' +
+            '      <button name="take-photo" type="button" class="btn btn-success btn-sm">' +
+            '        <i class="fa fa-' + icon + '"></i> ' + action + '</button>' +
             '    </div>' +
             '  </div>' +
             '  <!-- <div class="dx-actionbar" style="visibility: hidden;">' +
@@ -29,10 +29,10 @@ define( [], function () {
         // overview.items.forEach( function ( item ) {
         //     items.push( itemHTML( item.id, item.title, item.preview ) );
         // } );
-        items.push( itemHTML( 'app-life', '人生史记', 'images/record.jpg', 'camera', '拍照', '用一张地图，记录下你的人生故事' ) );
-        items.push( itemHTML( 'app-house', '坐看天下', 'images/house.jpg', 'video-camera', '直播', '远程观景，直播看房，世界尽在你眼前' ) );
-        items.push( itemHTML( 'app-travel', '室内导航', 'images/travel.jpg', 'road', '导航', '在机场车站，超市博物馆，为你指引方向' ) );
-        items.push( itemHTML( 'app-travel', '先知预言', 'images/oracle.jpg', 'binoculars', '预言', '写下对未来的预测，彰显你的人生智慧' ) );
+        items.push( itemHTML( 'app-life', '人生史记', 'images/record-s.jpg', 'camera', '拍照', '拍一张照片，用地图记录下你的人生故事' ) );
+        items.push( itemHTML( 'app-house', '坐看天下', 'images/house-s.jpg', 'video-camera', '直播', '远程观景，直播看房，世界尽在你眼中' ) );
+        items.push( itemHTML( 'app-travel', '室内导航', 'images/travel-s.jpg', 'road', '导航', '在机场车站，超市博物馆，为你指引方向' ) );
+        items.push( itemHTML( 'app-travel', '先知预言', 'images/oracle-s.jpg', 'binoculars', '预言', '写下对未来的预测，彰显你的人生智慧' ) );
 
         // 无论你在那里
         this.backdrop.innerHTML =

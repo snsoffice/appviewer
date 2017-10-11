@@ -9,10 +9,10 @@ define( [], function () {
             '      <h3>' + title + '</h3>' +
             '    </div>' +
             '  </div>' +
-            '  <!-- <div class="dx-actionbar" style="visibility: hidden;">' +
+            '  <div class="dx-actionbar" style="visibility: hidden;">' +
             '    <button name="uncheck" type="button" class="btn"><i class="fa fa-check-square fa-lg"></i></button>' +
             '    <button name="remove" type="button" class="btn"><i class="fa fa-minus-circle fa-lg"></i></button>' +
-            '  </div> -->' +
+            '  </div>' +
             '</div>';
     }
 
@@ -68,6 +68,8 @@ define( [], function () {
     };
 
     Thumbnail.prototype.handler = function ( event ) {
+
+        event.stopPropagation();
 
         // 如果没有选中，那么选中，显示对应的 toolbar，并绑定对应的工具栏事件
         this.selectItem();

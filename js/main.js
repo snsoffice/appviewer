@@ -67,6 +67,9 @@ function( search, utils,
     document.addEventListener( 'toggle-overview', function () {
         document.querySelector( '#toggle-overview > i.fa' ).className = 'fa fa-angle-double-' + ( overview.visible ? 'right' : 'left' );
     }, false );
+    document.getElementById( 'manage-thumbnail' ).addEventListener( 'click', function () {
+        overview.showThumbnail();
+    }, false );
 
     //
     // showcase
