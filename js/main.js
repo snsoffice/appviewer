@@ -11,7 +11,6 @@ function( search, utils,
     var overview;
     var showcase;
 
-
     //
     // navbar
     //
@@ -20,23 +19,23 @@ function( search, utils,
     navbar.querySelector( '.navbar-brand' ).addEventListener( 'click', function ( e ) {
         e.preventDefault();
         new Appbox().show();
+        // new Toolbox().show();
     }, false );
 
-    navbar.querySelector( '.dx-user' ).addEventListener( 'click', function ( e ) {
+    navbar.querySelector( '#navbar-search' ).addEventListener( 'click', function ( e ) {
+        e.preventDefault();
+    }, false );
+
+    navbar.querySelector( '#navbar-message' ).addEventListener( 'click', function ( e ) {
+        e.preventDefault();
+    }, false );
+
+    navbar.querySelector( '#navbar-user' ).addEventListener( 'click', function ( e ) {
         e.preventDefault();
         if ( dashboard === undefined )
             dashboard = new Dashboard();
         dashboard.show();
     }, false );
-
-
-    //
-    // appbox
-    //
-    // var appbox = new Appbox();
-    // document.getElementById( 'manage-appbox' ).addEventListener( 'click', function () {
-    //     new Appbox().show();
-    // }, false );
 
 
     //
@@ -58,17 +57,15 @@ function( search, utils,
     document.getElementById( 'close-overview' ).addEventListener( 'click', function () {
         overview.close();
     }, false );
-    document.getElementById( 'open-overview' ).addEventListener( 'click', function () {
-        overview.open();
-    }, false );
     document.getElementById( 'toggle-overview' ).addEventListener( 'click', function () {
         overview.toggle();
     }, false );
     document.addEventListener( 'toggle-overview', function () {
         document.querySelector( '#toggle-overview > i.fa' ).className = 'fa fa-angle-double-' + ( overview.visible ? 'right' : 'left' );
     }, false );
-    document.getElementById( 'manage-thumbnail' ).addEventListener( 'click', function () {
-        overview.showThumbnail();
+    document.getElementById( 'manage-thumbnail' ).addEventListener( 'click', function ( e ) {
+        e.preventDefault();
+        // overview.showThumbnail();
     }, false );
 
     //

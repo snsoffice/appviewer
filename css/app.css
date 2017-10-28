@@ -395,6 +395,7 @@ button:hover, button:focus {
     padding-top: 8px;
 }
 
+ul.navbar-nav > li > a > span,
 .navbar-button span {
     font-size: 0.6em;
     color: red;
