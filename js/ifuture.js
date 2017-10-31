@@ -84,12 +84,12 @@ define( [ 'ol' ], function ( ol ) {
      * Usage:
      *
      *    function ChildClass( a, b ) {
-     *      dxbase.Component.call( this );
+     *      ifuture.Component.call( this );
      *      this.a_ = a;
      *      this.b_ = b;
      *    }
      *
-     *    dxbase.inherits( ChildClass, dxbase.Component );
+     *    ifuture.inherits( ChildClass, ifuture.Component );
      */
     function Component() {
         ol.Object.call( this );

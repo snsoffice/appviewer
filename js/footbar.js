@@ -1,10 +1,10 @@
-define( [ 'dxbase' ],
+define( [ 'ifuture' ],
 
-function( dxbase ) {
+function( ifuture ) {
 
     Footbar = function ( app, opt_options ) {
 
-        dxbase.Component.call( this );
+        ifuture.Component.call( this );
 
         var element = document.getElementById( 'footbar' );
         this.element = element;
@@ -25,7 +25,7 @@ function( dxbase ) {
         }, false );
 
     }
-    dxbase.inherits( Footbar, dxbase.Component );
+    ifuture.inherits( Footbar, ifuture.Component );
 
     Footbar.prototype.add = function ( name, title, icon, callback ) {
     };

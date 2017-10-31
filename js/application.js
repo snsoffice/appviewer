@@ -1,12 +1,12 @@
-define( [ 'config', 'dxbase', 'map', 'minimap', 'carousel', 'manager',
+define( [ 'config', 'ifuture', 'map', 'minimap', 'carousel', 'manager',
           'navbar', 'modebar', 'footbar', 'responsebar', 'dialog', 'communicator' ],
 
-        function( config, dxbase,
-                  Map, Minimap, Carousel, Manager,
-                  Navbar, Modebar, Footbar, Responsebar, Dialog, Communicator ) {
+function( config, ifuture,
+          Map, Minimap, Carousel, Manager,
+          Navbar, Modebar, Footbar, Responsebar, Dialog, Communicator ) {
 
     Application = function () {
-        dxbase.Component.call( this );
+        ifuture.Component.call( this );
 
         this.navbar = new Navbar( this );
         this.map = new Map( this );
@@ -20,8 +20,8 @@ define( [ 'config', 'dxbase', 'map', 'minimap', 'carousel', 'manager',
         this.dialog = new Dialog( this );
         this.communicator = new Communicator( this );
         this.responsebar = new Responsebar( this );
-    }
-    dxbase.inherits( Application, dxbase.Component );
+    };            
+    ifuture.inherits( Application, ifuture.Component );
 
     Application.prototype.request = function ( name, action, arguments ) {
 
@@ -38,7 +38,11 @@ define( [ 'config', 'dxbase', 'map', 'minimap', 'carousel', 'manager',
 
     };
 
+    Application.prototype.init = function () {
+    };
+        };
     Application.prototype.run = function () {
+        // this.communicator.start();
     };
 
     return Application;

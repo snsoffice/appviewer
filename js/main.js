@@ -1,8 +1,8 @@
-define( [ 'application', 'config', 'dxbase', 'plugins',
+define( [ 'application', 'config', 'ifuture', 'plugins',
           'search', 'utils', 'user',
           'dashboard', 'toolbox', 'appbox', 'dxmap', 'overview', 'showcase' ],
 
-function( Application, config, dxbase, plugins,
+function( Application, config, ifuture, plugins,
           search, utils,
           User, Dashboard, Toolbox, Appbox, Dxmap, Overview, Showcase ) {
 

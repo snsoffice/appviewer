@@ -1,9 +1,9 @@
-define( [ 'dxbase' ],
+define( [ 'ifuture' ],
 
-function( dxbase ) {
+function( ifuture ) {
 
     Modebar = function ( app, opt_options ) {
-        dxbase.Component.call( this );
+        ifuture.Component.call( this );
 
         var element = document.getElementById( 'modebar' );
         this.element = element;
@@ -20,7 +20,7 @@ function( dxbase ) {
         }.bind( this ), false );
 
     }
-    dxbase.inherits( Modebar, dxbase.Component );
+    ifuture.inherits( Modebar, ifuture.Component );
 
     Modebar.prototype.add = function ( name, component ) {
         var index = this.modeName.indexOf( name );
