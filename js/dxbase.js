@@ -13,7 +13,7 @@ define( [ 'ol' ], function ( ol ) {
      * @implements {Event}
      * @param {string} type Type.
      */
-    Event = function(type) {
+    Event = function( type, argument ) {
 
         /**
          * @type {boolean}
@@ -26,6 +26,13 @@ define( [ 'ol' ], function ( ol ) {
          * @api
          */
         this.type = type;
+
+        /**
+         * The argument object of event.
+         * @type {Object}
+         * @api
+         */
+        this.argument = argument;
 
         /**
          * The event target.
