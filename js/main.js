@@ -1,7 +1,9 @@
-define( [ 'search', 'utils', 'user',
+define( [ 'application', 'config', 'dxbase', 'plugins',
+          'search', 'utils', 'user',
           'dashboard', 'toolbox', 'appbox', 'dxmap', 'overview', 'showcase' ],
 
-function( search, utils,
+function( Application, config, dxbase, plugins,
+          search, utils,
           User, Dashboard, Toolbox, Appbox, Dxmap, Overview, Showcase ) {
 
     var navbar;
@@ -94,5 +96,17 @@ function( search, utils,
     window.setTimeout( function ( ) {
         document.getElementById( 'splash' ).remove();
     }, 3000 );
+
+    var app = new Application( config );
+
+    // Create showcase plugins
+    plugins.showcase.forEach( function ( showcase ) {
+        app.carousel.create( app, showcase );
+    } );
+
+    // Create toolcase plugins
+    plugins.toolcase.forEach( function ( toolcase ) {
+        app.manager.create( app, toolcase );
+    } );
 
 } );
