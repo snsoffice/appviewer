@@ -1,25 +1,25 @@
-define( [ 'config', 'dxbase', 'plugins', 'navbar' ],
+define( [ 'config', 'dxbase', 'map', 'minimap', 'carousel', 'manager',
+          'navbar', 'modebar', 'footbar', 'responsebar', 'dialog', 'communicator' ],
 
-function( config, dxbase, plugins, Navbar ) {
+        function( config, dxbase,
+                  Map, Minimap, Carousel, Manager,
+                  Navbar, Modebar, Footbar, Responsebar, Dialog, Communicator ) {
 
-    //
-    //
-    //
     Application = function () {
         dxbase.Component.call( this );
 
         this.navbar = new Navbar( this );
-        this.map = null;
-        this.minimap = null;
-        this.modebar = null;
-        this.footbar = null;
+        this.map = new Map( this );
+        this.minimap = new Minimap( this );
+        this.modebar = new Modebar( this );
+        this.footbar = new Footbar( this );
 
-        this.manager = null;
-        this.carousel = null;
+        this.manager = new Manager( this );
+        this.carousel = new Carousel( this );
 
-        this.dialog = null;
-        this.communicator = null;
-        this.responsebar = null;
+        this.dialog = new Dialog( this );
+        this.communicator = new Communicator( this );
+        this.responsebar = new Responsebar( this );
     }
     dxbase.inherits( Application, dxbase.Component );
 
@@ -36,7 +36,10 @@ function( config, dxbase, plugins, Navbar ) {
         if ( component && component.hasOwnProperty( action ) && typeof component[ action ] === 'function' )
             return component[ action ].apply( component, arguments );
 
-    }
+    };
+
+    Application.prototype.run = function () {
+    };
 
     return Application;
 

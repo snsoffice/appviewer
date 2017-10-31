@@ -109,4 +109,6 @@ function( Application, config, dxbase, plugins,
         app.manager.create( app, toolcase );
     } );
 
+    app.run();
+
 } );
