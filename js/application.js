@@ -40,7 +40,7 @@ function( config, ifuture,
 
     Application.prototype.init = function () {
     };
-        };
+
     Application.prototype.run = function () {
         // this.communicator.start();
     };

@@ -15,6 +15,10 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
         settings: '++id, &name, value, description',
         features: 'id, &title, geometry, category, icon, url',
 
+        user_images: '++id, title, description, timestamp, data',
+        map_features: 'id, &title, geometry, category, mimetype, icon, url',
+        map_layers: 'id, &title, category, source, extent, opacity, minResolution, maxResolution, favorite',
+
     } );
 
     var SettingItem = _db.settings.defineClass( {
