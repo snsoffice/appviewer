@@ -9,17 +9,17 @@ function( ifuture ) {
         var element = document.getElementById( 'footbar' );
         this.element = element;
 
-        element.querySelector( '#footbar-maylayer' ).addEventListener( 'click', function ( e ) {
+        element.querySelector( '#show-maplayer' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            app.request( 'maylayer', 'show' );
+            app.request( 'maplayer', 'show' );
         }, false );
 
-        element.querySelector( '#footbar-carousel' ).addEventListener( 'click', function ( e ) {
+        element.querySelector( '#show-explorer' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            app.request( 'carousel', 'show' );
+            app.request( 'explorer', 'show' );
         }, false );
 
-        element.querySelector( '#footbar-minimap' ).addEventListener( 'click', function ( e ) {
+        element.querySelector( '#show-minimap' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
             app.request( 'minimap', 'show' );
         }, false );

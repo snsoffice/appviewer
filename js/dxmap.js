@@ -357,9 +357,7 @@ define( [ 'ol', 'db', 'utils' ], function ( ol, db, utils ) {
 
         var span = document.createElement( 'SPAN' );
         span.className = 'fa fa-arrow-up';
-        var rotate = new ol.control.Rotate( {
-            label: span,
-        } );
+        var rotate = new ol.control.Rotate( { label: span } );
 
         var map = new ol.Map( {
             target: options.target ? options.target : 'map',

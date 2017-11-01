@@ -9,10 +9,10 @@ function( Application, config, ifuture, plugins ) {
     //     target: 'map'
     // } );
     //
-    // Remove splash
-    //
+
+    // Remove splash    
     // window.setTimeout( function ( ) {
-    //     document.getElementById( 'splash' ).remove();
+    //     document.querySelector( '.dx-splash' ).remove();
     // }, 3000 );
 
     //
@@ -26,15 +26,15 @@ function( Application, config, ifuture, plugins ) {
     //     // new Toolbox().show();
     // }, false );
 
-    // navbar.querySelector( '#navbar-search' ).addEventListener( 'click', function ( e ) {
+    // navbar.querySelector( '#show-search' ).addEventListener( 'click', function ( e ) {
     //     e.preventDefault();
     // }, false );
 
-    // navbar.querySelector( '#navbar-message' ).addEventListener( 'click', function ( e ) {
+    // navbar.querySelector( '#show-message' ).addEventListener( 'click', function ( e ) {
     //     e.preventDefault();
     // }, false );
 
-    // navbar.querySelector( '#navbar-user' ).addEventListener( 'click', function ( e ) {
+    // navbar.querySelector( '#show-user' ).addEventListener( 'click', function ( e ) {
     //     e.preventDefault();
     //     if ( dashboard === undefined )
     //         dashboard = new Dashboard();
