@@ -55,23 +55,18 @@
       }
     </style>
 
-    <link rel="stylesheet" href="css/video-js.min.css" type="text/css" />
     <link rel="stylesheet" href="css/owl.carousel.min.css" type="text/css" />
     <link rel="stylesheet" href="css/font-awesome/font-awesome.min.css" type="text/css" />
     <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
     <link rel="stylesheet" href="css/pannellum.css" type="text/css" />
     <link rel="stylesheet" href="css/ol.css" type="text/css" />
-    <link rel="stylesheet" href="css/app.css" type="text/css" />
-
-    <!-- <script type="text/javascript" src="js/lib/jquery.min.js"></script> -->
-    <!-- <script type="text/javascript" src="js/lib/bootstrap.min.js"></script> -->
-    <!-- <script type="text/javascript" src="js/lib/owl.carousel.min.js"></script> -->
+    <link rel="stylesheet" href="css/ifuture.css" type="text/css" />
 
     <script data-main="entry" src="js/lib/require.js"></script>
   </head>
 
   <body>
-    <div id="splash" class="dx-splash">
+    <div class="dx-splash hidden">
       <div class="slogan">天 涯 若 比 邻</div>
       <img alt="心连心" src="images/splash-logo.png"/>
       <div class="footer">
@@ -80,93 +75,78 @@
       </div>
     </div>
 
-    <div id="message" class="dx-message">Message</div>
+    <div id="navbar" class="dx-navbar">
+      <button id="show-toolbox" class="btn btn-default" type="button"><i class="fa fa-camera fa-lg"></i>&nbsp;远景网</button>
+      <button id="show-manager" class="btn btn-default pull-right" type="button"><i class="fa fa-user fa-lg"></i></button>
+      <button id="show-talk" class="btn btn-default pull-right" type="button"><i class="fa fa-comment fa-lg"></i></button>
+      <button id="show-search" class="btn btn-default pull-right" type="button"><i class="fa fa-search fa-lg"></i></button>
+    </div>
 
-    <!-- <div id="navbar" class="dx-navbar"> -->
-    <!--   <div class="navbar-brand"><img src="images/logo.png"><span> 远景网</span></div> -->
-    <!-- </div> -->
+    <div id="map" class="dx-map dx-page"></div>
 
-    <nav id="navbar" class="navbar navbar-default">
-      <div class="container-fluid">
-        <div class="navbar-header">
-          <a id="navbar-toolbox" class="navbar-brand" href="#">
-            <i class="fa fa-camera fa-lg"></i>&nbsp;远景网
-          </a>
-        </div>
-        <!-- /.navbar-header -->
-        <ul class="nav navbar-nav navbar-right">
-          <li><a href="#" title="搜索" id="navbar-search"><i class="fa fa-search fa-lg"></i></a></li>
-          <li><a href="#" title="消息" id="navbar-talk"><i class="fa fa-comment fa-lg"></i></a></li>
-          <li><a href="#" title="用户" id="navbar-user"><i class="fa fa-user fa-lg"></i></a></li>
-          <!-- <li><a href="#" title="用户" id="navbar-login"><i class="fa fa-user fa-lg"></i><span class="fa fa-circle"></span></a></li> -->
+    <div id="modebar" class="dx-modebar">
+      <button class="btn btn-default" type="button"><i class="fa fa-hourglass fa-lg"></i></button>
+    </div>
+
+    <div id="footbar" class="dx-footbar">      
+      <button id="show-minimap" class="btn btn-default pull-right" type="button"><i class="fa fa-map fa-lg"></i></button>
+      <button id="show-maplayer" class="btn btn-default pull-right" type="button"><i class="fa fa-th fa-lg"></i></button>
+      <button id="show-explorer" class="btn btn-default pull-right" type="button"><i class="fa fa-photo fa-lg"></i></button>
+    </div>
+
+    <div id="explorer" class="dx-explorer dx-mini">
+      <div class="dx-toolbar">
+        <div class="dx-showbar"></div>
+        <button type="button" class="btn btn-default" id="toggle-explorer"><i class="fa fa-chevron-down"></i></button>
+        <button type="button" class="btn btn-default" id="trash-showcase"><i class="fa fa-trash"></i></button>
+        <button type="button" class="btn btn-default" id="close-explorer"><i class="fa fa-close"></i></button>
+      </div>
+      <div id="carousel" class="dx-showcase">
+      </div>
+      <!-- plugins class="dx-showcase" -->
+    </div>
+
+    <div id="minimap" class="dx-minimap dx-mini">
+      <div class="dx-toolbar">
+        <button type="button" class="btn btn-default btn-lg" id="love-maplayer"><i class="fa fa-heart-o"></i></button>
+        <button type="button" class="btn btn-default btn-lg" id="close-maplayer"><i class="fa fa-trash"></i></button>
+        <button type="button" class="btn btn-default" id="close-minimap"><i class="fa fa-close"></i></button>
+      </div>
+    </div>
+
+    <div id="manager" class="dx-manager">
+      <div id="taskbar" class="dx-taskbar">
+        <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <ul class="nav nav-tabs">
+          <li role="presentation" class="active"><a href="#">收藏</a></li>
         </ul>
-        <!-- <ul class="nav navbar-nav navbar-right"> -->
-        <!--   <li> -->
-        <!--     <form class="input-group xs-search-form"> -->
-        <!--       <span class="form-control-feedback" aria-hidden="true"><i class="fa fa-lg fa-search"></i></span> -->
-        <!--       <input name="search" type="text" class="form-control" title="搜索"> -->
-        <!--     </form> -->
-        <!--   </li> -->
-        <!-- </ul> -->
-        <!-- <ul class="nav navbar-nav navbar-right"> -->
-        <!--   <li><a class="navbar-link" href="#" title="搜索"><i class="fa fa-search fa-lg"></i></a></li> -->
-        <!-- </ul> -->
       </div>
-      <!-- /.container-fluid -->
-    </nav>
-
-    <div id="dashboard" class="dx-fullscreen">
-      <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-      <ul class="nav nav-tabs">
-        <li role="presentation" tab-name="#message-tab" class="active"><a href="#">消息</a></li>
-        <li role="presentation" tab-name="#favorite-tab"><a href="#">收藏</a></li>
-        <li role="presentation" tab-name="#search-tab"><a href="#">发现</a></li>
-        <li role="presentation" tab-name="#profile-tab"><a href="#">我的</a></li>
-      </ul>
-      <div class="tab-content">
-        <div role="tabpanel" class="tab-pane active" id="message-tab">你还没有任何消息</div>
-        <div role="tabpanel" class="tab-pane" id="favorite-tab">你还没有任何收藏</div>
-        <div role="tabpanel" class="tab-pane" id="search-tab">高级搜索</div>
-        <div role="tabpanel" class="tab-pane" id="profile-tab">登录、注册、注销、设置、帮助、关于</div>
+      <div id="titlebar" class="dx-titlebar">
       </div>
+      <!-- plugins class="dx-toolcase" -->
     </div>
 
-    <div id="map" class="dx-map dx-fullscreen"></div>
-
-    <div id="overview" class="dx-overview dx-mini">
-      <div class="dx-toolbar">
-        <button type="button" class="btn btn-default btn-lg" id="open-showcase"><i class="fa fa-photo"></i></button>
-        <button type="button" class="btn btn-default btn-lg" id="love-overview"><i class="fa fa-heart-o"></i></button>
-        <button type="button" class="btn btn-default btn-lg" id="close-overview"><i class="fa fa-trash"></i></button>
-      </div>
-    </div>
-
-    <div id="showcase" class="dx-fullscreen">
-      <div class="dx-toolbar">
-        <button type="button" class="btn btn-default" id="toggle-showcase"><i class="fa fa-chevron-down"></i></button>
-        <button type="button" class="btn btn-default" id="hide-showcase"><i class="fa fa-trash"></i></button>
-        <button type="button" class="btn btn-default" id="close-showcase"><i class="fa fa-close"></i></button>
-      </div>
-      <div id="carousels" class="dx-showcase">
-        <div class="owl-carousel owl-theme"></div>
-      </div>
-      <div id="panoramas" class="dx-showcase">
-        <div id="panorama-container"></div>
-      </div>
-      <div id="videos" class="dx-showcase">
-        <video id="videojs-player" class="video-js" autoplay controls preload="auto">
-          Your browser doesn't support HTML5 video tag.
-        </video>
-      </div>
-      <div id="broadcasts" class="dx-showcase">
-        <canvas id="live-canvas"></canvas>
-      </div>
-    </div>
-
-    <div class="dx-footbar">
-      <button type="button" class="btn btn-default btn-lg" id="toggle-overview"><i class="fa fa-angle-double-left"></i></button>
-      <button type="button" class="btn btn-default btn-lg" id="manage-thumbnail"><i class="fa fa-th"></i></button>
-    </div>
+    <!-- <div id="showcase" class="dx-fullscreen"> -->
+    <!--   <div class="dx-toolbar"> -->
+    <!--     <button type="button" class="btn btn-default" id="toggle-showcase"><i class="fa fa-chevron-down"></i></button> -->
+    <!--     <button type="button" class="btn btn-default" id="hide-showcase"><i class="fa fa-trash"></i></button> -->
+    <!--     <button type="button" class="btn btn-default" id="close-showcase"><i class="fa fa-close"></i></button> -->
+    <!--   </div> -->
+    <!--   <div id="carousels" class="dx-showcase"> -->
+    <!--     <div class="owl-carousel owl-theme"></div> -->
+    <!--   </div> -->
+    <!--   <div id="panoramas" class="dx-showcase"> -->
+    <!--     <div id="panorama-container"></div> -->
+    <!--   </div> -->
+    <!--   <div id="videos" class="dx-showcase"> -->
+    <!--     <video id="videojs-player" class="video-js" autoplay controls preload="auto"> -->
+    <!--       Your browser doesn't support HTML5 video tag. -->
+    <!--     </video> -->
+    <!--   </div> -->
+    <!--   <div id="broadcasts" class="dx-showcase"> -->
+    <!--     <canvas id="live-canvas"></canvas> -->
+    <!--   </div> -->
+    <!-- </div> -->
 
   </body>
 </html>

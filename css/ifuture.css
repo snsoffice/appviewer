@@ -3,6 +3,11 @@ button, button:hover, button:focus {
     outline: 0 !important;
 }
 
+/*
+ *
+ * Part 1: Commom Style
+ *
+ */
 .dx-page {
     position: absolute;
     left: 0;
@@ -39,3 +44,62 @@ button, button:hover, button:focus {
     opacity: .5;
     background: transparent;
 }
+
+
+/*
+ *
+ * Part 2: Top Style
+ *
+ */
+.dx-navbar {
+}
+
+.dx-map {
+}
+
+.dx-modebar {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+}
+
+.dx-footbar {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+
+.dx-explorer {
+    visibility: hidden;
+}
+
+.dx-minimap {
+    visibility: hidden;
+}
+
+.dx-manager {
+    visibility: hidden;
+}
+
+/*
+ *
+ * Part 3.1: explorer
+ *
+ */
+.dx-showcase {
+}
+
+/*
+ *
+ * Part 3.2: manager
+ *
+ */
+.dx-taskbar {
+}
+
+.dx-titlebar {
+}
+
+.dx-toolcase {
+}
+
