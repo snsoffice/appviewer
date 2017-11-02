@@ -25,9 +25,9 @@ function( ifuture, Showcase, videojs, utils ) {
     };
 
     Video5.prototype.close = function () {
-        if ( this.player )
+        if ( !! this.player )
             this.player.dispose();
-        if （ this.element )
+        if ( !! this.element )
             this.element.remove();
         this.element = null;
         this.player = null;

@@ -16,12 +16,12 @@ function( ifuture ) {
 
         element.querySelector( '#show-explorer' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            app.request( 'explorer', 'show' );
+            app.request( 'explorer', 'toggle' );
         }, false );
 
         element.querySelector( '#show-minimap' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            app.request( 'minimap', 'show' );
+            app.request( 'minimap', 'toggle' );
         }, false );
 
     }
