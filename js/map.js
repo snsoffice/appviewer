@@ -54,6 +54,10 @@ function( ifuture, ol, db, utils ) {
     }
     ifuture.inherits( Map, ifuture.Component );
 
+    Map.prototype.getMap = function () {
+        return this.map;
+    };
+
     Map.prototype.addControl = function () {
     };
 
