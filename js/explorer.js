@@ -2,7 +2,7 @@ define( [ 'ifuture' ],
 
 function( ifuture ) {
 
-    Explorer = function ( app, opt_options ) {
+    var Explorer = function ( app, opt_options ) {
 
         ifuture.Component.call( this );
 
@@ -25,7 +25,11 @@ function( ifuture ) {
         }.bind( this ), false );
 
         this.plugins = {};
+        this.viewname = null;
         this.items = [];
+        this.item = undefined;
+        this.mimetypes = [];
+
     }
     ifuture.inherits( Explorer, ifuture.Component );
 
@@ -34,6 +38,8 @@ function( ifuture ) {
         requirejs( [ plugin.source ], function ( Showcase ) {
             var component = new Showcase( app, plugin.options );
             scope.plugins[ plugin.name ] = component;
+            if ( plugin.mimetyps )
+                this.mimetyps.push( [ plugin.name, plugin.mimetypes ] );
         } );
     };
 
@@ -60,12 +66,43 @@ function( ifuture ) {
         this.toggle( true );
     }
 
+    Explorer.prototype.open = function ( item ) {
+        var name = this.findView( item );
+        if ( ! name )
+            return;
+
+        var container = document.createElement( 'DIV' );
+        container.className = 'dx-showcase dx-container';
+        this.element.appendChild( container );
+
+        this.getPlugin( name ).open( container, item );
+        this.viewname = name;
+    };
+
+    Explorer.prototype.close = function ( item ) {
+        this.getPlugin( this.viewname ).close();
+        this.element.querySelector( '.dx-showcase.dx-container' ).remove();
+        this.viewname = null;
+    };
+
     Explorer.prototype.addItem = function ( item ) {
+    };
+
+    Explorer.prototype.removeItem = function ( item ) {
     };
 
 
     Explorer.prototype.touchItem = function ( item ) {
-        // Open item if found plunin serving mimetype of item
+        this.open( item );
+    };
+
+    Explorer.prototype.findView = function ( item ) {
+        var mimetype = item.mimetype;
+        for ( var i = 0; i < this.mimetypes.length; i ++ ) {
+            var m = this.mimetypes[ 0 ];
+            if ( m[1].indexOf( mimetype ) > -1 )
+                return m[ 0 ];
+        }
     };
 
     return Explorer;

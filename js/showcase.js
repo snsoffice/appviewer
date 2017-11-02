@@ -2,16 +2,19 @@ define( [ 'ifuture' ],
 
 function( ifuture ) {
 
-    Showcase = function ( app, opt_options ) {
+    var Showcase = function ( app, opt_options ) {
         ifuture.Component.call( this );
+
+        this.app = app;
+
+        this.name = '';
+        this.title = '';
+        this.actions = [];
+        this.mimetypes = [];
     }
     ifuture.inherits( Showcase, ifuture.Component );
 
-    Showcase.prototype.isAvailable = function ( mimetype ) {
-        return false;
-    };
-
-    Showcase.prototype.open = function ( feature ) {
+    Showcase.prototype.open = function ( container, item ) {
     };
 
     Showcase.prototype.close = function () {

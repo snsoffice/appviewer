@@ -46,22 +46,25 @@ define({
     showcase: [
         {
             name: 'carousel',
-            source: 'plugins/showcase/carousel',
+            source: 'plugins/showcase/carousel',            
             options: {}
         },
         {
             name: 'photo',
+            mimetypes: [ 'image/jpeg', 'image/png', 'image/*' ],
             source: 'plugins/showcase/photo',
             options: {}
         },
         {
             name: 'panorama',
             source: 'plugins/showcase/panorama',
+            mimetypes: [ 'panorama/equirectangular', 'panorama/cubemap', 'panorama/multires' ],
             options: {}
         },
         {
             name: 'video5',
             source: 'plugins/showcase/video5',
+            mimetypes: [ 'video/mp4', 'video/ogg', 'video/*' ],
             options: {}
         },
         {

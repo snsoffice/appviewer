@@ -2,7 +2,7 @@ define( [ 'ifuture' ],
 
 function( ifuture ) {
 
-    Toolcase = function ( app, opt_options ) {
+    var Toolcase = function ( app, opt_options ) {
         ifuture.Component.call( this );
 
         this.app = app;
