@@ -70,7 +70,9 @@ function( ifuture ) {
         else {
             this.element.querySelector( '.dx-taskbar' ).style.visibility = 'visible';
             this.element.querySelector( '.dx-titlebar' ).style.visibility = 'hidden';
-            if ( ! this.currentTask )
+            if ( !! this.currentTask )
+                this.setTaskbar( this.currentTask );
+            else
                 this.setCurrentTask( this.element.querySelector( '.dx-taskbar > ul > li' ).getAttribute( 'data-plugin' ) );
         }
         this.toggle( true );
@@ -94,23 +96,27 @@ function( ifuture ) {
     Manager.prototype.closePlugin = function ( name ) {
         name = name ? name : this.currentTask;
         if ( !! name ) {
+            var toolcase = this.element.querySelector( '.dx-toolcase' );
+            if ( toolcase )
+                toolcase.remove();
             var plugin = this.getPlugin( name );
             if ( plugin ) {
-                var toolcase = this.element.querySelector( '.dx-toolcase' );
-                if ( toolcase )
-                    toolcase.remove();
                 plugin.close();
             }
         }
     };
 
-    Manager.prototype.setCurrentTask = function ( name ) {
+    Manager.prototype.setTaskbar = function ( name ) {
         Array.prototype.forEach.call( this.element.querySelectorAll( '.dx-taskbar > ul > li' ), function ( task ) {
             task.className = '';
         } );
         this.element.querySelector( '.dx-taskbar > ul > li[data-plugin="' + name + '"]' ).className = 'active';
+    };
+
+    Manager.prototype.setCurrentTask = function ( name ) {
         this.openPlugin( name );
         this.currentTask = name;
+        this.setTaskbar( name );
     };
 
     Manager.prototype.handleClickTaskbar = function ( e ) {
