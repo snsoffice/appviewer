@@ -3,7 +3,7 @@ define( [ 'ifuture', 'showcase' ],
 function( ifuture, Showcase ) {
 
     Carousel = function ( app, opt_options ) {
-        Showcase.Component.call( this );
+        Showcase.call( this );
     }
     ifuture.inherits( Carousel, Showcase );
 

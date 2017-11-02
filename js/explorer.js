@@ -32,13 +32,17 @@ function( ifuture ) {
     Explorer.prototype.addPlugin = function ( app, plugin ) {
         var scope = this;
         requirejs( [ plugin.source ], function ( Showcase ) {
-            var component = Showcase( app, plugin.options );
+            var component = new Showcase( app, plugin.options );
             scope.plugins[ plugin.name ] = component;
         } );
     };
 
     Explorer.prototype.hasPlugin = function ( name ) {
-        return name in scope.plugins;
+        return name in this.plugins;
+    };
+
+    Explorer.prototype.getPlugin = function ( name ) {
+        return this.plugins[ name ];
     };
 
     Explorer.prototype.toggle = function ( visible ) {

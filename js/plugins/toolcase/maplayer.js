@@ -3,7 +3,7 @@ define( [ 'ifuture', 'toolcase' ],
 function( ifuture, Toolcase ) {
 
     SearchTool = function ( app, opt_options ) {
-        Toolcase.Component.call( this );
+        Toolcase.call( this );
     }
     ifuture.inherits( SearchTool, Toolcase );
 

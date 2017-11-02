@@ -19,7 +19,7 @@ function( ifuture, Map, Minimap, Explorer, Manager,
         this.dialog = new Dialog( this, opt_options );
         this.communicator = new Communicator( this, opt_options );
         this.responsebar = new Responsebar( this, opt_options );
-    };            
+    };
     ifuture.inherits( Application, ifuture.Component );
 
     Application.prototype.request = function ( name, action, arguments ) {
@@ -28,12 +28,15 @@ function( ifuture, Map, Minimap, Explorer, Manager,
             return null;
 
         var component = this.hasOwnProperty( name ) ? this[ name ] :
-            this.manager.hasOwnProperty( name ) ? this.manager[ name ] :
-            this.explorer.hasOwnProperty( name ) ? this.explorer[ name ] :
+            this.manager.hasPlugin( name ) ? this.manager.getPlugin( name ) :
+            this.explorer.hasPlugin( name ) ? this.explorer.getPlugin( name ) :
             null ;
 
-        if ( component && typeof component[ action ] === 'function' )
+        if ( component && typeof component[ action ] === 'function' ) {
+            if ( !! arguments && ! ( arguments instanceof Array ) )
+                arguments = [ arguments ];
             return component[ action ].apply( component, arguments );
+        }
 
     };
 

@@ -4,21 +4,18 @@ function( ifuture ) {
 
     Toolcase = function ( app, opt_options ) {
         ifuture.Component.call( this );
+
+        this.app = app;
+        this.name = '';
+        this.title = '';
+        this.actions = [];
     }
     ifuture.inherits( Toolcase, ifuture.Component );
 
-    Toolcase.prototype.getTitle = function () {
-        return '';
+    Toolcase.prototype.create = function () {
     };
 
-    Toolcase.prototype.getTActions = function () {
-        return [];
-    };
-
-    Toolcase.prototype.open = function ( feature ) {
-    };
-
-    Toolcase.prototype.close = function () {
+    Toolcase.prototype.destroy = function () {
     };
 
     return Toolcase;

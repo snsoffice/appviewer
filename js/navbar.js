@@ -11,17 +11,17 @@ function( ifuture ) {
         
         element.querySelector( '#show-toolbox' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            app.request( 'toolbox', 'show' );
+            app.request( 'manager', 'show', 'toolbox' );
         }, false );
 
         element.querySelector( '#show-search' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            app.request( 'search', 'show' );
+            app.request( 'manager', 'show', 'search' );
         }, false );
 
         element.querySelector( '#show-talk' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            app.request( 'talk', 'show' );
+            app.request( 'manager', 'show', 'talk' );
         }, false );
 
         element.querySelector( '#show-manager' ).addEventListener( 'click', function ( e ) {
