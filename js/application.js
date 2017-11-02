@@ -13,8 +13,8 @@ function( ifuture, Map, Minimap, Explorer, Manager,
         this.modebar = new Modebar( this, opt_options );
         this.footbar = new Footbar( this, opt_options );
 
-        this.manager = new Manager( this, opt_options );
         this.explorer = new Explorer( this, opt_options );
+        this.manager = new Manager( this, opt_options );
 
         this.dialog = new Dialog( this, opt_options );
         this.communicator = new Communicator( this, opt_options );

@@ -99,28 +99,32 @@
         <div class="dx-showbar"></div>
         <button type="button" class="btn btn-default" id="toggle-explorer"><i class="fa fa-chevron-down"></i></button>
         <button type="button" class="btn btn-default" id="trash-showcase"><i class="fa fa-trash"></i></button>
-        <button type="button" class="btn btn-default" id="close-explorer"><i class="fa fa-close"></i></button>
+        <button type="button" class="btn btn-default" id="hide-explorer"><i class="fa fa-close"></i></button>
       </div>
-      <div id="carousel" class="dx-showcase">Carousel</div>
       <!-- plugins class="dx-showcase" -->
+      <div id="carousel" class="dx-showcase">
+        <div class="owl-carousel owl-theme"></div>
+      </div>
     </div>
 
     <div id="minimap" class="dx-minimap dx-mini">
       <div class="dx-toolbar">
         <button type="button" class="btn btn-default btn-lg" id="love-maplayer"><i class="fa fa-heart-o"></i></button>
-        <button type="button" class="btn btn-default btn-lg" id="close-maplayer"><i class="fa fa-trash"></i></button>
-        <button type="button" class="btn btn-default" id="close-minimap"><i class="fa fa-close"></i></button>
+        <button type="button" class="btn btn-default btn-lg" id="trash-maplayer"><i class="fa fa-trash"></i></button>
+        <button type="button" class="btn btn-default" id="hide-minimap"><i class="fa fa-close"></i></button>
       </div>
     </div>
 
-    <div id="manager" class="dx-manager">
+    <div id="manager" class="dx-manager dx-page">
       <div id="taskbar" class="dx-taskbar">
         <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <ul class="nav nav-tabs">
           <li role="presentation" class="active"><a href="#">收藏</a></li>
         </ul>
       </div>
-      <div id="titlebar" class="dx-titlebar"></div>
+      <div id="titlebar" class="dx-titlebar">
+        <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      </div>
       <!-- plugins class="dx-toolcase" -->
       <div id="favorite" class="dx-toolcase">收藏</div>
     </div>

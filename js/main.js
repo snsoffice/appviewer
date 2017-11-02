@@ -87,12 +87,12 @@ function( Application, config, ifuture, plugins ) {
 
     // Create showcase plugins
     plugins.showcase.forEach( function ( showcase ) {
-        app.carousel.create( app, showcase );
+        app.explorer.addPlugin( app, showcase );
     } );
 
     // Create toolcase plugins
     plugins.toolcase.forEach( function ( toolcase ) {
-        app.manager.create( app, toolcase );
+        app.manager.addPlugin( app, toolcase );
     } );
 
     app.run();
