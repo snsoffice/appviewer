@@ -1,4 +1,4 @@
-define( [ 'ifuture', 'plugins/showcase/carousel' ],
+define( [ 'ifuture', 'carousel' ],
 
 function( ifuture, Carousel ) {
 

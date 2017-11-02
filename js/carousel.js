@@ -1,6 +1,6 @@
-define( [ 'ifuture', 'showcase', 'owl', 'utils', 'jquery' ],
+define( [ 'ifuture', 'owl', 'utils', 'jquery' ],
 
-function( ifuture, Showcase, owl, utils, $ ) {
+function( ifuture, owl, utils, $ ) {
 
     /**
      * Creates the fit view plugin.
@@ -103,7 +103,7 @@ function( ifuture, Showcase, owl, utils, $ ) {
     $.fn.owlCarousel.Constructor.Plugins.FitView = FitView;
 
     var Carousel = function ( app, opt_options ) {
-        Showcase.call( this );
+        ifuture.Component.call( this );
 
         this.name = 'carousel';
         this.title = '旋转木马';
@@ -120,7 +120,7 @@ function( ifuture, Showcase, owl, utils, $ ) {
             responsiveBaseElement: baseElement
         } );
     }
-    ifuture.inherits( Carousel, Showcase );
+    ifuture.inherits( Carousel, ifuture.Component );
 
     Carousel.prototype.current = function () {
         return this.owl_.data( 'owl.carousel' ).current();
