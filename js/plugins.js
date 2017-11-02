@@ -45,11 +45,6 @@ define({
 
     showcase: [
         {
-            name: 'carousel',
-            source: 'plugins/showcase/carousel',            
-            options: {}
-        },
-        {
             name: 'photo',
             mimetypes: [ 'image/jpeg', 'image/png', 'image/*' ],
             source: 'plugins/showcase/photo',

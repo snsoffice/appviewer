@@ -122,12 +122,6 @@ function( ifuture, Showcase, owl, utils, $ ) {
     }
     ifuture.inherits( Carousel, Showcase );
 
-    Carousel.prototype.open = function () {
-    };
-
-    Carousel.prototype.close = function () {
-    };
-
     Carousel.prototype.current = function () {
         return this.owl_.data( 'owl.carousel' ).current();
     };

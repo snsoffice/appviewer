@@ -1,6 +1,6 @@
-define( [ 'ifuture' ],
+define( [ 'ifuture', 'plugins/showcase/carousel' ],
 
-function( ifuture ) {
+function( ifuture, Carousel ) {
 
     var Explorer = function ( app, opt_options ) {
 
@@ -23,6 +23,8 @@ function( ifuture ) {
             e.preventDefault();
             this.toggle( false );
         }.bind( this ), false );
+
+        this.carousel = new Carousel( app, opt_options );
 
         this.plugins = {};
         this.viewname = null;
@@ -72,7 +74,7 @@ function( ifuture ) {
             return;
 
         var container = document.createElement( 'DIV' );
-        container.className = 'dx-showcase dx-container';
+        container.className = 'dx-showcase';
         this.element.appendChild( container );
 
         this.getPlugin( name ).open( container, item );
@@ -81,7 +83,7 @@ function( ifuture ) {
 
     Explorer.prototype.close = function ( item ) {
         this.getPlugin( this.viewname ).close();
-        this.element.querySelector( '.dx-showcase.dx-container' ).remove();
+        this.element.querySelector( '.dx-showcase' ).remove();
         this.viewname = null;
     };
 
