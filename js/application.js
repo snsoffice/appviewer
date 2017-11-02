@@ -27,12 +27,12 @@ function( ifuture, Map, Minimap, Explorer, Manager,
         if ( typeof name !== 'string' || typeof action !== 'string' || action.substring(0, 1) === '_' )
             return null;
 
-        var component = this.hasOwnProperty( component ) ? this[ name ] :
+        var component = this.hasOwnProperty( name ) ? this[ name ] :
             this.manager.hasOwnProperty( name ) ? this.manager[ name ] :
-            this.carousel.hasOwnProperty( name ) ? this.carousel[ name ] :
+            this.explorer.hasOwnProperty( name ) ? this.explorer[ name ] :
             null ;
 
-        if ( component && component.hasOwnProperty( action ) && typeof component[ action ] === 'function' )
+        if ( component && typeof component[ action ] === 'function' )
             return component[ action ].apply( component, arguments );
 
     };
