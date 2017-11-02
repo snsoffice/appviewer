@@ -7,6 +7,14 @@ function( ifuture ) {
     }
     ifuture.inherits( Toolcase, ifuture.Component );
 
+    Toolcase.prototype.getTitle = function () {
+        return '';
+    };
+
+    Toolcase.prototype.getTActions = function () {
+        return [];
+    };
+
     Toolcase.prototype.open = function ( feature ) {
     };
 

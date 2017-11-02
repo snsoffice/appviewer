@@ -7,6 +7,10 @@ function( ifuture ) {
     }
     ifuture.inherits( Showcase, ifuture.Component );
 
+    Showcase.prototype.isAvailable = function ( mimetype ) {
+        return false;
+    };
+
     Showcase.prototype.open = function ( feature ) {
     };
 
