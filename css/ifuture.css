@@ -52,32 +52,41 @@ button, button:hover, button:focus {
  *
  */
 .dx-navbar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
 }
 
 .dx-map {
+}
+
+.dx-explorer {
+    z-index: 1;
+    visibility: hidden;
+}
+
+.dx-minimap {
+    z-index: 2;
+    visibility: hidden;
 }
 
 .dx-modebar {
     position: absolute;
     left: 0;
     bottom: 0;
+    z-index: 3;
 }
 
 .dx-footbar {
     position: absolute;
     right: 0;
     bottom: 0;
-}
-
-.dx-explorer {
-    visibility: hidden;
-}
-
-.dx-minimap {
-    visibility: hidden;
+    z-index: 3;
 }
 
 .dx-manager {
+    z-index: 100;
     visibility: hidden;
 }
 
@@ -86,7 +95,15 @@ button, button:hover, button:focus {
  * Part 3.1: explorer
  *
  */
+.dx-showbar {
+}
+
 .dx-showcase {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
 }
 
 /*
@@ -95,11 +112,40 @@ button, button:hover, button:focus {
  *
  */
 .dx-taskbar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 50px;
 }
 
 .dx-titlebar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 50px;
 }
 
 .dx-toolcase {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50px;
+    bottom: 0;
 }
 
+/*
+ *
+ * Part 4: map
+ *
+ */
+
+.ol-rotate {
+    margin: 0;
+    padding: 0;
+    top: 3.6em;
+    left: .5em;
+    right: unset;
+    border-radius: .8em;
+}

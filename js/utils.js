@@ -11,9 +11,9 @@ define( function () {
         _elementMessage.style.display = 'block';
     };
 
-    document.addEventListener( 'click', function ( e ) {
-        _elementMessage.style.display = 'none';
-    }, false );
+    // document.addEventListener( 'click', function ( e ) {
+    //     _elementMessage.style.display = 'none';
+    // }, false );
 
 
     //
