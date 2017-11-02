@@ -91,6 +91,7 @@ button, button:hover, button:focus {
     background: #fcfcfc;
     z-index: 100;
     visibility: hidden;
+    display: none;
 }
 
 /*

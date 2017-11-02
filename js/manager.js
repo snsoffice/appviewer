@@ -41,6 +41,7 @@ function( ifuture ) {
         var element = this.element;
         this.visible = ( visible === true || visible === false ) ? visible : ! this.visible;
         element.style.visibility = this.visible ? 'visible' : 'hidden';
+        element.style.display = this.visible ? 'block' : 'none';
 
     };
 
@@ -57,10 +58,10 @@ function( ifuture ) {
             toolcase.style.visibility = 'hidden';
         } );
 
-        var tag = name ? name : this.currentTask;
-        var toolcase = this.element.querySelector( selector );
-        if ( toolcase )
-            toolcase.style.visibility = 'visible';
+        // var selector = name ? name : this.currentTask;
+        // var toolcase = this.element.querySelector( selector );
+        // if ( toolcase )
+        //     toolcase.style.visibility = 'visible';
         this.toggle( true );
     }
     
