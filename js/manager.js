@@ -15,16 +15,7 @@ function( ifuture ) {
             this.toggle( false );
         }.bind( this ), false );
 
-        this.element.querySelector( '.dx-taskbar' ).addEventListener( 'click', function ( e ) {
-            e.preventDefault();
-            if ( e.target.tagName === 'LI' ) {
-                var name = e.target.getAttribute( 'data-plugin' );
-                if ( this.currentTask === name )
-                    return;
-                this.closePlugin();
-                this.openPlugin( name );
-            }
-        }.bind( this ), false );
+        this.element.querySelector( '.dx-taskbar' ).addEventListener( 'click', Manager.prototype.handleClickTaskbar.bind( this ), false );
 
         this.element.querySelector( '.dx-titlebar > button.close' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
@@ -79,11 +70,8 @@ function( ifuture ) {
         else {
             this.element.querySelector( '.dx-taskbar' ).style.visibility = 'visible';
             this.element.querySelector( '.dx-titlebar' ).style.visibility = 'hidden';
-            if ( !! this.currentTask ) {
-                name = this.element.querySelector( '.dx-taskbar > ul' ).firstElementChild.getAttribute( 'data-plugin' );
-                this.openPlugin( name );
-                this.currentTask = name;
-            }
+            if ( ! this.currentTask )
+                this.setCurrentTask( this.element.querySelector( '.dx-taskbar > ul > li' ).getAttribute( 'data-plugin' ) );
         }
         this.toggle( true );
     }
@@ -97,7 +85,7 @@ function( ifuture ) {
                     div.className += ' dx-toolcase';
                 else
                     div.className = 'dx-toolcase';
-                this.element.appendChild( div );                
+                this.element.appendChild( div );
             }
             this.element.querySelector( '.dx-titlebar > label' ).textContent = plugin.title;
         }
@@ -113,6 +101,27 @@ function( ifuture ) {
                     toolcase.remove();
                 plugin.close();
             }
+        }
+    };
+
+    Manager.prototype.setCurrentTask = function ( name ) {
+        Array.prototype.forEach.call( this.element.querySelectorAll( '.dx-taskbar > ul > li' ), function ( task ) {
+            task.className = '';
+        } );
+        this.element.querySelector( '.dx-taskbar > ul > li[data-plugin="' + name + '"]' ).className = 'active';
+        this.openPlugin( name );
+        this.currentTask = name;
+    };
+
+    Manager.prototype.handleClickTaskbar = function ( e ) {
+        e.preventDefault();
+        var target = e.target.tagName === 'LI' ? e.target : e.target.tagName === 'A' ? e.target.parentElement : null ;
+        if ( !! target ) {
+            var name = target.getAttribute( 'data-plugin' );
+            if ( this.currentTask === name )
+                return;
+            this.closePlugin();
+            this.setCurrentTask( name );
         }
     };
 

@@ -15,7 +15,7 @@ function( ifuture ) {
     Toolcase.prototype.create = function () {
     };
 
-    Toolcase.prototype.destroy = function () {
+    Toolcase.prototype.close = function () {
     };
 
     return Toolcase;

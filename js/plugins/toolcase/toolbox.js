@@ -12,7 +12,7 @@ function( ifuture, Toolcase ) {
 
     Toolbox.prototype.create = function () {
         var element = document.createElement( 'DIV' );
-        div.className = 'dx-toolbox';
+        element.className = 'dx-toolbox';
         element.innerHTML =
             '<div class="dx-tool">' +
             '  <a class="btn btn-lg btn-default" href="#" data-trigger="take-photo">' +

@@ -2,17 +2,20 @@ define( [ 'ifuture', 'toolcase' ],
 
 function( ifuture, Toolcase ) {
 
-    SearchTool = function ( app, opt_options ) {
+    Maplayer = function ( app, opt_options ) {
         Toolcase.call( this );
+
+        this.name = 'maplayer';
+        this.title = '图层';
     }
-    ifuture.inherits( SearchTool, Toolcase );
+    ifuture.inherits( Maplayer, Toolcase );
 
-    SearchTool.prototype.open = function () {
+    Maplayer.prototype.create = function () {
+        var element = document.createElement( 'DIV' );
+        element.textContent = '图层页面';
+        return element;
     };
 
-    SearchTool.prototype.close = function () {
-    };
-
-    return SearchTool;
+    return Maplayer;
 
 } );

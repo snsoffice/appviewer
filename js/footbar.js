@@ -11,7 +11,7 @@ function( ifuture ) {
 
         element.querySelector( '#show-maplayer' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            app.request( 'maplayer', 'show' );
+            app.request( 'manager', 'show', 'maplayer' );
         }, false );
 
         element.querySelector( '#show-explorer' ).addEventListener( 'click', function ( e ) {
