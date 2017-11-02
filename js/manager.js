@@ -10,17 +10,12 @@ function( ifuture ) {
         this.element.querySelector( '.dx-taskbar' ).style.visibility = 'hidden';
         this.element.querySelector( '.dx-titlebar' ).style.visibility = 'hidden';
 
-        this.element.querySelector( '.dx-taskbar > button.close' ).addEventListener( 'click', function ( e ) {
+        this.element.querySelector( '.dx-titlebar' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
             this.toggle( false );
         }.bind( this ), false );
 
         this.element.querySelector( '.dx-taskbar' ).addEventListener( 'click', Manager.prototype.handleClickTaskbar.bind( this ), false );
-
-        this.element.querySelector( '.dx-titlebar > button.close' ).addEventListener( 'click', function ( e ) {
-            e.preventDefault();
-            this.toggle( false );
-        }.bind( this ), false );
 
         this.currentTask = null;
         this.plugins = {};
@@ -129,6 +124,8 @@ function( ifuture ) {
             this.closePlugin();
             this.setCurrentTask( name );
         }
+        else
+            this.toggle( false );
     };
 
     return Manager;

@@ -118,9 +118,10 @@ button, button:hover, button:focus {
 .dx-taskbar {
     position: absolute;
     left: 0;
-    right: 0;
     top: 0;
+    right: 0;
     height: 50px;
+    overflow: auto;
 }
 
 .dx-titlebar {
