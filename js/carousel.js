@@ -40,9 +40,6 @@ function( ifuture, owl, utils, $ ) {
 	// register event handlers
 	this._core.$element.on( this._handlers );
 
-        this._resizeHandler = this._core.onResize.bind( this._core )
-        this._core.on( document, 'resize-explorer', this._resizeHandler );
-
     };
 
     /**
@@ -96,11 +93,10 @@ function( ifuture, owl, utils, $ ) {
 	for (property in Object.getOwnPropertyNames(this)) {
 	    typeof this[property] != 'function' && (this[property] = null);
 	}
-        this._core.off( document, 'resize-explorer', this._resizeHandler );
-
     };
 
     $.fn.owlCarousel.Constructor.Plugins.FitView = FitView;
+
 
     var Carousel = function ( app, opt_options ) {
         // ifuture.Component.call( this );
@@ -120,7 +116,7 @@ function( ifuture, owl, utils, $ ) {
             responsiveBaseElement: baseElement
         } );
     }
-    // ifuture.inherits( Carousel, ifuture.Component ); 
+    // ifuture.inherits( Carousel, ifuture.Component );
 
     Carousel.prototype.current = function () {
         return this.owl_.data( 'owl.carousel' ).current();
@@ -136,6 +132,10 @@ function( ifuture, owl, utils, $ ) {
 
     Carousel.prototype.replace = function ( data ) {
         this.owl_.trigger( 'replace.owl.carousel', data );
+    };
+
+    Carousel.prototype.resize = function () {
+        this.owl_.data( 'owl.carousel' ).onResize();
     };
 
     Carousel.prototype.show = function ( position ) {

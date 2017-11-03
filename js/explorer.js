@@ -69,9 +69,7 @@ function( ifuture, Carousel ) {
     };
 
     Explorer.prototype.resizeCarousel = function () {
-        var event = document.createEvent( 'HTMLEvents' );
-        event.initEvent( 'resize-explorer', false, true );
-        document.dispatchEvent( event );
+        this.carousel.resize();
     };
 
     Explorer.prototype.show = function () {
