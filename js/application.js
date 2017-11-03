@@ -42,6 +42,22 @@ function( ifuture, Map, Minimap, Explorer, Manager,
 
     Application.prototype.run = function () {
         // this.communicator.start();
+
+        // Debug        
+        this.explorer.addItem( {
+            name: 'test1',
+            title: 'Mountain and Lake',
+            poster: 'data/html/test1.jpg',
+            mimetype: 'panorama/equirectangular',
+            url: 'data/html/examplepano.jpg'
+        } );
+        this.explorer.addItem( {
+            name: 'test2',
+            title: 'Ocean and bird',
+            poster: 'data/html/test2.jpg',
+            mimetype: 'video/mp4',
+            url: 'data/html/oceans.mp4'
+        } );
     };
 
     return Application;

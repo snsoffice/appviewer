@@ -87,7 +87,6 @@ function( ifuture, ol ) {
 
         this.currentIndex = 0;
         this.items = [];
-        this.visible = !!options.visible;
 
         var element = this.ovmap.getTargetElement().querySelector( '.dx-toolbar' );
         element.querySelector( '#love-maplayer' ).addEventListener( 'click', function ( e ) {
@@ -107,8 +106,8 @@ function( ifuture, ol ) {
     Minimap.prototype.toggle = function ( visible ) {
 
         var element = this.ovmap.getTargetElement();
-        this.visible = ( visible === true || visible === false ) ? visible : ! this.visible;
-        element.style.visibility = this.visible ? 'visible' : 'hidden';
+        visible = ( visible === true || visible === false ) ?  visible : element.style.visibility == 'hidden';
+        element.style.visibility = visible ? 'visible' : 'hidden';
 
     };
 

@@ -17,6 +17,11 @@ function( ifuture ) {
     Showcase.prototype.open = function ( container, item ) {
     };
 
+    Showcase.prototype.snap = function () {
+        var img = document.createElement( 'IMG' );
+        return img;
+    };
+
     Showcase.prototype.close = function () {
     };
 

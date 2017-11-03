@@ -9,12 +9,13 @@ function( ifuture, Carousel ) {
         this.element = document.querySelector( '#explorer' );
 
         var element = this.element.querySelector( '.dx-toolbar' );
-        element.querySelector( '#toggle-explorer' ).addEventListener( 'click', function ( e ) {
+        element.querySelector( '#swap-explorer' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
             if ( this.element.className.indexOf( 'dx-mini') > -1 )
                 this.element.className = 'dx-explorer dx-page';
             else
                 this.element.className = 'dx-explorer dx-mini';
+            this.resizeCarousel();
         }.bind( this ), false );
         element.querySelector( '#trash-showcase' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
@@ -56,15 +57,24 @@ function( ifuture, Carousel ) {
     Explorer.prototype.toggle = function ( visible ) {
 
         var element = this.element;
-        this.visible = ( visible === true || visible === false ) ? visible : ! this.visible;
-        element.style.visibility = this.visible ? 'visible' : 'hidden';
+        visible = ( visible === true || visible === false ) ?  visible : element.style.visibility == 'hidden';
+        if ( visible )
+            Array.prototype.forEach.call( document.querySelectorAll( '.dx-mini' ), function ( mini ) {
+                mini.style.visibility = 'hidden';
+            } );
+        element.style.visibility = visible ? 'visible' : 'hidden';
+        if ( visible )
+            this.resizeCarousel();
 
     };
 
+    Explorer.prototype.resizeCarousel = function () {
+        var event = document.createEvent( 'HTMLEvents' );
+        event.initEvent( 'resize-explorer', false, true );
+        document.dispatchEvent( event );
+    };
+
     Explorer.prototype.show = function () {
-        Array.prototype.forEach.call( document.querySelectorAll( '.dx-mini' ), function ( mini ) {
-            mini.style.visibility = 'hidden';
-        } );
         this.toggle( true );
     }
 
@@ -82,12 +92,22 @@ function( ifuture, Carousel ) {
     };
 
     Explorer.prototype.close = function ( item ) {
-        this.getPlugin( this.viewname ).close();
+        var plugin = this.getPlugin( this.viewname );
+        // Replace carousel item with latest image
+        var image = plugin.snap();
+        plugin.close();
         this.element.querySelector( '.dx-showcase' ).remove();
         this.viewname = null;
     };
 
     Explorer.prototype.addItem = function ( item ) {
+        var html =
+            '<div data-name="' + item.name + '">' +
+            '  <img class="owl-lazy" data-src="' + item.poster + '" alt="' + item.title + '">' +
+            '</div>'
+        var position = this.items.length;
+        this.carousel.add( html, position );
+        this.items.push( item );
     };
 
     Explorer.prototype.removeItem = function ( item ) {
