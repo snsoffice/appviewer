@@ -94,6 +94,34 @@ button, button:hover, button:focus {
     display: none;
 }
 
+.dx-dialog {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1050;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+}
+
+.dx-responsebar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 1060;
+
+    padding: 10px 15px;
+    color: #31708f;
+    background-color: #d9edf7;
+    border-color: #bce8f1;
+}
+
+
 /*
  *
  * Part 3.1: explorer
@@ -116,7 +144,7 @@ button, button:hover, button:focus {
     left: 0;
     right: 0;
     top: 0;
-    bottom: 0;    
+    bottom: 0;
 }
 
 /*
