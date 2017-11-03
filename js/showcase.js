@@ -18,8 +18,8 @@ function( ifuture ) {
     };
 
     Showcase.prototype.snap = function () {
-        var img = document.createElement( 'IMG' );
-        return img;
+        var canvas = document.createElement( 'CANVAS' );
+        return canvas.toDataUrl();
     };
 
     Showcase.prototype.close = function () {
