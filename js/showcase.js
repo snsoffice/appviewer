@@ -19,7 +19,6 @@ function( ifuture ) {
 
     Showcase.prototype.snap = function () {
         var canvas = document.createElement( 'CANVAS' );
-        return canvas.toDataUrl();
     };
 
     Showcase.prototype.close = function () {

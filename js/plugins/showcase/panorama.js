@@ -19,23 +19,26 @@ function( ifuture, Showcase, pannellum, utils ) {
 
         this.name = 'panorama';
         this.title = '全景';
+        this.viewer_ = null;
     }
     ifuture.inherits( Panorama, Showcase );
 
-    Panorama.prototype.open = function ( container, item ) {
-        this.viewer_ = pannellum.viewer( 'panorama-container', config );
+    Panorama.prototype.open = function ( container, item ) {        
+        var config = {
+            autoLoad: true,
+            panorama: item.url,
+        };
+        this.viewer_ = pannellum.viewer( container, config );
     };
 
     Panorama.prototype.close = function () {
+        this.viewer_.destroy();
+        this.viewer_ = null;
     };
 
     Panorama.prototype.load = function ( scendId, config ) {
         this.viewer_.loadScene( sceneId, targetPitch, targetYaw, targetHfov );
         this.element_.style.visibility = 'visible';
-    };
-
-    Panorama.prototype.close = function () {
-        this.element_.style.visibility = 'hidden';
     };
 
     Panorama.prototype.add = function ( sceneId, config ) {

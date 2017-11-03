@@ -45,6 +45,13 @@ function( ifuture, Map, Minimap, Explorer, Manager,
 
         // Debug        
         this.explorer.addItem( {
+            name: 'chan',
+            title: 'Chan',
+            poster: 'data/html/images/chan.jpg',
+            mimetype: 'image/jpeg',
+            url: 'data/html/images/chan.jpg'
+        } );
+        this.explorer.addItem( {
             name: 'test1',
             title: 'Mountain and Lake',
             poster: 'data/html/test1.jpg',
@@ -56,7 +63,14 @@ function( ifuture, Map, Minimap, Explorer, Manager,
             title: 'Ocean and bird',
             poster: 'data/html/test2.jpg',
             mimetype: 'video/mp4',
-            url: 'data/html/oceans.mp4'
+            url: 'data/html/oceans.webm'
+        } );
+        this.explorer.addItem( {
+            name: 'test3',
+            title: 'Beauty',
+            poster: 'data/html/images/test3.jpg',
+            mimetype: 'image/jpeg',
+            url: 'data/html/images/guifei.jpg'
         } );
     };
 

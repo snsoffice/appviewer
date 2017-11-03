@@ -122,6 +122,11 @@ function( ifuture, owl, utils, $ ) {
         return this.owl_.data( 'owl.carousel' ).current();
     };
 
+    Carousel.prototype.to = function ( position, speed ) {
+        speed = speed === undefined ? 500 : speed;
+        this.owl_.trigger( 'to.owl.carousel', [ position, speed ] );
+    };
+
     Carousel.prototype.add = function ( item, position ) {
         this.owl_.trigger( 'add.owl.carousel', [ item, position ] );
     };

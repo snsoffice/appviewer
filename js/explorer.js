@@ -20,9 +20,16 @@ function( ifuture, Carousel ) {
         element.querySelector( '#trash-showcase' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
         }, false );
-        element.querySelector( '#hide-explorer' ).addEventListener( 'click', function ( e ) {
+        element.querySelector( '#toggle-showcase' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            this.toggle( false );
+            if ( ! this.viewname ) {
+                this.touchItem();
+                e.currentTarget.firstElementChild.className = 'fa fa-close';
+            }
+            else {
+                this.close();
+                e.currentTarget.firstElementChild.className = 'fa fa-folder-open';
+            }
         }.bind( this ), false );
 
         this.carousel = new Carousel( app, opt_options );
@@ -30,7 +37,6 @@ function( ifuture, Carousel ) {
         this.plugins = {};
         this.viewname = null;
         this.items = [];
-        this.item = undefined;
         this.mimetypes = [];
 
     }
@@ -41,8 +47,8 @@ function( ifuture, Carousel ) {
         requirejs( [ plugin.source ], function ( Showcase ) {
             var component = new Showcase( app, plugin.options );
             scope.plugins[ plugin.name ] = component;
-            if ( plugin.mimetyps )
-                this.mimetyps.push( [ plugin.name, plugin.mimetypes ] );
+            if ( plugin.mimetypes )
+                scope.mimetypes.push( [ plugin.name, plugin.mimetypes ] );
         } );
     };
 
@@ -57,15 +63,12 @@ function( ifuture, Carousel ) {
     Explorer.prototype.toggle = function ( visible ) {
 
         var element = this.element;
-        visible = ( visible === true || visible === false ) ?  visible : element.style.visibility == 'hidden';
+        visible = ( visible === true || visible === false ) ?  visible : element.style.visibility !== 'visible';
         if ( visible )
             Array.prototype.forEach.call( document.querySelectorAll( '.dx-mini' ), function ( mini ) {
                 mini.style.visibility = 'hidden';
             } );
         element.style.visibility = visible ? 'visible' : 'hidden';
-        if ( visible )
-            this.resizeCarousel();
-
     };
 
     Explorer.prototype.resizeCarousel = function () {
@@ -103,7 +106,7 @@ function( ifuture, Carousel ) {
             '<div data-name="' + item.name + '">' +
             '  <img class="owl-lazy" data-src="' + item.poster + '" alt="' + item.title + '">' +
             '</div>'
-        var position = this.items.length;
+        var position = this.items.length - 1;
         this.carousel.add( html, position );
         this.items.push( item );
     };
@@ -112,14 +115,16 @@ function( ifuture, Carousel ) {
     };
 
 
-    Explorer.prototype.touchItem = function ( item ) {
-        this.open( item );
+    Explorer.prototype.touchItem = function () {
+        var position = ( this.carousel.current() - 1 ) % this.items.length;
+        if ( position > -1 )
+            this.open( this.items[ position ] );
     };
 
     Explorer.prototype.findView = function ( item ) {
         var mimetype = item.mimetype;
         for ( var i = 0; i < this.mimetypes.length; i ++ ) {
-            var m = this.mimetypes[ 0 ];
+            var m = this.mimetypes[ i ];
             if ( m[1].indexOf( mimetype ) > -1 )
                 return m[ 0 ];
         }

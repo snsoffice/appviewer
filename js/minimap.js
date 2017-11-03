@@ -106,7 +106,7 @@ function( ifuture, ol ) {
     Minimap.prototype.toggle = function ( visible ) {
 
         var element = this.ovmap.getTargetElement();
-        visible = ( visible === true || visible === false ) ?  visible : element.style.visibility == 'hidden';
+        visible = ( visible === true || visible === false ) ?  visible : element.style.visibility !== 'visible';
         element.style.visibility = visible ? 'visible' : 'hidden';
 
     };
