@@ -4,7 +4,7 @@ function( ifuture, ol, db, utils ) {
 
     // Use EPSG:3857 as default projection
 
-    // My home
+    // My home, east door of Greenland Centry Apartment
     var location = [ 12119628.52, 4055386.0 ];
 
     // The maximum resolution used to determine the resolution
@@ -51,6 +51,10 @@ function( ifuture, ol, db, utils ) {
             layers: [ layer ],
             view: this.view,
         } );
+
+        this.visitor = null;
+        this.camera = null;
+
     }
     ifuture.inherits( Map, ifuture.Component );
 
