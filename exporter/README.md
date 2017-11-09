@@ -36,7 +36,7 @@
   # 
 
   # cd com 所在的目录
-  javac -cp SweetHome3D-5.6.jar com/eteks/sweethome3d/plugin/exportjson
+  javac -cp SweetHome3D-5.6.jar com/eteks/sweethome3d/plugin/exportjson/Exporter.java
   
   # 压缩 com 目录为 exporter.jar
   zip -r exporter.jar com/
@@ -49,6 +49,48 @@
        -cp "SweetHome3D-5.6.jar;lib/j3dcore.jar;lib/j3dutils.jar;lib/vecmath.jar;lib/sunflow-0.07.3i.jar;exporter.jar" \
        com/eteks/sweethome3d/plugin/exportjson/Exporter house.sh3d
   
+```
+
+### 创建图片
+
+类文件 com.eteks.sweethome3d/plugin/export/PhotoMaker.java
+
+```
+
+  # Build
+  javac -cp SweetHome3D-5.6.jar com/eteks/sweethome3d/plugin/exporter/PhotoMaker.java
+  zip -r exporter.jar com/
+  
+  # Run
+  java -D"java.library.path=lib/windows/i386" \
+       -cp "SweetHome3D-5.6.jar;lib/j3dcore.jar;lib/j3dutils.jar;lib/vecmath.jar;lib/sunflow-0.07.3i.jar;exporter.jar" \
+       com/eteks/sweethome3d/plugin/exporter/PhotoMaker OPTIONS FILENAME.sh3d
+
+```
+
+OPTIONS
+
+```
+  --camera "Camera Name" or --vision "x,y,z,yaw,pitch,fieldOfView"
+  --width N
+  --height N
+  --output "FILENAME.png"
+  --type "PNG" or "JPEG"
+  --quality "LOW" or "HIGH"
+```
+
+### 导出为图层
+
+类文件 com.eteks.sweethome3d/plugin/export/MapLayer.java
+
+```
+  # Build
+  javac -cp SweetHome3D-5.6.jar com/eteks/sweethome3d/plugin/exporter/MapLayer.java
+  zip -r exporter.jar com/
+  
+  # Run
+  java -cp "SweetHome3D-5.6.jar;exporter.jar" com/eteks/sweethome3d/plugin/exporter/MapLayer FILENAME.sh3d
+
 ```
 
 ## 参考手册
