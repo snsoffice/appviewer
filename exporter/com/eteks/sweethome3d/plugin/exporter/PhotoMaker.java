@@ -57,7 +57,7 @@ import com.eteks.sweethome3d.j3d.PhotoRenderer;
  */
 public class PhotoMaker {
 
-    public static void makePhoto(File homeFile, File outputFile, int width, int height, String imageType, String cameraName)
+    public static void makePhoto(File homeFile, File outputFile, int width, int height, String imageType, String cameraName, String[] cameraVision)
         throws RecorderException {
 
         DefaultHomeInputStream in = null;
@@ -82,12 +82,23 @@ public class PhotoMaker {
                     camera = cameras.get(i);
                     break;
                 }
-            if (camera == null)
-                camera = home.getTopCamera();
+            if (camera == null) {
+                if (cameraVision == null)
+                    camera = home.getTopCamera();
+                else {
+                    camera = new Camera(Float.parseFloat(cameraVision[0]),
+                                        Float.parseFloat(cameraVision[1]),
+                                        Float.parseFloat(cameraVision[2]),
+                                        Float.parseFloat(cameraVision[3]),
+                                        Float.parseFloat(cameraVision[4]),
+                                        Float.parseFloat(cameraVision[5]));
+                    cameraName = "Custom";
+                }
+            }
             System.out.println("Use camera: " + (cameraName == null ? "Default" : cameraName));
             System.out.println("Camera at: " + camera.getX() + ", " + camera.getY() + ", " + camera.getZ());
-            System.out.println("Camera pitch: " + camera.getPitch());
             System.out.println("Camera yaw: " + camera.getYaw());
+            System.out.println("Camera pitch: " + camera.getPitch());
             System.out.println("Camera field of view: " + camera.getFieldOfView());
 
             System.out.println("Generate image (." + imageType.toLowerCase() + ", " + width + "x" + height + ")...");
@@ -125,6 +136,7 @@ public class PhotoMaker {
         }
 
         String cameraName = null;
+        String[] cameraVision = null;
         int imageWidth = 960;
         int imageHeight = 1280;
         String imageType = "JPEG";
@@ -137,6 +149,10 @@ public class PhotoMaker {
             if (arg.equals("--camera")) {
                 i ++;
                 cameraName = args[i];
+            }
+            else if (arg.equals("--vision")) {
+                i ++;
+                cameraVision = args[i].split(",");
             }
             else if (arg.equals("--width")) {
                 i ++;
@@ -170,7 +186,7 @@ public class PhotoMaker {
 
         System.out.println("Render image from home: " + args[i]);
         try {
-            makePhoto(new File(args[i]), new File(outputFilename), imageWidth, imageHeight, imageType, cameraName);
+            makePhoto(new File(args[i]), new File(outputFilename), imageWidth, imageHeight, imageType, cameraName, cameraVision);
         } catch ( RecorderException ex ) {
             System.out.println(ex);
         } finally {
