@@ -30,6 +30,10 @@ import java.io.Writer;
 import java.io.InterruptedIOException;
 import java.util.List;
 
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+
 // import com.eteks.sweethome3d.plugin.exportsvg.HomeJSONFileRecorder;
 import com.eteks.sweethome3d.io.ContentRecording;
 import com.eteks.sweethome3d.io.DefaultHomeInputStream;
@@ -43,13 +47,17 @@ import com.eteks.sweethome3d.model.RecorderException;
 import com.eteks.sweethome3d.model.Selectable;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
+import com.eteks.sweethome3d.j3d.PhotoRenderer;
+import com.eteks.sweethome3d.model.Camera;
+//import com.eteks.sweethome3d.viewcontroller.Object3DFactory;
+import com.eteks.sweethome3d.swing.HomeComponent3D;
 
 /**
  * Export room and image to json file.
  * @author Jondy Zhao
  */
 public class Exporter {
-
+    
     public static void printRoom(File homeFile) throws RecorderException {
         DefaultHomeInputStream in = null;
         Home home;
@@ -86,6 +94,19 @@ public class Exporter {
                 System.out.println("x: " + furniture.getX() + ", y: " + furniture.getY());
             }
 
+            BufferedImage photo = new BufferedImage(240, 320, BufferedImage.TYPE_INT_RGB);
+            Camera camera = home.getTopCamera();
+            int imageWidth = 240, imageHeight = 320;
+            PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.LOW);
+            renderer.render(photo, camera, null);
+            System.out.println("Render image ok.");
+            // HomeComponent3D homeComponent3D = new HomeComponent3D(home, this.preferences, this.object3dFactory, quality == 1, null);
+            // HomeComponent3D homeComponent3D = new HomeComponent3D(home);
+            // System.out.println("Get Homecomponent3d");
+            // photo = homeComponent3D.getOffScreenImage(imageWidth, imageHeight);
+            // System.out.println("Get image");
+            ImageIO.write(photo, "PNG", new File("test.png"));
+              
         } catch (InterruptedIOException ex) {
             throw new InterruptedRecorderException("Save home to XML");
         } catch (IOException ex) {
@@ -115,7 +136,10 @@ public class Exporter {
             printRoom(new File(args[0]));
         } catch ( RecorderException ex ) {
             System.out.println("Something is wrong: " + ex);
+        } finally {
+            System.out.println("Game over");
         }
+        return ;
         // for(int i=0;i<args.length;i++){
         //     System.out.println(args[i]);
         // }
