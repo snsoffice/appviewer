@@ -5,7 +5,7 @@ require.config( {
     paths: {
         jquery: 'lib/jquery.min',
         ol: 'lib/ol-4.3.2/ol',
-        easyrtc: 'lib/easyrtc.min',
+        easyrtc: 'lib/easyrtc',
         dexie: 'lib/dexie-1.5.1/dexie.min',
         three: 'lib/three.min',
         pannellum: 'lib/pannellum',
