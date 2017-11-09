@@ -84,13 +84,13 @@ public class PhotoMaker {
                 }
             if (camera == null)
                 camera = home.getTopCamera();
-            System.out.println("Use camera: " + camera.getName());
+            System.out.println("Use camera: " + (cameraName == null ? "Default" : cameraName));
             System.out.println("Camera at: " + camera.getX() + ", " + camera.getY() + ", " + camera.getZ());
             System.out.println("Camera pitch: " + camera.getPitch());
             System.out.println("Camera yaw: " + camera.getYaw());
             System.out.println("Camera field of view: " + camera.getFieldOfView());
 
-            System.out.println("Generate image (." + image.toLowerCase() + ", " + imageWidth + "x" + imageHeight + ")...");
+            System.out.println("Generate image (." + imageType.toLowerCase() + ", " + width + "x" + height + ")...");
             BufferedImage photo = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.LOW);
             renderer.render(photo, camera, null);
@@ -172,7 +172,7 @@ public class PhotoMaker {
         try {
             makePhoto(new File(args[i]), new File(outputFilename), imageWidth, imageHeight, imageType, cameraName);
         } catch ( RecorderException ex ) {
-            System.out.println("Error: " + ex);
+            System.out.println(ex);
         } finally {
             System.out.println("Render image finished.");
         }
