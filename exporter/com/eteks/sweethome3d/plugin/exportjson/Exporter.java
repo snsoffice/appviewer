@@ -30,11 +30,9 @@ import java.io.Writer;
 import java.io.InterruptedIOException;
 import java.util.List;
 
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 
-// import com.eteks.sweethome3d.plugin.exportsvg.HomeJSONFileRecorder;
 import com.eteks.sweethome3d.io.ContentRecording;
 import com.eteks.sweethome3d.io.DefaultHomeInputStream;
 import com.eteks.sweethome3d.model.HomeRecorder;
@@ -49,8 +47,7 @@ import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.j3d.PhotoRenderer;
 import com.eteks.sweethome3d.model.Camera;
-//import com.eteks.sweethome3d.viewcontroller.Object3DFactory;
-import com.eteks.sweethome3d.swing.HomeComponent3D;
+
 
 /**
  * Export room and image to json file.
