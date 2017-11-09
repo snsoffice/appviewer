@@ -21,6 +21,7 @@ package com.eteks.sweethome3d.plugin.exportjson;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,7 +39,10 @@ import com.eteks.sweethome3d.io.DefaultHomeInputStream;
 import com.eteks.sweethome3d.model.HomeRecorder;
 import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.Home;
+import com.eteks.sweethome3d.model.HomeEnvironment;
 import com.eteks.sweethome3d.model.Room;
+import com.eteks.sweethome3d.model.Compass;
+import com.eteks.sweethome3d.model.Camera;
 import com.eteks.sweethome3d.model.InterruptedRecorderException;
 import com.eteks.sweethome3d.model.Level;
 import com.eteks.sweethome3d.model.RecorderException;
@@ -46,7 +50,6 @@ import com.eteks.sweethome3d.model.Selectable;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.j3d.PhotoRenderer;
-import com.eteks.sweethome3d.model.Camera;
 
 
 /**
@@ -72,17 +75,40 @@ public class Exporter {
                 }
             }
 
+            // Comapss
+            Compass compass = home.getCompass();
+            System.out.println("Compass x = " + compass.getX() + ", y = " + compass.getY()
+                               + ", latitude is " + compass.getLatitude() + ", longitude = " + compass.getLongitude()
+                               + ", North direction: " + 180.0 * compass.getNorthDirection());
+
+            // Environments
+            HomeEnvironment env = home.getEnvironment();
+            
+            // Cameras
+            List<Camera> cameras = home.getStoredCameras();
+            for (int i = 0; i < cameras.size(); i ++) {
+                Camera camera = cameras.get(i);
+                System.out.println("Camera name is " + camera.getName());
+                System.out.println("x, y, z is " + camera.getX() + ", " + camera.getY() + ", " + camera.getZ());
+                System.out.println("pitch, yaw is " + camera.getPitch() + ", " + camera.getYaw());
+                System.out.println("Field of view is " + camera.getFieldOfView());
+            }
+
+            FileWriter dataFile = new FileWriter("points.txt");
             List<Room> rooms = home.getRooms();
             for (int i = 0; i < rooms.size(); i++) {
                 System.out.println("Room " + i);
                 float[][] points = rooms.get(i).getPoints();
                 for (int j = 0; j < points.length; j++) {
-                    if ( points[j].length == 2 )
+                    if ( points[j].length == 2 ) {
                         System.out.println(" (" + points[j][0] + ",  " + points[j][1] + ")");
+                        dataFile.write(" (" + points[j][0] + ",  " + points[j][1] + ")");
+                    }
                     else
                         System.out.println(" point length is not 2");
                 }
             }            
+            dataFile.close();
 
             List<HomePieceOfFurniture> furnitures = home.getFurniture();
             for (int i = 0; i < furnitures.size(); i++) {
@@ -95,8 +121,11 @@ public class Exporter {
             Camera camera = home.getTopCamera();
             int imageWidth = 240, imageHeight = 320;
             PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.LOW);
+            camera = cameras.get(1);
+            camera.setYaw(new Float(-3.60415926));
+            
             renderer.render(photo, camera, null);
-            System.out.println("Render image ok.");
+            System.out.println("Render image ok. yaw is " + camera.getYaw());
             // HomeComponent3D homeComponent3D = new HomeComponent3D(home, this.preferences, this.object3dFactory, quality == 1, null);
             // HomeComponent3D homeComponent3D = new HomeComponent3D(home);
             // System.out.println("Get Homecomponent3d");
