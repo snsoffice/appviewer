@@ -62,6 +62,11 @@ define( function () {
             configurable: false,
             get: function () { return parseFloat( get( 'mapRotation' ) ); },
             set: function ( value ) { set( 'mapRotation', value ); }
+        },
+
+        clusterDistance: {
+            configurable: false,
+            value: 20
         }
 
     } );
