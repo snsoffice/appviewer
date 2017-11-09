@@ -83,15 +83,26 @@ public class PhotoMaker {
                     break;
                 }
             if (camera == null) {
-                if (cameraVision == null)
-                    camera = home.getTopCamera();
-                else {
-                    camera = new Camera(Float.parseFloat(cameraVision[0]),
-                                        Float.parseFloat(cameraVision[1]),
-                                        Float.parseFloat(cameraVision[2]),
-                                        Float.parseFloat(cameraVision[3]),
-                                        Float.parseFloat(cameraVision[4]),
-                                        Float.parseFloat(cameraVision[5]));
+                // if (cameraVision == null)
+                //     camera = home.getTopCamera();
+                // else {
+                //     camera = new Camera(Float.parseFloat(cameraVision[0]),
+                //                         Float.parseFloat(cameraVision[1]),
+                //                         Float.parseFloat(cameraVision[2]),
+                //                         Float.parseFloat(cameraVision[3]),
+                //                         Float.parseFloat(cameraVision[4]),
+                //                         Float.parseFloat(cameraVision[5]));
+                //     cameraName = "Custom";
+                // }
+                camera = home.getTopCamera();
+                if (cameraVision != null) {
+                    // Debug vision: 138.63348,78.55249,1088.331,-84.81423,1.5707964,1.0995575
+                    camera.setX(Float.parseFloat(cameraVision[0]));
+                    camera.setY(Float.parseFloat(cameraVision[1]));
+                    camera.setZ(Float.parseFloat(cameraVision[2]));
+                    camera.setYaw(Float.parseFloat(cameraVision[3]));
+                    camera.setPitch(Float.parseFloat(cameraVision[4]));
+                    camera.setFieldOfView(Float.parseFloat(cameraVision[5]));
                     cameraName = "Custom";
                 }
             }
