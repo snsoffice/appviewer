@@ -1,21 +1,6 @@
 /*
- * ExportSVGPlugin.java
+ * PhotoMaker.java
  *
- * Copyright (c) 2015 Emmanuel PUYBARET / eTeks <info@eteks.com>. All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 package com.eteks.sweethome3d.plugin.exporter;
 
@@ -57,7 +42,9 @@ import com.eteks.sweethome3d.j3d.PhotoRenderer;
  */
 public class PhotoMaker {
 
-    public static void makePhoto(File homeFile, File outputFile, int width, int height, String imageType, String cameraName, String[] cameraVision)
+    public static void makePhoto(File homeFile, File outputFile,
+                                 int width, int height, String imageType,
+                                 String cameraName, String[] cameraVision)
         throws RecorderException {
 
         DefaultHomeInputStream in = null;
@@ -92,6 +79,7 @@ public class PhotoMaker {
                 //                         Float.parseFloat(cameraVision[3]),
                 //                         Float.parseFloat(cameraVision[4]),
                 //                         Float.parseFloat(cameraVision[5]));
+                //     camera.setTime(?);
                 //     cameraName = "Custom";
                 // }
                 camera = home.getTopCamera();
