@@ -1,6 +1,22 @@
 /*
  * PhotoMaker.java
  *
+ * SweetHome3D 中平面图坐标系是向右为 X 轴，向下为 Y 轴，向上为 Z 轴，是左手系
+ * 
+ * camera 参数说明:
+ *
+ *   x, y 为房屋的中间位置，z 是距离地面的高度
+ *
+ *   yaw 是相机偏航角度，也是水平方位角，以 Y 轴正向为 0 度，绕 Z 轴 转圈，顺时针为正，逆时针为负，例如 相机面向负 X 轴为 90 度，面向 X 轴为 -90 度
+ *
+ *   pitch 是相机仰角，以 Y 轴正向为 0 度，绕 X 轴向下为正，向上为负。
+ *
+ *   fov 是相机镜头的角度
+ *
+ *       this.topCamera = new Camera(50, 1050, 1010,
+ *       (float)Math.PI, (float)Math.PI / 4, (float)Math.PI * 63 / 180);
+ *
+ *   time: 1509814800689  => 2017-11-04 PM 5:00 室内有灯光，也不太暗
  */
 package com.eteks.sweethome3d.plugin.exporter;
 
@@ -99,11 +115,12 @@ public class PhotoMaker {
             System.out.println("Camera yaw: " + camera.getYaw());
             System.out.println("Camera pitch: " + camera.getPitch());
             System.out.println("Camera field of view: " + camera.getFieldOfView());
+            System.out.println("Camera time: " + camera.getTime());
 
             System.out.println("Generate image (." + imageType.toLowerCase() + ", " + width + "x" + height + ")...");
             BufferedImage photo = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.LOW);
-            renderer.render(photo, camera, null);
+            // renderer.render(photo, camera, null);
 
             System.out.println("Write image to " + outputFile.getName());
             ImageIO.write(photo, imageType, outputFile);
