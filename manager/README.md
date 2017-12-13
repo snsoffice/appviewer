@@ -9,8 +9,7 @@
     NAME/
         config.json
         house.sh3d
-        layers.json
-        features.json
+        house.csv
 
         layers/
             plan/
@@ -35,19 +34,6 @@
 
 可选，组织机构的三维模型文件。
 
-### layers.json ###
-
-必须存在，一般可以根据组织机构三维模型文件 house.sh3d 使用工具或者插件
-生成。在没有三维模型文件的时候，也可以人工编写。
-
-即使没有数据，也要对应一个空的 json 文件。
-
-### features.json ###
-
-必须存在，目前是人工编写。
-
-即使没有数据，也要对应一个空的 json 文件。
-
 ### layers/ ###
 
 存放图层资源，一般是组织机构三维模型文件通过工具自动生成。
@@ -68,6 +54,43 @@
 
 ### config.json ###
 
-### layers.json ###
+```
+{
+    name: "ID",
+    title: "STRING",
+    category: "KEYWORDS",
+    geometry: "WKT",
+    description: "STRING",
 
-### features.json ###
+    views: {
+        plan: {
+            imageSize: [width, height],
+            imageExtent: [xmin, ymin, xmax, ymax],
+            url: "",
+        },
+        solid: {
+            url: "",
+        },
+        stereo: {
+            constrainRotation: 8,
+            images: [...],
+        },
+    },
+
+    features: {
+        photo: [
+            {x, y, z, angle, url, format}, ...
+        ],
+        panorama: [
+            {x, y, z, angle, url, format},
+        ],
+        page: [
+            {x, y, z, angle, url, format},
+        ],
+    },
+
+    children: [
+        {x, y, z, url}, ...
+    ]
+}
+```
