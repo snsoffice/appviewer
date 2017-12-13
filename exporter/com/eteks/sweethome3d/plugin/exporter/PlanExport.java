@@ -12,6 +12,7 @@ import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,9 +21,13 @@ import java.io.IOException;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.InterruptedIOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.io.InterruptedIOException;
+
+import java.text.Format;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -62,8 +67,12 @@ public class PlanExport extends PlanComponent {
 
     private static final float       WALL_STROKE_WIDTH = 1.5f;
     private static final float       BORDER_STROKE_WIDTH = 1f;
+    private static final String      PHOTO_GROUP = "Photos";
+    private static final String      PANORAMA_GROUP = "Panoramas";
+    private static final char        CSV_FIELD_SEPARATOR = ',';
 
     private final Home            home;
+    private final UserPreferences preferences;
 
     /**
      * Creates a new plan that displays <code>home</code>.
@@ -75,6 +84,7 @@ public class PlanExport extends PlanComponent {
                       UserPreferences preferences) {
         super(home, preferences, null, (PlanController)null);
         this.home = home;
+        this.preferences = preferences;
     }
 
     /**
@@ -234,7 +244,116 @@ public class PlanExport extends PlanComponent {
      * Get FurnitureGroup
      */
     public List<HomeFurnitureGroup> getFurnitureGroups() {
-        return this.home.getSubList(getFurniture(), HomeFurnitureGroup.class);
+        return this.home.getSubList(this.home.getFurniture(), HomeFurnitureGroup.class);
+    }
+
+    /**
+     * Write photo to CSV data.
+     */
+    private void writePhotoData(OutputStreamWriter writer,
+                                HomePieceOfFurniture homeFurniture,
+                                Format sizeFormat) throws IOException {
+        String catalogId = homeFurniture.getCatalogId();
+        writer.write(catalogId != null ? catalogId : "");
+        writer.write(CSV_FIELD_SEPARATOR);
+        
+        writer.write(homeFurniture.getName());
+        writer.write(CSV_FIELD_SEPARATOR);
+        
+        String creators = homeFurniture.getCreator();
+        if (creators != null) {
+            writer.write(creators);
+            writer.write(CSV_FIELD_SEPARATOR);
+        }
+        
+        writer.write(homeFurniture.getLevel() != null
+                     ? homeFurniture.getLevel().getName()
+                     : "");
+        writer.write(CSV_FIELD_SEPARATOR);
+
+        if (homeFurniture.getTexture() != null) {
+            writer.write(homeFurniture.getTexture().getName());
+            writer.write(CSV_FIELD_SEPARATOR);
+        }
+        
+        writer.write(sizeFormat.format(homeFurniture.getWidth()));
+        writer.write(CSV_FIELD_SEPARATOR);
+
+        writer.write(sizeFormat.format(homeFurniture.getDepth()));
+        writer.write(CSV_FIELD_SEPARATOR);
+
+        writer.write(sizeFormat.format(homeFurniture.getHeight()));
+        writer.write(CSV_FIELD_SEPARATOR);
+
+        writer.write(sizeFormat.format(homeFurniture.getX()));
+        writer.write(CSV_FIELD_SEPARATOR);
+
+        writer.write(sizeFormat.format(homeFurniture.getY()));
+        writer.write(CSV_FIELD_SEPARATOR);
+
+        writer.write(sizeFormat.format(homeFurniture.getElevation()));
+        writer.write(CSV_FIELD_SEPARATOR);
+
+        writer.write(String.valueOf(homeFurniture.getAngle()));
+        writer.write(CSV_FIELD_SEPARATOR);
+
+        writer.write(System.getProperty("line.separator"));
+    }
+
+    /**
+     * Write panorama to CSV Data.
+     */
+    private void writePanoramaData(OutputStreamWriter writer,
+                                   HomePieceOfFurniture homeFurniture,
+                                   Format sizeFormat) throws IOException {
+        writer.write(System.getProperty("line.separator"));
+    }
+
+    /**
+     * Exports photo/panorama group to a given CSV file.
+     */
+    public void exportToCSV(String csvFile) throws RecorderException {
+        OutputStream out = null;
+        boolean exportInterrupted = false;
+        try {
+            out = new BufferedOutputStream(new FileOutputStream(csvFile));
+            OutputStreamWriter writer = new OutputStreamWriter(out);
+            Format sizeFormat;
+            if (this.preferences.getLengthUnit() == LengthUnit.INCH) {
+                sizeFormat = LengthUnit.INCH_DECIMALS.getFormat();
+            } else {
+                sizeFormat = this.preferences.getLengthUnit().getFormat();
+            }
+
+            for (HomeFurnitureGroup group: getFurnitureGroups()) {
+                if (group.getName().equalsIgnoreCase(PHOTO_GROUP)) {
+                    for (HomePieceOfFurniture homeFurniture: group.getAllFurniture())
+                        writePhotoData(writer, homeFurniture, sizeFormat);
+                }
+                else if (group.getName().equalsIgnoreCase(PANORAMA_GROUP)) {
+                    for (HomePieceOfFurniture homeFurniture: group.getAllFurniture())
+                        writePanoramaData(writer, homeFurniture, sizeFormat);
+                }
+            }
+            writer.flush();
+        } catch (InterruptedIOException ex) {
+            exportInterrupted = true;
+            throw new InterruptedRecorderException("Export to " + csvFile + " interrupted");
+        } catch (IOException ex) {
+            throw new RecorderException("Couldn't export to CSV in " + csvFile, ex);
+        } finally {
+            if (out != null) {
+                try {
+                    out.close();
+                    // Delete the file if exporting is interrupted
+                    if (exportInterrupted) {
+                        new File(csvFile).delete();
+                    }
+                } catch (IOException ex) {
+                    throw new RecorderException("Couldn't export to CSV in " + csvFile, ex);
+                }
+            }
+        }
     }
 
 }
