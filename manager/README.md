@@ -73,7 +73,9 @@
         },
         stereo: {
             constrainRotation: 8,
-            images: [...],
+            imageSize: [width, height],
+            imageExtent: [xmin, ymin, xmax, ymax],
+            urlPattern: "path/stereo_house%d.jpg",
         },
     },
 
