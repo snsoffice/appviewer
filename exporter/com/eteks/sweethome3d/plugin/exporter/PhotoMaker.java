@@ -2,7 +2,7 @@
  * PhotoMaker.java
  *
  * SweetHome3D 中平面图坐标系是向右为 X 轴，向下为 Y 轴，向上为 Z 轴，是左手系
- * 
+ *
  * camera 参数说明:
  *
  *   x, y 为房屋的中间位置，z 是距离地面的高度
@@ -20,6 +20,16 @@
  */
 package com.eteks.sweethome3d.plugin.exporter;
 
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+
+import java.awt.geom.AffineTransform;
+import java.awt.geom.PathIterator;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,10 +39,12 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.io.InterruptedIOException;
+
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 
 import com.eteks.sweethome3d.io.ContentRecording;
 import com.eteks.sweethome3d.io.DefaultHomeInputStream;
@@ -57,6 +69,153 @@ import com.eteks.sweethome3d.j3d.PhotoRenderer;
  * @author Jondy Zhao
  */
 public class PhotoMaker {
+
+
+    /**
+     * 旋转图片
+     * @author Jondy Zhao
+     */
+    public static BufferedImage postImage(BufferedImage input, double rotation,
+                                          int width, int height, int imageType) {
+
+        BufferedImage output = new BufferedImage(width, height, imageType);
+        int cx = input.getWidth() / 2;
+        int cy = input.getHeight() / 2;
+        AffineTransform at = new AffineTransform();
+        at.rotate(rotation, cx, cy);
+        AffineTransformOp op = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);
+        op.filter(input, output);
+        return output;
+    }
+
+    /**
+     * 旋转图片
+     * @author Jondy Zhao
+     */
+    public static BufferedImage rotateImage(BufferedImage input, double rotation,
+                                            int width, int height, int imageType) {
+
+        BufferedImage output = new BufferedImage(width, height, imageType);
+
+        Graphics2D g2d = output.createGraphics();
+        // g2d.rotate(-rotation, width / 2, height / 2);
+        // g2d.drawImage(input, null, 0, 0);
+        int cx = input.getWidth() / 2;
+        int cy = input.getHeight() / 2;
+        AffineTransform at = new AffineTransform();
+        at.rotate(rotation, cx, cy);
+        AffineTransformOp op = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);
+        g2d.drawImage(input, op, 0, 0);
+        return output;
+    }
+
+    /**
+     * 计算相机高度，使之正好能把整个房屋拍下。
+     * @author Jondy Zhao
+     */
+    public static double calculateCameraElevation(Rectangle2D itemBounds, double fov, int margin) {
+        return (Math.max(itemBounds.getWidth(), itemBounds.getHeight()) + 2 * margin) / 2 / Math.tan(fov / 2);
+    }
+
+    /**
+     * 输出立体图片信息到 JSON 文件
+     * @author Jondy Zhao
+     */
+    public static void exportToJSON(OutputStreamWriter writer,
+                                    Rectangle2D itemBounds, double fov, double resolution,
+                                    int margin, String path) throws IOException {
+        int constrainRotation = 8;
+        double ds = margin * resolution;
+        double[] extent = new double[4];
+        extent[0] = itemBounds.getMinX() - ds;
+        extent[1] = itemBounds.getMinY() - ds;
+        extent[2] = itemBounds.getMaxX() + ds;
+        extent[3] = itemBounds.getMaxY() + ds;
+
+        int width = (int)itemBounds.getWidth() + margin * 2;
+        int height = (int)itemBounds.getHeight() + margin * 2;
+
+        writer.write(String.format("stereo: {%n" +
+                                   "  constrainRotation: 8,%n" +
+                                   "  imageSize: [ %d, %d ],%n" +
+                                   "  imageExtent: [ %f, %f, %f, %f ],%n" +
+                                   "  urlPattern: \"%s/stereo_house%%d.jpg\",%n" +
+                                   "},%n",
+                                   width, height,
+                                   extent[0], extent[1], extent[2], extent[3],
+                                   path));
+    }
+
+    public static BufferedImage makePhoto(Home home, Camera camera, int itype,
+                                 int width, int height) throws IOException {
+        BufferedImage photo = new BufferedImage(width, height, itype);
+        PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.HIGH);
+        renderer.render(photo, camera, null);
+        return photo;
+    }
+    
+    /**
+     * itemBounds 的单位为 米
+     * 
+     * resolution 是每个像素的所代表的长度（米），例如 0.02 表示每个像
+     * 素代表 0.02 米，所以 1米需要 50 个像素
+     * 
+     */
+    public static void makeStereoPhotos(Home home, Rectangle2D itemBounds, double resolution,
+                                        String path, String imageType) throws IOException {
+        int constrainRotation = 8;
+        int margin = 2;
+        double pitch = Math.PI / 2;
+        double fov = Math.PI / 180 * 63;
+        int itype = imageType.equalsIgnoreCase("PNG") ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
+
+        double cx = itemBounds.getCenterX();
+        double cy = itemBounds.getCenterY();
+        double cz = calculateCameraElevation(itemBounds, fov, margin);
+
+        Camera camera = home.getTopCamera();
+        camera.setX((float)cx);
+        camera.setY((float)cy);
+        camera.setZ((float)cz);
+        camera.setYaw((float)Math.PI); // 默认上方为北
+        camera.setPitch((float)pitch);
+        camera.setFieldOfView((float)fov);
+
+        // 根据 resolution 和 margin 转换为像素坐标
+        int x0 = (int)(itemBounds.getMinX() / resolution) - margin;
+        int y0 = (int)(itemBounds.getMinY() / resolution) - margin;
+        int x1 = (int)(itemBounds.getMaxX() / resolution) + margin;
+        int y1 = (int)(itemBounds.getMaxY() / resolution) + margin;
+        Rectangle itemRect = new Rectangle(x0, y0, x1 - x0, y1 - y0);
+        int width = itemRect.width;
+        int height = itemRect.height;
+
+        for (int n = 0; n < constrainRotation ; n ++ ) {
+            double rotation = Math.PI * n / 4;
+
+            AffineTransform transform = new AffineTransform();
+            transform.rotate(rotation, itemRect.getCenterX(), itemRect.getCenterY());
+
+            Rectangle rotRect = new Rectangle(0, 0, -1, -1);
+            for (PathIterator it = itemRect.getPathIterator(transform); !it.isDone(); it.next()) {
+                float [] pathPoint = new float[2];
+                switch (it.currentSegment(pathPoint)) {
+                case PathIterator.SEG_LINETO:
+                    rotRect.add(pathPoint[0], pathPoint[1]);
+                    break;
+                case PathIterator.SEG_MOVETO:
+                    rotRect.setLocation((int)pathPoint[0], (int)pathPoint[1]);
+                    break;
+                }
+            }
+            camera.setYaw((float)(Math.PI  + rotation));
+            BufferedImage photo = makePhoto(home, camera, itype, rotRect.width, rotRect.height);
+
+            String filename = path + File.separator + "stereo_house" + String.valueOf(n) + "." + imageType.toLowerCase();
+            ImageIO.write(postImage(photo, rotation, width, height, itype), imageType, new File(filename));
+        }
+
+    }
 
     public static void makePhoto(File homeFile, File outputFile,
                                  int width, int height, String imageType,
@@ -120,7 +279,7 @@ public class PhotoMaker {
             System.out.println("Generate image (." + imageType.toLowerCase() + ", " + width + "x" + height + ")...");
             BufferedImage photo = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.LOW);
-            // renderer.render(photo, camera, null);
+            renderer.render(photo, camera, null);
 
             System.out.println("Write image to " + outputFile.getName());
             ImageIO.write(photo, imageType, outputFile);
@@ -153,10 +312,10 @@ public class PhotoMaker {
 
         String cameraName = null;
         String[] cameraVision = null;
-        int imageWidth = 960;
-        int imageHeight = 1280;
-        String imageType = "JPEG";
-        String outputFilename = "house.jpeg";
+        int imageWidth = 240;
+        int imageHeight = 320;
+        String imageType = "JPG";
+        String outputFilename = "house.jpg";
         PhotoRenderer.Quality quality = PhotoRenderer.Quality.HIGH;
 
         int i = 0;

@@ -69,6 +69,7 @@ public class PlanExport extends PlanComponent {
     private static final float       BORDER_STROKE_WIDTH = 1f;
     private static final String      PHOTO_GROUP = "Photos";
     private static final String      PANORAMA_GROUP = "Panoramas";
+    private static final String      PAGE_GROUP = "Pages";
     private static final char        CSV_FIELD_SEPARATOR = ',';
 
     private final Home            home;
@@ -200,9 +201,16 @@ public class PlanExport extends PlanComponent {
     }
 
     /**
+     * Returns the bounds of the given collection of <code>items</code>.
+     */
+    public Rectangle2D getItemsBounds() {
+        return getItemsBounds(getGraphics(), getSelectableViewableItems());
+    }
+
+    /**
      * Export plan to PNG
      */
-    public BufferedImage getPlanImage(float clipboardScale) {
+    public BufferedImage getPlanImage(float clipboardScale, int imageType) {
         // Create an image that contains only selected items
 
         // home.getSelectableViewableItems()
@@ -216,7 +224,8 @@ public class PlanExport extends PlanComponent {
         // float clipboardScale = .5f;
         float extraMargin = getStrokeWidthExtraMargin(this.home.getSelectedItems(), PaintMode.CLIPBOARD);
         BufferedImage image = new BufferedImage((int)Math.ceil(selectionBounds.getWidth() * clipboardScale + 2 * extraMargin),
-                                                (int)Math.ceil(selectionBounds.getHeight() * clipboardScale + 2 * extraMargin), BufferedImage.TYPE_INT_ARGB);
+                                                (int)Math.ceil(selectionBounds.getHeight() * clipboardScale + 2 * extraMargin),
+                                                imageType);
         Graphics2D g2D = (Graphics2D)image.getGraphics();
         // Paint background in white
         g2D.setColor(Color.WHITE);
@@ -240,6 +249,12 @@ public class PlanExport extends PlanComponent {
         return image;
     }
 
+    public void exportToPNG(String filename, float scale, String imageType) throws IOException {
+        int itype = imageType.equals("PNG") ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
+        BufferedImage photo = getPlanImage(scale, itype);
+        ImageIO.write(photo, imageType, new File(filename));
+    }
+
     /**
      * Get FurnitureGroup
      */
@@ -256,16 +271,16 @@ public class PlanExport extends PlanComponent {
         String catalogId = homeFurniture.getCatalogId();
         writer.write(catalogId != null ? catalogId : "");
         writer.write(CSV_FIELD_SEPARATOR);
-        
+
         writer.write(homeFurniture.getName());
         writer.write(CSV_FIELD_SEPARATOR);
-        
+
         String creators = homeFurniture.getCreator();
         if (creators != null) {
             writer.write(creators);
             writer.write(CSV_FIELD_SEPARATOR);
         }
-        
+
         writer.write(homeFurniture.getLevel() != null
                      ? homeFurniture.getLevel().getName()
                      : "");
@@ -275,7 +290,7 @@ public class PlanExport extends PlanComponent {
             writer.write(homeFurniture.getTexture().getName());
             writer.write(CSV_FIELD_SEPARATOR);
         }
-        
+
         writer.write(sizeFormat.format(homeFurniture.getWidth()));
         writer.write(CSV_FIELD_SEPARATOR);
 
