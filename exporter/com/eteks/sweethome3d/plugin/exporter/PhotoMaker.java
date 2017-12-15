@@ -110,8 +110,8 @@ public class PhotoMaker {
      * 计算相机高度，使之正好能把整个房屋拍下。
      * @author Jondy Zhao
      */
-    public static double calculateCameraElevation(Rectangle2D itemBounds, double fov, float wallHeight) {
-        return (Math.max(itemBounds.getWidth(), itemBounds.getHeight()) + 2 * wallHeight) / 2 / Math.tan(fov / 2);
+    public static double calculateCameraElevation(Rectangle2D itemBounds, double fov) {
+        return Math.max(itemBounds.getWidth(), itemBounds.getHeight()) / 2 / Math.tan(fov / 2);
     }
 
     /**
@@ -168,7 +168,7 @@ public class PhotoMaker {
 
         double cx = itemBounds.getCenterX();
         double cy = itemBounds.getCenterY();
-        double cz = calculateCameraElevation(itemBounds, fov, home.getWallHeight());
+        double cz = calculateCameraElevation(itemBounds, fov);
 
         Camera camera = home.getTopCamera();
         camera.setX((float)cx);
@@ -207,6 +207,7 @@ public class PhotoMaker {
                     break;
                 }
             }
+            camera.setZ((float)(cz + ((n == 0 || n == 4) ? 0 : home.getWallHeight())));
             camera.setYaw((float)(-Math.PI  + rotation));
             String filename = path + File.separator + "stereo_house" + String.valueOf(n) + "." + imageType.toLowerCase();
             String ofilename = path + File.separator + "org_stereo_house" + String.valueOf(n) + "." + imageType.toLowerCase();
@@ -249,7 +250,7 @@ public class PhotoMaker {
                                   Math.toDegrees(camera.getYaw()) % 360,
                                   Math.toDegrees(camera.getPitch()));
                 if (cameras.get(i).getName().equalsIgnoreCase(cameraName)) {
-                    camera = cameras.get(i);                    
+                    camera = cameras.get(i);
                     break;
                 }
             }
