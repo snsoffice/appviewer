@@ -228,7 +228,7 @@ public class PlanExport extends PlanComponent {
                                                 imageType);
         Graphics2D g2D = (Graphics2D)image.getGraphics();
         // Paint background in white
-        g2D.setColor(Color.WHITE);
+        g2D.setColor(new Color(0, 0, 0, 0));
         g2D.fillRect(0, 0, image.getWidth(), image.getHeight());
         // Change component coordinates system to plan system
         g2D.scale(clipboardScale, clipboardScale);
