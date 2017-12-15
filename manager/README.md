@@ -57,10 +57,10 @@
 ```
 {
     name: "ID",
-    title: "STRING",
-    category: "KEYWORDS",
-    geometry: "WKT",
-    description: "STRING",
+    longitude: float,
+    latitude: float,
+    altitude: float,
+    offset: [x, y],
 
     views: {
         plan: {
@@ -81,18 +81,18 @@
 
     features: {
         photo: [
-            {x, y, z, angle, url, format}, ...
+            {x, y, z, yaw, url, format}, ...
         ],
         panorama: [
-            {x, y, z, angle, url, format},
+            {x, y, z, yaw, url, format},
         ],
         page: [
-            {x, y, z, angle, url, format},
+            {x, y, z, yaw, url, format},
         ],
     },
 
     children: [
-        {x, y, z, url}, ...
+        {name, longitude, latitude, altitude}, ...
     ]
 }
 ```
