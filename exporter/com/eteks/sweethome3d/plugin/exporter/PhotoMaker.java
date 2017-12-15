@@ -79,10 +79,9 @@ public class PhotoMaker {
                                           int width, int height, int imageType) {
 
         BufferedImage output = new BufferedImage(width, height, imageType);
-        int cx = input.getWidth() / 2;
-        int cy = input.getHeight() / 2;
         AffineTransform at = new AffineTransform();
-        at.rotate(rotation, cx, cy);
+        at.rotate(rotation, width / 2, height / 2);
+        at.translate((width - input.getWidth()) / 2, (height - input.getHeight()) / 2);
         AffineTransformOp op = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);
         op.filter(input, output);
         return output;
@@ -96,14 +95,12 @@ public class PhotoMaker {
                                             int width, int height, int imageType) {
 
         BufferedImage output = new BufferedImage(width, height, imageType);
-
         Graphics2D g2d = output.createGraphics();
         // g2d.rotate(-rotation, width / 2, height / 2);
         // g2d.drawImage(input, null, 0, 0);
-        int cx = input.getWidth() / 2;
-        int cy = input.getHeight() / 2;
         AffineTransform at = new AffineTransform();
-        at.rotate(rotation, cx, cy);
+        at.rotate(rotation, width / 2, height / 2);
+        at.translate((width - input.getWidth()) / 2, (height - input.getHeight()) / 2);
         AffineTransformOp op = new AffineTransformOp(at, AffineTransformOp.TYPE_BICUBIC);
         g2d.drawImage(input, op, 0, 0);
         return output;
@@ -113,8 +110,8 @@ public class PhotoMaker {
      * 计算相机高度，使之正好能把整个房屋拍下。
      * @author Jondy Zhao
      */
-    public static double calculateCameraElevation(Rectangle2D itemBounds, double fov, int margin) {
-        return (Math.max(itemBounds.getWidth(), itemBounds.getHeight()) + 2 * margin) / 2 / Math.tan(fov / 2);
+    public static double calculateCameraElevation(Rectangle2D itemBounds, double fov, float wallHeight) {
+        return (Math.max(itemBounds.getWidth(), itemBounds.getHeight()) + 2 * wallHeight) / 2 / Math.tan(fov / 2);
     }
 
     /**
@@ -153,25 +150,25 @@ public class PhotoMaker {
         renderer.render(photo, camera, null);
         return photo;
     }
-    
+
     /**
      * itemBounds 的单位为 米
-     * 
+     *
      * resolution 是每个像素的所代表的长度（米），例如 0.02 表示每个像
      * 素代表 0.02 米，所以 1米需要 50 个像素
-     * 
+     *
      */
     public static void makeStereoPhotos(Home home, Rectangle2D itemBounds, double resolution,
                                         String path, String imageType) throws IOException {
         int constrainRotation = 8;
-        int margin = 2;
         double pitch = Math.PI / 2;
         double fov = Math.PI / 180 * 63;
+        int margin = (int)(home.getWallHeight() * Math.tan(fov / 2) / resolution );
         int itype = imageType.equalsIgnoreCase("PNG") ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
 
         double cx = itemBounds.getCenterX();
         double cy = itemBounds.getCenterY();
-        double cz = calculateCameraElevation(itemBounds, fov, margin);
+        double cz = calculateCameraElevation(itemBounds, fov, home.getWallHeight());
 
         Camera camera = home.getTopCamera();
         camera.setX((float)cx);
@@ -190,11 +187,13 @@ public class PhotoMaker {
         int width = itemRect.width;
         int height = itemRect.height;
 
+        // PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.HIGH);
+        PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.LOW);
         for (int n = 0; n < constrainRotation ; n ++ ) {
-            double rotation = Math.PI * n / 4;
+            double rotation = - Math.PI * n / 4;
 
             AffineTransform transform = new AffineTransform();
-            transform.rotate(rotation, itemRect.getCenterX(), itemRect.getCenterY());
+            transform.rotate(rotation, cx, cy);
 
             Rectangle rotRect = new Rectangle(0, 0, -1, -1);
             for (PathIterator it = itemRect.getPathIterator(transform); !it.isDone(); it.next()) {
@@ -208,11 +207,15 @@ public class PhotoMaker {
                     break;
                 }
             }
-            camera.setYaw((float)(Math.PI  + rotation));
-            BufferedImage photo = makePhoto(home, camera, itype, rotRect.width, rotRect.height);
-
+            camera.setYaw((float)(-Math.PI  + rotation));
             String filename = path + File.separator + "stereo_house" + String.valueOf(n) + "." + imageType.toLowerCase();
+            String ofilename = path + File.separator + "org_stereo_house" + String.valueOf(n) + "." + imageType.toLowerCase();
+            System.out.printf("正在生成第 %d 个立体图文件(%dx%d) ...%n", n + 1, rotRect.width, rotRect.height);
+            BufferedImage photo = new BufferedImage(rotRect.width, rotRect.height, itype);
+            renderer.render(photo, camera, null);
+            ImageIO.write(photo, imageType, new File(ofilename));
             ImageIO.write(postImage(photo, rotation, width, height, itype), imageType, new File(filename));
+            System.out.printf("保存生成的立体图文件: %s%n", filename);
         }
 
     }
@@ -239,11 +242,17 @@ public class PhotoMaker {
 
             Camera camera = null;
             List<Camera> cameras = home.getStoredCameras();
-            for (int i = 0; i < cameras.size(); i ++)
+            for (int i = 0; i < cameras.size(); i ++) {
+                camera = cameras.get(i);
+                System.out.printf("%s: %f %f %f %f %f %f%n", camera.getName(), camera.getX(), camera.getY(), camera.getZ(),
+                                  Math.toDegrees(camera.getFieldOfView()),
+                                  Math.toDegrees(camera.getYaw()) % 360,
+                                  Math.toDegrees(camera.getPitch()));
                 if (cameras.get(i).getName().equalsIgnoreCase(cameraName)) {
-                    camera = cameras.get(i);
+                    camera = cameras.get(i);                    
                     break;
                 }
+            }
             if (camera == null) {
                 // if (cameraVision == null)
                 //     camera = home.getTopCamera();
@@ -279,7 +288,7 @@ public class PhotoMaker {
             System.out.println("Generate image (." + imageType.toLowerCase() + ", " + width + "x" + height + ")...");
             BufferedImage photo = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.LOW);
-            renderer.render(photo, camera, null);
+            //renderer.render(photo, camera, null);
 
             System.out.println("Write image to " + outputFile.getName());
             ImageIO.write(photo, imageType, outputFile);
