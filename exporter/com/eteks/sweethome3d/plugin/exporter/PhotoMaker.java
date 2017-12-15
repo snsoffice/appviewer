@@ -20,6 +20,7 @@
  */
 package com.eteks.sweethome3d.plugin.exporter;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 
@@ -187,8 +188,8 @@ public class PhotoMaker {
         int width = itemRect.width;
         int height = itemRect.height;
 
-        // PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.HIGH);
-        PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.LOW);
+        PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.HIGH);
+        // PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.LOW);
         for (int n = 0; n < constrainRotation ; n ++ ) {
             double rotation = - Math.PI * n / 4;
 
