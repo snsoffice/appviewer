@@ -11,7 +11,7 @@
         house.sh3d
         house.csv
 
-        layers/
+        views/
             plan/
             solid/
             stereo/
@@ -34,7 +34,7 @@
 
 可选，组织机构的三维模型文件。
 
-### layers/ ###
+### views/ ###
 
 存放图层资源，一般是组织机构三维模型文件通过工具自动生成。
 
