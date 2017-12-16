@@ -19,7 +19,7 @@
         features/
             photo/
             panorama/
-            text/
+            page/
 ```
 
 每一个组织机构有一个唯一的名称，对应一个目录，该目录下面存放该组织结构
