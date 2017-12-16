@@ -115,33 +115,23 @@ public class PhotoMaker {
         return Math.max(itemBounds.getWidth(), itemBounds.getHeight()) / 2 / Math.tan(fov / 2);
     }
 
-    /**
-     * 输出立体图片信息到 JSON 文件
-     * @author Jondy Zhao
-     */
-    public static void exportToJSON(OutputStreamWriter writer,
-                                    Rectangle2D itemBounds, double fov, double resolution,
-                                    int margin, String path) throws IOException {
-        int constrainRotation = 8;
-        double ds = margin * resolution;
+    public static double[] getImageExtent(Home home, Rectangle2D itemBounds) {
+        double fov = Math.PI / 180 * 63;
+        double s = home.getWallHeight() * Math.tan(fov / 2);
         double[] extent = new double[4];
-        extent[0] = itemBounds.getMinX() - ds;
-        extent[1] = itemBounds.getMinY() - ds;
-        extent[2] = itemBounds.getMaxX() + ds;
-        extent[3] = itemBounds.getMaxY() + ds;
+        extent[0] = (itemBounds.getMinX() - s) / 100;
+        extent[1] = (itemBounds.getMinY() - s) / 100;
+        extent[2] = (itemBounds.getMaxX() + s) / 100;
+        extent[3] = (itemBounds.getMaxY() + s) / 100;
+        return extent;
+    }
 
-        int width = (int)itemBounds.getWidth() + margin * 2;
-        int height = (int)itemBounds.getHeight() + margin * 2;
-
-        writer.write(String.format("stereo: {%n" +
-                                   "  constrainRotation: 8,%n" +
-                                   "  imageSize: [ %d, %d ],%n" +
-                                   "  imageExtent: [ %f, %f, %f, %f ],%n" +
-                                   "  urlPattern: \"%s/stereo_house%%d.jpg\",%n" +
-                                   "},%n",
-                                   width, height,
-                                   extent[0], extent[1], extent[2], extent[3],
-                                   path));
+    public static int[] getImageSize(Home home, Rectangle2D itemBounds, double resolution) {
+        int[] size = new int[2];
+        double[] extent = getImageExtent(home, itemBounds);
+        size[0] = (int)((extent[2] - extent[0]) / resolution);
+        size[1] = (int)((extent[3] - extent[1]) / resolution);
+        return size;
     }
 
     public static BufferedImage makePhoto(Home home, Camera camera, int itype,

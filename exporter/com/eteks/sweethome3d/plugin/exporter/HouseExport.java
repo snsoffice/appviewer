@@ -17,7 +17,6 @@
  *
  * In my laptop, OPTIONS is
  *
- *   -Dhome.name=huaqingyutang -Dhome.author=Jondy -Dhome.contributor=Jondy \
  *   -Djava.library.path=lib/windows/i386 \
  *   -cp ".;SweetHome3D-5.6.jar;lib/j3dcore.jar;lib/j3dutils.jar;lib/vecmath.jar;lib/sunflow-0.07.3i.jar;exporter.jar"
  *
@@ -33,6 +32,7 @@ import java.awt.Dimension;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -201,6 +201,56 @@ public class HouseExport {
         }
     }
 
+    public static void writeCompassData(OutputStreamWriter writer, Home home) throws IOException {
+        Compass compass = home.getCompass();
+        writer.write(String.format("longitude: %f,%nlatitude: %f,%naltitude: %f,%noffset: [%f, %f],%n",
+                                   Math.toDegrees(compass.getLongitude()),
+                                   Math.toDegrees(compass.getLatitude()),
+                                   0f,
+                                   compass.getX(),
+                                   compass.getY()));
+    }
+
+    public static void writeViewData(OutputStreamWriter writer, Home home, Rectangle2D itemBounds,
+                                     double resolution, double margin, String path) throws IOException {
+        writer.write(String.format("views: {%n"));
+
+        double scale = 1 / resolution / 100;
+        double s = margin * resolution;
+        writer.write(String.format("plan: {%n" +
+                                   "  imageSize: [ %d, %d ],%n" +
+                                   "  imageExtent: [ %f, %f, %f, %f ],%n" +
+                                   "  url: \"%s/views/plan/plan_house.png\",%n" +
+                                   "},%n",
+                                   (int)Math.ceil(itemBounds.getWidth() * scale + 2 * margin),
+                                   (int)Math.ceil(itemBounds.getHeight() * scale + 2 * margin),
+                                   itemBounds.getMinX() / 100 - s,
+                                   itemBounds.getMinY() / 100 - s,
+                                   itemBounds.getMaxX() / 100 + s,
+                                   itemBounds.getMaxY() / 100 + s,
+                                   path));
+
+        writer.write(String.format("solid: {%n  url: \"%s/views/solid/house.obj\",%n},%n", path));
+
+        int[] size = PhotoMaker.getImageSize(home, itemBounds, resolution * 2);
+        double[] extent = PhotoMaker.getImageExtent(home, itemBounds);
+        writer.write(String.format("stereo: {%n" +
+                                   "  constrainRotation: 8,%n" +
+                                   "  imageSize: [ %d, %d ],%n" +
+                                   "  imageExtent: [ %f, %f, %f, %f ],%n" +
+                                   "  urlPattern: \"%s/views/stereo/stereo_house%%d.jpg\",%n" +
+                                   "}%n",
+                                   size[0], size[1],
+                                   extent[0], extent[1], extent[2], extent[3],
+                                   path));
+
+        writer.write(String.format("},%n"));
+    }
+
+    public static void writeFeatureData(OutputStreamWriter writer, PlanExport plan,
+                                        double resolution, String path) throws IOException {
+    }
+
     public static void main(String[] args) {
 
         if ( args.length == -1 ) {
@@ -208,7 +258,7 @@ public class HouseExport {
             return;
         }
 
-        float resolution = 0.04f;
+        float resolution = 0.02f;
         String output = null;
         String filename = null;
 
@@ -270,6 +320,8 @@ public class HouseExport {
         Home home = null;
         try {
             File homeFile = new File(filename);
+            String homeName = homeFile.getParent();
+
             // If preferences are not null replace home content by the one in preferences when it's the same
             in = new DefaultHomeInputStream(homeFile, ContentRecording.INCLUDE_ALL_CONTENT, null, null, false);
             home = in.readHome();
@@ -297,9 +349,23 @@ public class HouseExport {
 
             String stereoPath = viewPath + File.separator + "stereo";
             Rectangle2D itemBounds = plan.getItemsBounds();
-            System.out.printf("输出分辨率为 %f 的立体图到目录 %s%n", resolution, stereoPath);
+            System.out.printf("输出分辨率为 %f 的立体图到目录 %s%n", resolution * 2, stereoPath);
             imageType = "JPG";
-            PhotoMaker.makeStereoPhotos(home, itemBounds, resolution * 100, stereoPath, imageType);
+            // PhotoMaker.makeStereoPhotos(home, itemBounds, resolution * 100 * 2, stereoPath, imageType);
+
+            // 输出 config.json
+            String jsonFilename = output + File.separator + "config.json";
+            FileOutputStream out = new FileOutputStream(jsonFilename);
+            OutputStreamWriter writer = new OutputStreamWriter(out);
+
+            System.out.println("输出 JSON 文件 " + jsonFilename);
+            writer.write(String.format("{%nname: \"%s\",%n", homeName));
+            writeCompassData(writer, home);
+            writeViewData(writer, home, itemBounds, resolution, plan.getExtraMargin(), output);
+            writeFeatureData(writer, plan, resolution, output);
+            writer.write(String.format("children:[]%n}%n"));
+            writer.flush();
+            out.close();
 
         } catch (FileNotFoundException ex) {
             System.out.println("读取输入文件 " + filename + " 失败: " + ex);

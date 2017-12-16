@@ -207,6 +207,10 @@ public class PlanExport extends PlanComponent {
         return getItemsBounds(getGraphics(), getSelectableViewableItems());
     }
 
+    public double getExtraMargin() {
+        return getStrokeWidthExtraMargin(getSelectableViewableItems(), PaintMode.CLIPBOARD);
+    }
+
     /**
      * Export plan to PNG
      */
