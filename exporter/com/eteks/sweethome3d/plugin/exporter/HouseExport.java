@@ -247,10 +247,6 @@ public class HouseExport {
         writer.write(String.format("},%n"));
     }
 
-    public static void writeFeatureData(OutputStreamWriter writer, PlanExport plan,
-                                        double resolution, String path) throws IOException {
-    }
-
     public static void main(String[] args) {
 
         if ( args.length == -1 ) {
@@ -326,6 +322,8 @@ public class HouseExport {
             in = new DefaultHomeInputStream(homeFile, ContentRecording.INCLUDE_ALL_CONTENT, null, null, false);
             home = in.readHome();
 
+            for (HomePieceOfFurniture piece: home.getFurniture())
+                System.out.println(piece.getName());
             UserPreferences preferences = new DefaultUserPreferences();
             preferences.setUnit(LengthUnit.METER);
 
@@ -362,7 +360,7 @@ public class HouseExport {
             writer.write(String.format("{%nname: \"%s\",%n", homeName));
             writeCompassData(writer, home);
             writeViewData(writer, home, itemBounds, resolution, plan.getExtraMargin(), output);
-            writeFeatureData(writer, plan, resolution, output);
+            plan.writeData(writer, output);
             writer.write(String.format("children:[]%n}%n"));
             writer.flush();
             out.close();

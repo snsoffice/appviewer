@@ -328,6 +328,41 @@ public class PlanExport extends PlanComponent {
         writer.write(System.getProperty("line.separator"));
     }
 
+    private String formatFeature(HomePieceOfFurniture homeFurniture, String baseUrl, String fmt) {
+        return String.format("{x: %f, y: %f, z: %f, yaw: %f, url: \"%s\", format: \"%s\"},%n",
+                             homeFurniture.getX() / 100,
+                             homeFurniture.getY() / 100,
+                             homeFurniture.getElevation() / 100,
+                             homeFurniture.getAngle(),
+                             baseUrl + "/" + homeFurniture.getName(),
+                             homeFurniture.getCreator());
+    }
+
+    public void writeData(OutputStreamWriter writer, String baseUrl) throws IOException {
+        String photos = "";
+        String panoramas = "";
+
+        for (HomeFurnitureGroup group: getFurnitureGroups()) {
+            if (group.getName().equalsIgnoreCase(PHOTO_GROUP)) {
+                for (HomePieceOfFurniture homeFurniture: group.getAllFurniture())
+                    photos += formatFeature(homeFurniture, baseUrl + "/features/photo", "png");
+            }
+            else if (group.getName().equalsIgnoreCase(PANORAMA_GROUP)) {
+                for (HomePieceOfFurniture homeFurniture: group.getAllFurniture())
+                    panoramas += formatFeature(homeFurniture, baseUrl + "/features/panorama", "equirectangular");
+            }
+        }
+
+
+        writer.write(String.format("features: {%n"));
+
+        writer.write(String.format("photo: [%n%s],%n", photos));
+        writer.write(String.format("panorama: [%n%s],%n", panoramas));
+        writer.write(String.format("page: []%n"));
+
+        writer.write(String.format("},%n"));
+    }
+
     /**
      * Exports photo/panorama group to a given CSV file.
      */
