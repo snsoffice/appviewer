@@ -366,20 +366,20 @@ public class PlanExport extends PlanComponent {
         String s = null;
         for (String a: (List<String>)photos) {
             if (s == null)
-                s = a;
+                s = String.format("%n%s", a);
             else
                 s += String.format(",%n%s", a);
         }
-        writer.write(String.format("photo: [%s],%n", s == null ? "" : s));
+        writer.write(String.format("photo: [%s],%n", s == null ? "" : String.format("%s%n", s)));
 
         s = null;
         for (String a: (List<String>)panoramas) {
             if (s == null)
-                s = a;
+                s = String.format("%n%s", a);
             else
                 s += String.format(",%n%s", a);
         }
-        writer.write(String.format("panorama: [%s],%n", s == null ? "" : s));
+        writer.write(String.format("panorama: [%s],%n", s == null ? "" : String.format("%s%n", s)));
         writer.write(String.format("page: []%n"));
 
         writer.write(String.format("},%n"));
