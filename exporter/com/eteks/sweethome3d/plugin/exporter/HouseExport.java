@@ -322,8 +322,6 @@ public class HouseExport {
             in = new DefaultHomeInputStream(homeFile, ContentRecording.INCLUDE_ALL_CONTENT, null, null, false);
             home = in.readHome();
 
-            for (HomePieceOfFurniture piece: home.getFurniture())
-                System.out.println(piece.getName());
             UserPreferences preferences = new DefaultUserPreferences();
             preferences.setUnit(LengthUnit.METER);
 

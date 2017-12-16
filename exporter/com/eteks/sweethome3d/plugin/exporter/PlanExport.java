@@ -71,6 +71,8 @@ public class PlanExport extends PlanComponent {
     private static final String      PANORAMA_GROUP = "Panoramas";
     private static final String      PAGE_GROUP = "Pages";
     private static final char        CSV_FIELD_SEPARATOR = ',';
+    private static final String      PHOTO_PREFIX = "photo/";
+    private static final String      PANORAMA_PREFIX = "panorama/";
 
     private final Home            home;
     private final UserPreferences preferences;
@@ -329,35 +331,55 @@ public class PlanExport extends PlanComponent {
     }
 
     private String formatFeature(HomePieceOfFurniture homeFurniture, String baseUrl, String fmt) {
-        return String.format("{x: %f, y: %f, z: %f, yaw: %f, url: \"%s\", format: \"%s\"},%n",
+        return String.format("{x: %f, y: %f, z: %f, yaw: %f, url: \"%s\", format: \"%s\"}",
                              homeFurniture.getX() / 100,
                              homeFurniture.getY() / 100,
                              homeFurniture.getElevation() / 100,
                              homeFurniture.getAngle(),
                              baseUrl + "/" + homeFurniture.getName(),
-                             homeFurniture.getCreator());
+                             fmt);
     }
 
     public void writeData(OutputStreamWriter writer, String baseUrl) throws IOException {
-        String photos = "";
-        String panoramas = "";
+        List photos = new ArrayList<String>();
+        List panoramas = new ArrayList<String>();
+        baseUrl += "/features";
 
-        for (HomeFurnitureGroup group: getFurnitureGroups()) {
-            if (group.getName().equalsIgnoreCase(PHOTO_GROUP)) {
-                for (HomePieceOfFurniture homeFurniture: group.getAllFurniture())
-                    photos += formatFeature(homeFurniture, baseUrl + "/features/photo", "png");
-            }
-            else if (group.getName().equalsIgnoreCase(PANORAMA_GROUP)) {
-                for (HomePieceOfFurniture homeFurniture: group.getAllFurniture())
-                    panoramas += formatFeature(homeFurniture, baseUrl + "/features/panorama", "equirectangular");
-            }
+        for (HomePieceOfFurniture homeFurniture: home.getFurniture()) {
+            if (homeFurniture.getName().startsWith(PHOTO_PREFIX))
+                photos.add(formatFeature(homeFurniture, baseUrl, "jpg"));
+            else if (homeFurniture.getName().startsWith(PANORAMA_PREFIX))
+                panoramas.add(formatFeature(homeFurniture, baseUrl, "equirectangular"));
         }
+
+        for (HomeFurnitureGroup group: getFurnitureGroups())
+            for (HomePieceOfFurniture homeFurniture: group.getAllFurniture()) {
+                if (homeFurniture.getName().startsWith(PHOTO_PREFIX))
+                    photos.add(formatFeature(homeFurniture, baseUrl, "jpg"));
+                else if (homeFurniture.getName().startsWith(PANORAMA_PREFIX))
+                    panoramas.add(formatFeature(homeFurniture, baseUrl, "equirectangular"));
+            }
 
 
         writer.write(String.format("features: {%n"));
 
-        writer.write(String.format("photo: [%n%s],%n", photos));
-        writer.write(String.format("panorama: [%n%s],%n", panoramas));
+        String s = null;
+        for (String a: (List<String>)photos) {
+            if (s == null)
+                s = a;
+            else
+                s += String.format(",%n%s", a);
+        }
+        writer.write(String.format("photo: [%s],%n", s == null ? "" : s));
+
+        s = null;
+        for (String a: (List<String>)panoramas) {
+            if (s == null)
+                s = a;
+            else
+                s += String.format(",%n%s", a);
+        }
+        writer.write(String.format("panorama: [%s],%n", s == null ? "" : s));
         writer.write(String.format("page: []%n"));
 
         writer.write(String.format("},%n"));
