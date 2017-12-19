@@ -203,7 +203,7 @@ public class HouseExport {
 
     public static void writeCompassData(OutputStreamWriter writer, Home home) throws IOException {
         Compass compass = home.getCompass();
-        writer.write(String.format("longitude: %f,%nlatitude: %f,%naltitude: %f,%noffset: [%f, %f],%n",
+        writer.write(String.format("\"longitude\": %f,%n\"latitude\": %f,%n\"altitude\": %f,%n\"origin\": [%f, %f],%n",
                                    Math.toDegrees(compass.getLongitude()),
                                    Math.toDegrees(compass.getLatitude()),
                                    0f,
@@ -213,14 +213,14 @@ public class HouseExport {
 
     public static void writeViewData(OutputStreamWriter writer, Home home, Rectangle2D itemBounds,
                                      double resolution, double margin, String path) throws IOException {
-        writer.write(String.format("views: {%n"));
+        writer.write(String.format("\"views\": {%n"));
 
         double scale = 1 / resolution / 100;
         double s = margin * resolution;
-        writer.write(String.format("plan: {%n" +
-                                   "  imageSize: [ %d, %d ],%n" +
-                                   "  imageExtent: [ %f, %f, %f, %f ],%n" +
-                                   "  url: \"%s/views/plan/plan_house.png\",%n" +
+        writer.write(String.format("\"plan\": {%n" +
+                                   "  \"imageSize\": [ %d, %d ],%n" +
+                                   "  \"imageExtent\": [ %f, %f, %f, %f ],%n" +
+                                   "  \"url\": \"%s/views/plan/plan_house.png\"%n" +
                                    "},%n",
                                    (int)Math.ceil(itemBounds.getWidth() * scale + 2 * margin),
                                    (int)Math.ceil(itemBounds.getHeight() * scale + 2 * margin),
@@ -230,15 +230,15 @@ public class HouseExport {
                                    itemBounds.getMaxY() / 100 + s,
                                    path));
 
-        writer.write(String.format("solid: {%n  url: \"%s/views/solid/house.obj\",%n},%n", path));
+        writer.write(String.format("\"solid\": {%n  \"url\": \"%s/views/solid/house.obj\"%n},%n", path));
 
         int[] size = PhotoMaker.getImageSize(home, itemBounds, resolution * 2);
         double[] extent = PhotoMaker.getImageExtent(home, itemBounds);
-        writer.write(String.format("stereo: {%n" +
-                                   "  constrainRotation: 8,%n" +
-                                   "  imageSize: [ %d, %d ],%n" +
-                                   "  imageExtent: [ %f, %f, %f, %f ],%n" +
-                                   "  urlPattern: \"%s/views/stereo/stereo_house%%d.jpg\",%n" +
+        writer.write(String.format("\"stereo\": {%n" +
+                                   "  \"constrainRotation\": 8,%n" +
+                                   "  \"imageSize\": [ %d, %d ],%n" +
+                                   "  \"imageExtent\": [ %f, %f, %f, %f ],%n" +
+                                   "  \"urlPattern\": \"%s/views/stereo/stereo_house%%d.jpg\"%n" +
                                    "}%n",
                                    size[0], size[1],
                                    extent[0], extent[1], extent[2], extent[3],
@@ -355,11 +355,11 @@ public class HouseExport {
             OutputStreamWriter writer = new OutputStreamWriter(out);
 
             System.out.println("输出 JSON 文件 " + jsonFilename);
-            writer.write(String.format("{%nname: \"%s\",%n", homeName));
+            writer.write(String.format("{%n\"name\": \"%s\",%n", homeName));
             writeCompassData(writer, home);
             writeViewData(writer, home, itemBounds, resolution, plan.getExtraMargin(), output);
             plan.writeData(writer, output);
-            writer.write(String.format("children:[]%n}%n"));
+            writer.write(String.format("\"children\":[]%n}%n"));
             writer.flush();
             out.close();
 
