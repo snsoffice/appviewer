@@ -63,10 +63,10 @@ def update_children(config):
         children = update_house(path)
         if children is not None:
             for room in children:
-                _update(room)
+                _update(os.path.join(path, room))
     logging.info('更新数据目录 %s ...', root)
     for house in list_children(root):
-        _update(house)
+        _update(os.path.join(root, house))
     logging.info('更新数据目录 %s 完成', root)
 
 def main(params=None):
