@@ -60,7 +60,7 @@
     longitude: float,
     latitude: float,
     altitude: float,
-    offset: [x, y],
+    origin: [x, y],
 
     views: {
         plan: {
