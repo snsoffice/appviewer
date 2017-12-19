@@ -316,7 +316,7 @@ public class HouseExport {
         Home home = null;
         try {
             File homeFile = new File(filename);
-            String homeName = homeFile.getParent();
+            String homeName = homeFile.getParentFile().getName();
 
             // If preferences are not null replace home content by the one in preferences when it's the same
             in = new DefaultHomeInputStream(homeFile, ContentRecording.INCLUDE_ALL_CONTENT, null, null, false);
