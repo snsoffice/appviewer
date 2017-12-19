@@ -257,12 +257,16 @@ public class HouseExport {
         float resolution = 0.02f;
         String output = null;
         String filename = null;
+        String basePath = "";
+        String baseUrl = null;
 
         for (String arg: args) {
             if (arg.startsWith("--output", 0))
                 output = arg.split("=")[1];
             else if (arg.startsWith("--resolution"))
                 resolution = Float.parseFloat(arg.split("=")[1]);
+            else if (arg.startsWith("--base", 0))
+                basePath = arg.split("=")[1];
             else
                 filename = arg;
         }
@@ -295,6 +299,7 @@ public class HouseExport {
                 }
             }
         }
+        baseUrl = (new File(output)).getAbsolutePath().substring((new File(basePath)).getAbsolutePath().length());
         System.out.println("输出图片文件的分辨率为 " + resolution);
 
         //创建目录
@@ -357,8 +362,8 @@ public class HouseExport {
             System.out.println("输出 JSON 文件 " + jsonFilename);
             writer.write(String.format("{%n\"name\": \"%s\",%n", homeName));
             writeCompassData(writer, home);
-            writeViewData(writer, home, itemBounds, resolution, plan.getExtraMargin(), output);
-            plan.writeData(writer, output);
+            writeViewData(writer, home, itemBounds, resolution, plan.getExtraMargin(), baseUrl);
+            plan.writeData(writer, baseUrl);
             writer.write(String.format("\"children\":[]%n}%n"));
             writer.flush();
             out.close();
