@@ -14,4 +14,4 @@ update: $(houses:%/house.sh3d=%/config.json)
 	@bash update-data.sh
 
 $(houses:%/house.sh3d=%/config.json): %/config.json: %/house.sh3d
-	@bash $(EXPORTER_SCRIPT) --resolution=0.02 --base=$(DATA_PATH} --output=$(shell dirname $@) $<
+	@bash $(EXPORTER_SCRIPT) --resolution=0.02 --stereo-resolution=0.04 --base=$(DATA_PATH} --output=$(shell dirname $@) $<

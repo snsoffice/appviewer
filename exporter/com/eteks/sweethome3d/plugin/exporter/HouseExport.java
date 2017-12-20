@@ -3,14 +3,20 @@
  *
  * Usage:
  *
- *   java OPTIONS com.eteks.sweethome3d.plugin.exporter.HouseExport --output=PATH --resolution=N NAME.sh3d
+ *   java OPTIONS com.eteks.sweethome3d.plugin.exporter.HouseExport \
+ *                --base=PATH --output=PATH \
+ *                --resolution=N --stereo-resolution=N \
+ *                NAME.sh3d
  *
+ *   --base base data path
+ *   --output where to save exported files, default is same as input file
  *   --resolution means how many meters of each pixel. For example, resolution=0.02, 1m => 50 pixels
- *
+ *   --stereo-resolution used by stereo images, if not set, same as resolution
+ *   
  *   Output files will be saved in the output PATH:
  *
  *     config.json
- *     layers/
+ *     views/
  *       plan/plan-NAME.jpg
  *       solid/NAME.mtl, NAME.obj, textures (*.jpeg | *.jpg | *.png)
  *       stereo/stereo-NAME[1-8].jpg
@@ -212,7 +218,7 @@ public class HouseExport {
     }
 
     public static void writeViewData(OutputStreamWriter writer, Home home, Rectangle2D itemBounds,
-                                     double resolution, double margin, String path) throws IOException {
+                                     double resolution, double stereoResolution, double margin, String path) throws IOException {
         writer.write(String.format("\"views\": {%n"));
 
         double scale = 1 / resolution / 100;
@@ -232,7 +238,7 @@ public class HouseExport {
 
         writer.write(String.format("\"solid\": {%n  \"url\": \"%s/views/solid/house.obj\"%n},%n", path));
 
-        int[] size = PhotoMaker.getImageSize(home, itemBounds, resolution * 2);
+        int[] size = PhotoMaker.getImageSize(home, itemBounds, stereoResolution);
         double[] extent = PhotoMaker.getImageExtent(home, itemBounds);
         writer.write(String.format("\"stereo\": {%n" +
                                    "  \"constrainRotation\": 8,%n" +
@@ -255,6 +261,7 @@ public class HouseExport {
         }
 
         float resolution = 0.02f;
+        float stereoResolution = 0.f;
         String output = null;
         String filename = null;
         String basePath = "";
@@ -265,13 +272,18 @@ public class HouseExport {
                 output = arg.split("=")[1];
             else if (arg.startsWith("--resolution"))
                 resolution = Float.parseFloat(arg.split("=")[1]);
+            else if (arg.startsWith("--stereo-resolution"))
+                stereoResolution = Float.parseFloat(arg.split("=")[1]);
             else if (arg.startsWith("--base", 0))
                 basePath = arg.split("=")[1];
             else
                 filename = arg;
         }
 
-        if ( filename == null ) {
+        if (stereoResolution == 0.f)
+            stereoResolution = resolution;
+
+        if (filename == null) {
             System.out.println("没有输入文件");
             return;
         }
@@ -350,9 +362,9 @@ public class HouseExport {
 
             String stereoPath = viewPath + File.separator + "stereo";
             Rectangle2D itemBounds = plan.getItemsBounds();
-            System.out.printf("输出分辨率为 %f 的立体图到目录 %s%n", resolution * 2, stereoPath);
+            System.out.printf("输出分辨率为 %f 的立体图到目录 %s%n", stereoResolution, stereoPath);
             imageType = "JPG";
-            // PhotoMaker.makeStereoPhotos(home, itemBounds, resolution * 100 * 2, stereoPath, imageType);
+            PhotoMaker.makeStereoPhotos(home, itemBounds, stereoResolution * 100, stereoPath, imageType);
 
             // 输出 config.json
             String jsonFilename = output + File.separator + "config.json";
@@ -362,7 +374,7 @@ public class HouseExport {
             System.out.println("输出 JSON 文件 " + jsonFilename);
             writer.write(String.format("{%n\"name\": \"%s\",%n", homeName));
             writeCompassData(writer, home);
-            writeViewData(writer, home, itemBounds, resolution, plan.getExtraMargin(), baseUrl);
+            writeViewData(writer, home, itemBounds, resolution, stereoResolution, plan.getExtraMargin(), baseUrl);
             plan.writeData(writer, baseUrl);
             writer.write(String.format("\"children\":[]%n}%n"));
             writer.flush();
