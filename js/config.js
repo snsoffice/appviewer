@@ -67,7 +67,12 @@ define( function () {
         clusterDistance: {
             configurable: false,
             value: 20
-        }
+        },
+
+        resourceBaseUrl: {
+            configurable: false,
+            value: "http://owtayt1td.bkt.clouddn.com/organizations"
+        },
 
     } );
 
