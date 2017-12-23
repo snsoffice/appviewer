@@ -311,7 +311,7 @@ public class HouseExport {
                 }
             }
         }
-        baseUrl = (new File(output)).getAbsolutePath().substring((new File(basePath)).getAbsolutePath().length());
+        baseUrl = (new File(output)).getAbsolutePath().substring((new File(basePath)).getAbsolutePath().length() + 1);
         System.out.println("输出图片文件的分辨率为 " + resolution);
 
         //创建目录
