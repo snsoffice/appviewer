@@ -253,6 +253,18 @@ public class HouseExport {
                               String levelName, String baseUrl, String viewPath, String output)
         throws FileNotFoundException, RecorderException, IOException {
 
+        String[] names = {"plan", "solid", "stereo"};
+        for (String name: names) {
+            File dir = new File(viewPath + File.separator + name);
+            if (!dir.exists()) {
+                System.out.println("创建目录 " + dir.getAbsoluteFile());
+                if (!dir.mkdirs()) {
+                    System.out.println("创建目录 " + dir.getName() + "失败");
+                    throw new IOException("创建目录失败");
+                }
+            }
+        }
+
         HomeController controller = new HomeController(home, preferences, new SwingViewFactory());
         HomePane pane = new HomePane(home, preferences, controller);
 
@@ -351,22 +363,11 @@ public class HouseExport {
                 }
             }
         }
-        baseUrl = (new File(output)).getAbsolutePath().substring((new File(basePath)).getAbsolutePath().length() + 1);
+        baseUrl = (new File(output)).getAbsolutePath().substring((new File(basePath)).getAbsolutePath().length() + 1).replace(File.separator, "/");
         System.out.println("输出图片文件的分辨率为 " + resolution);
 
         //创建目录
         String viewPath = output + File.separator + "views";
-        String[] names = {"plan", "solid", "stereo"};
-        for (String name: names) {
-            File dir = new File(viewPath + File.separator + name);
-            if (!dir.exists()) {
-                System.out.println("创建目录 " + dir.getAbsoluteFile());
-                if (!dir.mkdirs()) {
-                    System.out.println("创建目录 " + dir.getName() + "失败");
-                    return;
-                }
-            }
-        }
 
         System.out.println("开始处理输入文件 " + filename + " ...");
         DefaultHomeInputStream in = null;
@@ -393,16 +394,6 @@ public class HouseExport {
                         String levelOutput = output + File.separator + levelName;
                         String levelViewPath = levelOutput + File.separator + "views";
                         String levelBaseUrl = baseUrl + "/" + levelName;
-                        for (String name: names) {
-                            File dir = new File(levelViewPath + File.separator + name);
-                            if (!dir.exists()) {
-                                System.out.println("创建目录 " + dir.getAbsoluteFile());
-                                if (!dir.mkdirs()) {
-                                    System.out.println("创建目录 " + dir.getName() + "失败");
-                                    return;
-                                }
-                            }
-                        }
                         level.setVisible(true);
                         home.setSelectedLevel(level);
                         export(home, preferences, resolution, stereoResolution, levelName, levelBaseUrl, levelViewPath, levelOutput);
