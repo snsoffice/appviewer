@@ -12,7 +12,7 @@
  *   --output where to save exported files, default is same as input file
  *   --resolution means how many meters of each pixel. For example, resolution=0.02, 1m => 50 pixels
  *   --stereo-resolution used by stereo images, if not set, same as resolution
- *   
+ *
  *   Output files will be saved in the output PATH:
  *
  *     config.json
@@ -134,14 +134,6 @@ public class HouseExport {
                 else
                     ImageIO.write(img, ImageConstants.PNG, new File("clipboard.png"));
             }
-            // List<Level> levels = home.getLevels();
-            // for (int i = 0; i < levels.size(); i++) {
-            //     if (levels.get(i).isViewable()) {
-            //         levels.get(i).setVisible(true);
-            //         System.out.println("Level " + i);
-            //     }
-            // }
-
             Camera camera = null;
             List<Camera> cameras = home.getStoredCameras();
             for (int i = 0; i < cameras.size(); i ++)
@@ -253,6 +245,54 @@ public class HouseExport {
         writer.write(String.format("},%n"));
     }
 
+    public static void writeElevationData(OutputStreamWriter writer, Home home, List<Level> levels) throws IOException {
+        writer.write(String.format("\"elevations\":[]%n}%n"));
+    }
+
+    public static void export(Home home, UserPreferences preferences, float resolution, float stereoResolution,
+                              String levelName, String baseUrl, String viewPath, String output)
+        throws FileNotFoundException, RecorderException, IOException {
+
+        HomeController controller = new HomeController(home, preferences, new SwingViewFactory());
+        HomePane pane = new HomePane(home, preferences, controller);
+
+        // String svgFilename = output + File.separator + "house.svg";
+        // System.out.println("输出平面图文件 " + svgFilename);
+        // pane.exportToSVG(svgFilename);
+
+        String objFilename = viewPath + File.separator + "solid" + File.separator + "house.obj";
+        System.out.println("输出三维模型到 " + objFilename);
+        pane.exportToOBJ(objFilename);
+
+        PlanExport plan = new PlanExport(home, preferences);
+        float planScale = 1 / resolution / 100;
+        String planFilename = viewPath + File.separator + "plan" + File.separator + "plan_house.png";
+        String imageType = "PNG";
+        System.out.printf("输出缩放比例为 %f 的平面图到 %s%n", planScale, planFilename);
+        plan.exportToPNG(planFilename, planScale, imageType);
+
+        String stereoPath = viewPath + File.separator + "stereo";
+        Rectangle2D itemBounds = plan.getItemsBounds();
+        System.out.printf("输出分辨率为 %f 的立体图到目录 %s%n", stereoResolution, stereoPath);
+        imageType = "JPG";
+        // PhotoMaker.makeStereoPhotos(home, itemBounds, stereoResolution * 100, stereoPath, imageType);
+
+        // 输出 config.json
+        String jsonFilename = output + File.separator + "config.json";
+        FileOutputStream out = new FileOutputStream(jsonFilename);
+        OutputStreamWriter writer = new OutputStreamWriter(out);
+
+        System.out.println("输出 JSON 文件 " + jsonFilename);
+        writer.write(String.format("{%n\"name\": \"%s\",%n", levelName));
+        writeCompassData(writer, home);
+        writeViewData(writer, home, itemBounds, resolution, stereoResolution, plan.getExtraMargin(), baseUrl);
+        plan.writeData(writer, baseUrl);
+        writer.write(String.format("\"children\":[]%n}%n"));
+        writer.flush();
+        out.close();
+
+    }
+
     public static void main(String[] args) {
 
         if ( args.length == -1 ) {
@@ -342,43 +382,44 @@ public class HouseExport {
             UserPreferences preferences = new DefaultUserPreferences();
             preferences.setUnit(LengthUnit.METER);
 
-            HomeController controller = new HomeController(home, preferences, new SwingViewFactory());
-            HomePane pane = new HomePane(home, preferences, controller);
+            List<Level> levels = home.getLevels();
+            if (levels.size() == 0) {
+                export(home, preferences, resolution, stereoResolution, homeName, baseUrl, viewPath, output);
+            } else {
+                for (int i = 0; i < levels.size(); i++) {
+                    Level level = levels.get(i);
+                    if (level.isViewable()) {
+                        String levelName = level.getName().replace(" ", "");
+                        String levelOutput = output + File.separator + levelName;
+                        String levelViewPath = levelOutput + File.separator + "views";
+                        String levelBaseUrl = baseUrl + "/" + levelName;
+                        for (String name: names) {
+                            File dir = new File(levelViewPath + File.separator + name);
+                            if (!dir.exists()) {
+                                System.out.println("创建目录 " + dir.getAbsoluteFile());
+                                if (!dir.mkdirs()) {
+                                    System.out.println("创建目录 " + dir.getName() + "失败");
+                                    return;
+                                }
+                            }
+                        }
+                        level.setVisible(true);
+                        home.setSelectedLevel(level);
+                        export(home, preferences, resolution, stereoResolution, levelName, levelBaseUrl, levelViewPath, levelOutput);
+                    }
+                }
+                // 输出 config.json
+                String jsonFilename = output + File.separator + "config.json";
+                FileOutputStream out = new FileOutputStream(jsonFilename);
+                OutputStreamWriter writer = new OutputStreamWriter(out);
 
-            // String svgFilename = output + File.separator + "house.svg";
-            // System.out.println("输出平面图文件 " + svgFilename);
-            // pane.exportToSVG(svgFilename);
-
-            String objFilename = viewPath + File.separator + "solid" + File.separator + "house.obj";
-            System.out.println("输出三维模型到 " + objFilename);
-            pane.exportToOBJ(objFilename);
-
-            PlanExport plan = new PlanExport(home, preferences);
-            float planScale = 1 / resolution / 100;
-            String planFilename = viewPath + File.separator + "plan" + File.separator + "plan_house.png";
-            String imageType = "PNG";
-            System.out.printf("输出缩放比例为 %f 的平面图到 %s%n", planScale, planFilename);
-            plan.exportToPNG(planFilename, planScale, imageType);
-
-            String stereoPath = viewPath + File.separator + "stereo";
-            Rectangle2D itemBounds = plan.getItemsBounds();
-            System.out.printf("输出分辨率为 %f 的立体图到目录 %s%n", stereoResolution, stereoPath);
-            imageType = "JPG";
-            PhotoMaker.makeStereoPhotos(home, itemBounds, stereoResolution * 100, stereoPath, imageType);
-
-            // 输出 config.json
-            String jsonFilename = output + File.separator + "config.json";
-            FileOutputStream out = new FileOutputStream(jsonFilename);
-            OutputStreamWriter writer = new OutputStreamWriter(out);
-
-            System.out.println("输出 JSON 文件 " + jsonFilename);
-            writer.write(String.format("{%n\"name\": \"%s\",%n", homeName));
-            writeCompassData(writer, home);
-            writeViewData(writer, home, itemBounds, resolution, stereoResolution, plan.getExtraMargin(), baseUrl);
-            plan.writeData(writer, baseUrl);
-            writer.write(String.format("\"children\":[]%n}%n"));
-            writer.flush();
-            out.close();
+                System.out.println("输出 JSON 文件 " + jsonFilename);
+                writer.write(String.format("{%n\"name\": \"%s\",%n", homeName));
+                writeCompassData(writer, home);
+                writeElevationData(writer, home, levels);
+                writer.flush();
+                out.close();
+            }
 
         } catch (FileNotFoundException ex) {
             System.out.println("读取输入文件 " + filename + " 失败: " + ex);
