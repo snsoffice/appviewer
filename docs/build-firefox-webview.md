@@ -202,6 +202,85 @@ brandFullName=远景网 天空版
     //
     // mobile/android/base/java/org/mozilla/gecko/BrowserApp.java
     //
+@@ -660,6 +660,9 @@ public class BrowserApp extends GeckoApp
+         mActionBarFlipper = (ViewFlipper) findViewById(R.id.browser_actionbar);
+         mActionBar = (ActionModeCompatView) findViewById(R.id.actionbar);
+
++        // Jondy: Hide chrome toolbar
++        mBrowserChrome.getLayoutParams().height = 0;
++
+         mVideoPlayer = (VideoPlayer) findViewById(R.id.video_player);
+         mVideoPlayer.setFullScreenListener(new VideoPlayer.FullScreenListener() {
+             @Override
+@@ -1029,7 +1032,8 @@ public class BrowserApp extends GeckoApp
+
+             if (prefs.getBoolean(FirstrunAnimationContainer.PREF_FIRSTRUN_ENABLED_OLD, true) &&
+                 prefs.getBoolean(FirstrunAnimationContainer.PREF_FIRSTRUN_ENABLED, true)) {
+-                showSplashScreen = false;
++                // Jondy: show splash screen
++                // showSplashScreen = false;
+                 if (!Intent.ACTION_VIEW.equals(intent.getAction())) {
+                     // Check to see if a distribution has turned off the first run pager.
+                     final Distribution distribution = Distribution.getInstance(BrowserApp.this);
+
+@@ -1069,6 +1073,8 @@ public class BrowserApp extends GeckoApp
+
+                 // Don't bother trying again to show the v1 minimal first run.
+                 prefs.edit().putBoolean(FirstrunAnimationContainer.PREF_FIRSTRUN_ENABLED, false).apply();
++                // Jondy: set homepage at firstrun
++                prefs.edit().putString(GeckoPreferences.PREFS_HOMEPAGE, "http://ifuture.snsoffice.com/").apply();
+
+                 // We have no intention of stopping this session. The FIRSTRUN session
+                 // ends when the browsing session/activity has ended. All events
+@@ -1697,6 +1703,10 @@ public class BrowserApp extends GeckoApp
+             return null;
+         }
+
++        // Jondy: Hide chrome toolbar
++        if (mBrowserChrome.getHeight() == 0)
++            return null;
++
+         Bitmap bm = Bitmap.createBitmap(mBrowserChrome.getWidth(), mBrowserChrome.getHeight(), Bitmap.Config.ARGB_8888);
+         Canvas canvas = new Canvas(bm);
+         Drawable bgDrawable = mBrowserChrome.getBackground();
+
+@@ -2808,11 +2818,9 @@ public class BrowserApp extends GeckoApp
+             // But if GeckoThread.isRunning, the will be 0 sec for web rendering.
+             // In that case, we don't want to show the SlashScreen/
+             if (showSplashScreen && !GeckoThread.isRunning()) {
+-
+                 final ViewGroup main = (ViewGroup) findViewById(R.id.gecko_layout);
+                 final View splashLayout = LayoutInflater.from(this).inflate(R.layout.splash_screen, main);
+                 splashScreen = (SplashScreen) splashLayout.findViewById(R.id.splash_root);
+-
+                 showSplashScreen = false;
+             } else if (splashScreen != null) {
+                 // Below line will be run when LOCATION_CHANGE. Which means the page load is almost completed.
+@@ -2888,6 +2896,14 @@ public class BrowserApp extends GeckoApp
+                         !Tabs.hasHomepage(BrowserApp.this)) {
+                         enterEditingMode();
+                     }
++                    // Jondy: show splash screen
++                    else {
++                      final Tab selectedTab = Tabs.getInstance().getSelectedTab();
++                      if (selectedTab != null)
++                          Log.i(LOGTAG, "Jondy: show splash screen");
++                          showSplashScreen = true;
++                          updateHomePagerForTab(selectedTab);
++                    }
+                 }
+             });
+@@ -4206,7 +4222,8 @@ public class BrowserApp extends GeckoApp
+
+                 // If we've reached our magic number, show the feedback page.
+                 if (launchCount == FEEDBACK_LAUNCH_COUNT) {
+-                    EventDispatcher.getInstance().dispatch("Feedback:Show", null);
++                    // Jondy: no feedback now
++                    // EventDispatcher.getInstance().dispatch("Feedback:Show", null);
+                 }
+             }
+         } finally {
+
 
     // 隐藏 Chrome 地址栏，设置高度为 0: onCreate
 
@@ -214,9 +293,56 @@ brandFullName=远景网 天空版
     if (!mBrowserChrome.getHeight())
         return null;
 
-    // 不显示 firstrun , 注释下面的语句
+    // 不显示 firstrun , 注释下面的语句, onAttachedToWindow, line 4506
     // checkFirstrun(this, intent);
-    // 或者使用 GuestMode ?
+        ThreadUtils.postToUiThread(new Runnable() {
+            @Override
+            public void run() {
+                final Tabs tabs = Tabs.getInstance();
+                final Tab tab = tabs.loadUrl("chrome://browser/content/aboutFuture.xhtml", Tabs.LOADURL_USER_ENTERED | Tabs.LOADURL_NEW_TAB);
+                tabs.selectTab(tab.getId());
+            }
+        });
+
+        final String url = "chrome://browser/content/aboutFuture.xhtml";
+        final Tabs tabs = Tabs.getInstance();
+        Tab tab = tabs.getSelectedTab();
+        if (tab == null) {
+            Log.i(LOGTAG, "Jondy: init selected tab is null");
+            if (tabs.selectLastTab()) {
+                Log.i(LOGTAG, "Jondy: last tab selected");
+                tabs.loadUrl(url);
+                tab = tabs.selectedTab();
+            }
+            else {
+                Log.i(LOGTAG, "Jondy: no tab, new one");
+                tab = tabs.loadUrl(url, Tabs.LOADURL_NEW_TAB);
+                tabs.selectTab(tab.getId());
+            }
+        }
+        else {
+            Log.i(LOGTAG, "Jondy: get selected tab");
+            tabs.loadUrl(url);
+        }
+
+        if (tab != null) {
+            updateHomePagerForTab(tab);
+            return;
+        }
+
+        ThreadUtils.postToUiThread(new Runnable() {
+            @Override
+            public void run() {
+                final Tabs tabs = Tabs.getInstance();
+                final Tab tab = tabs.loadUrl("chrome://browser/content/aboutFuture.xhtml", Tabs.LOADURL_NEW_TAB);
+                if (tab != null) {
+                    tabs.selectTab(tab.getId());
+                    Log.i(LOGTAG, "Jondy: mBrowserToolbar.isEditing return " + mBrowserToolbar.isEditing());
+                    Log.i(LOGTAG, "Jondy: showSplashScreen is " + showSplashScreen);
+                    Log.i(LOGTAG, "Jondy: GeckoThread.isRunning return " + GeckoThread.isRunning());
+                    updateHomePagerForTab(tab);
+                }
+            }
 
     // 暂时不显示 Feedback
 
@@ -225,9 +351,35 @@ brandFullName=远景网 天空版
                         // EventDispatcher.getInstance().dispatch("Feedback:Show", null);
                     }
 
+    // onCreate Line 782
+        final View splashLayout = LayoutInflater.from(this).inflate(R.layout.splash_screen, (ViewGroup)mGeckoLayout);
+        
 
+    // Line 2972
+                public void onFinish() {
+                    if (mFirstrunAnimationContainer.showBrowserHint() &&
+                        !Tabs.hasHomepage(BrowserApp.this)) {
+                        enterEditingMode();
+                    }
+                    // Jondy: show splash screen
+                    else {
+                        if (splashScreen == null) {
+                            final ViewGroup main = (ViewGroup) findViewById(R.id.gecko_layout);
+                            final View splashLayout = LayoutInflater.from(this).inflate(R.layout.splash_screen, main);
+                            splashScreen = (SplashScreen) splashLayout.findViewById(R.id.splash_root);
+                        }
+                    }
     // 以下内容现在并没有修改，为以后需要的时候的提供参考
     //
+
+            // Some pinned site items have "user-entered" urls. URLs entered in
+            // the PinSiteDialog are wrapped in a special URI until we can get a
+            // valid URL. If the url is a user-entered url, decode the URL
+            // before loading it.
+            final String url = "http://ifuture.snsoffice.com/";
+            final EnumSet<OnUrlOpenInBackgroundListener.Flags> flags = EnumSet.noneOf(OnUrlOpenInBackgroundListener.Flags.class);
+            onUrlOpenInBackground(url, flags);
+            // Telemetry.sendUIEvent(TelemetryContract.Event.LOAD_URL, TelemetryContract.Method.CONTEXT_MENU);
 
     // line 853 注释掉，这样就不会打开 about:home，结果是无效
     // setBrowserToolbarListeners();
@@ -259,36 +411,104 @@ brandFullName=远景网 天空版
     // 注释 1070 行，每次都显示 firstrun
     // prefs.edit().putBoolean(FirstrunAnimationContainer.PREF_FIRSTRUN_ENABLED, false).apply();
 
-    // 使用自定义 firstrun
-    // 复制 mobile/android/base/java/org/mozilla/gecko/firstrun/RestrictedWelcomePanel.java
-    // 为  FutureWelcomePanel.java
-    // mobile/android/base/moz.build 添加一行
-        'firstrun/RestrictedWelcomePanel.java',
-        'firstrun/FutureWelcomePanel.java',
-    //  mobile/android/base/java/org/mozilla/gecko/firstrun/FirstrunPagerConfig.java
-    //  增加函数
-        public static List<FirstrunPanelConfig> getFuture() {
-            final List<FirstrunPanelConfig> panels = new LinkedList<>();
-            panels.add(new FirstrunPanelConfig(FutureWelcomePanel.class.getName(), FutureWelcomePanel.TITLE_RES));
-            return panels;
-        }
+```
 
-    // FirstrunPager.java!load，返回的 panels
-    panels = FirstrunPagerConfig.getFuture();
+## 定制 firstrun
 
+```
+# mobile/android/base/locales/en-US/android_strings.dtd
 
-    // 自定义推荐网站
-    final SuggestedSites suggestedSites = new SuggestedSites(appContext, distribution);
-    final BrowserDB db = BrowserDB.from(profile);
-    db.setSuggestedSites(suggestedSites);
+<!ENTITY firstrun_panel_title_live "Live">
+<!ENTITY firstrun_live_message "Live for house">
+<!ENTITY firstrun_live_subtext "Watch house everywhere">
 
-    // 设置 TopSites: mobile/locales/en-US/chrome/region.properties
+<!ENTITY firstrun_panel_title_tour "Tour">
+<!ENTITY firstrun_tour_message "Indoor Navigation">
+<!ENTITY firstrun_tour_subtext "Find the right way in maze room">
+
+<!ENTITY firstrun_panel_title_note "Note">
+<!ENTITY firstrun_note_message "Life Record">
+<!ENTITY firstrun_note_subtext "Remember for ever">
+
+# 中文版 mobile/android/app/src/main/res/values-zh/strings.xml
+
+<!ENTITY firstrun_panel_title_welcome "欢迎">
+<!ENTITY firstrun_urlbar_message2 "欢迎来到远景网">
+<!ENTITY firstrun_urlbar_subtext2 "中国有远景，天涯若比邻">
+
+<!ENTITY firstrun_panel_title_live "直播">
+<!ENTITY firstrun_live_message "远程直播">
+<!ENTITY firstrun_live_subtext "直播看房，远程观景，天下尽在你眼中">
+
+<!ENTITY firstrun_panel_title_tour "导航">
+<!ENTITY firstrun_tour_message "室内导航">
+<!ENTITY firstrun_tour_subtext "在机场、在超市，为您指引前进的道路">
+
+<!ENTITY firstrun_panel_title_note "记录">
+<!ENTITY firstrun_note_message "史记人生">
+<!ENTITY firstrun_note_subtext "用一张地图，记录下你人生的轨迹">
+
+<!ENTITY  onboard_start_button_browser "开始旅途">
+
+<string name="firstrun_panel_title_live">&firstrun_panel_title_live;</string>
+<string name="firstrun_live_message">&firstrun_live_message;</string>
+<string name="firstrun_live_subtext">&firstrun_live_subtext;</string>
+
+<string name="firstrun_panel_title_tour">&firstrun_panel_title_tour;</string>
+<string name="firstrun_tour_message">&firstrun_tour_message;</string>
+<string name="firstrun_tour_subtext">&firstrun_tour_subtext;</string>
+
+<string name="firstrun_panel_title_note">&firstrun_panel_title_note;</string>
+<string name="firstrun_note_message">&firstrun_note_message;</string>
+<string name="firstrun_note_subtext">&firstrun_note_subtext;</string>
+
+```
+**mobile/android/base/java/org/mozilla/gecko/firstrun/FirstrunPagerConfig.java**
+
+```
+    public static List<FirstrunPanelConfig> getDefault(Context context) {
+
+       ...
+
+       panels.add(SimplePanelConfigs.welcomePanelConfig);
+       panels.add(SimplePanelConfigs.livePanelConfig);
+       panels.add(SimplePanelConfigs.tourPanelConfig);
+       panels.add(SimplePanelConfigs.notePanelConfig);
+       // panels.add(SimplePanelConfigs.privatePanelConfig);
+       // panels.add(SimplePanelConfigs.customizePanelConfig);
+       // panels.add(SimplePanelConfigs.syncPanelConfig);
+
+       ...
+    }
+
+    private static class SimplePanelConfigs {
+        ...
+        public static final FirstrunPanelConfig livePanelConfig = new FirstrunPanelConfig(FirstrunPanel.class.getName(), R.string.firstrun_panel_title_live, R.drawable.firstrun_private, R.string.firstrun_live_message, R.string.firstrun_live_subtext);
+        public static final FirstrunPanelConfig tourPanelConfig = new FirstrunPanelConfig(FirstrunPanel.class.getName(), R.string.firstrun_panel_title_tour, R.drawable.firstrun_data, R.string.firstrun_tour_message, R.string.firstrun_tour_subtext);
+        public static final FirstrunPanelConfig notePanelConfig = new FirstrunPanelConfig(LastPanel.class.getName(), R.string.firstrun_panel_title_note, R.drawable.firstrun_sync, R.string.firstrun_note_message, R.string.firstrun_note_subtext);
+       ...
+    }
+
+```
+
+## 设置 TopSites
+
+```
+    // 修改: mobile/locales/en-US/chrome/region.properties
+    只保留一个 TopSite: http://ifuture.snsoffice.com/
+```
+
+## 定制 Splash Scree
+
+```
 
     // 定制 splash screen
     //  mobile/android/app/src/main/res/layout/splash_screen.xml
     //  mobile/android/base/org/mozilla/gecko/widget/SplashScreen.java
 
 ```
+
+
 ## 修改 用户配置 文件
 
 修改 **mozilla-central/mobile/android/app/mobile.js** 增加
@@ -296,18 +516,15 @@ brandFullName=远景网 天空版
 ```
     // 默认首页 PREFS_HOMEPAGE
     // "chrome://browser/content/aboutFuture.xhtml"
-    pref("android.not_a_preference.homepage", "http://192.168.121.103:9090/demos/");
-
+    // "http://192.168.121.103:9090/demos/"
+    // pref("android.not_a_preference.homepage", "http://ifuture.snsoffice.com/");
     // 新建标签默认页面是否装入主页 PREFS_HOMEPAGE_FOR_EVERY_NEW_TAB
     // pref("android.not_a_preference.newtab.load_homepage", true);
 
-    // 不启动 firstrun，好像都不起作用
-    // pref("android.not_a_preference.startpane_enabled", false);
-    // pref("telemetry-isFirstRun", false);
-
-    // 摄像头权限和话筒，好像不起作用，设置为 false 也会出现提示对话框
+    // 摄像头权限和话筒， 不需要出现提示对话框
     // Ask for permission when enumerating WebRTC devices.
-    pref("media.navigator.permission.device", true);
+    pref("media.navigator.permission.disabled", true);
+    pref("media.navigator.permission.device", false);
 
 ```
 
@@ -397,7 +614,7 @@ with Files('locale/**'):
 DIRS += ['geckoview', 'locale‘]
 ```
 
-增加文件 **mozilla-central/mobile/android/chrome/zh-CN/moz.build**
+增加文件 **mozilla-central/mobile/android/chrome/locale/moz.build**
 
 
 ```
@@ -410,7 +627,7 @@ DIRS += ['geckoview', 'locale‘]
 JAR_MANIFESTS += ['jar.mn']
 ```
 
-增加文件 **mozilla-central/mobile/android/chrome/zh-CN/jar.mn**
+增加文件 **mozilla-central/mobile/android/chrome/locale/jar.mn**
 
 ```
 # This Source Code Form is subject to the terms of the Mozilla Public
@@ -435,6 +652,7 @@ zh-CN.jar:
   locale/zh-CN/browser/searchplugins           (zh-CN/searchplugins/*.xml)
 
 ```
+
 jar.mn 格式参考： https://dxr.mozilla.org/mozilla-central/source/build/docs/jar-manifests.rst
 
 lang.awk, 用于生成需要打包的中文文件
@@ -481,21 +699,9 @@ lang.awk, 用于生成需要打包的中文文件
 
 参考 https://developer.mozilla.org/en-US/docs/Mozilla/Developer_guide/Customizing_Firefox
 
-## 添加 about:PAGE
+## 添加 内置网页
 
-修改 ** mobile/android/components/AboutRedirector.js**，增加（似乎无效，
-访问 about:futuresky 没有反应）
-
-```
-futuresky: {
-    uri: "chrome://browser/content/aboutFuture.xhtml",
-    privileged: true,
-    hide: true
-  },
-
-```
-
-同时修改 **mobile/android/chrome/jar.mn**，增加
+修改 **mobile/android/chrome/jar.mn**，增加
 
 ```
 # Jondy: about future page
@@ -504,7 +710,7 @@ futuresky: {
 
 ```
 
-访问地址 **chrome://browser/content/aboutFuture.xhtml** 或者 **about:futuresky**
+访问地址 **chrome://browser/content/aboutFuture.xhtml**
 
 
 ## 自定义 HomePanel
