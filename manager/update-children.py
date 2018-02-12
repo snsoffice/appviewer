@@ -31,6 +31,10 @@ def update_house(path):
     
     modified = False
     children = list_children(path)
+    if data.get('children') is None:
+        logging.warning('%s 没有子结点，不需要更新', path)
+        return children
+
     for dirname in children:
         rfilename = os.path.join(path, dirname, CONFIG_FILENAME)
         with open(rfilename, 'r') as f:
