@@ -287,7 +287,7 @@ public class HouseExport {
         Rectangle2D itemBounds = plan.getItemsBounds();
         System.out.printf("输出分辨率为 %f 的立体图到目录 %s%n", stereoResolution, stereoPath);
         imageType = "JPG";
-        // PhotoMaker.makeStereoPhotos(home, itemBounds, stereoResolution * 100, stereoPath, imageType);
+        PhotoMaker.makeStereoPhotos(home, itemBounds, stereoResolution * 100, stereoPath, imageType);
 
         // 输出 config.json
         String jsonFilename = output + File.separator + "config.json";
