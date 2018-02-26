@@ -78,28 +78,45 @@
     <div id="map" class="dx-map dx-page"></div>
 
     <div id="navbar" class="dx-navbar mt-1 ml-1">
-      <button id="future-refresh" class="btn btn-sm btn-outline-dark" type="button"><i class="far fa-building fa-lg"></i>&nbsp;远景网</button>
-      <button id="future-menu" class="btn btn-sm btn-outline-dark float-right mr-1" type="button"><i class="fas fa-bars fa-lg"></i></button>
-      <button id="future-search" class="btn btn-sm btn-outline-dark float-right mr-2" type="button"><i class="fas fa-search fa-lg"></i></button>
+      <button id="future-refresh" class="btn btn-sm btn-outline-dark border-0" type="button"><i class="fas fa-globe fa-lg"></i>&nbsp;远景网</button>
+      <div class="dropdown float-right mr-1">
+        <button class="btn btn-sm btn-outline-dark" type="button" id="future-dropdown-menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-bars fa-lg"></i>
+        </button>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="future-dropdown-menu">
+          <button class="dropdown-item" type="button">登录 <i class="fas fa-sign-in-alt"></i></button>
+          <button class="dropdown-item" type="button">注册</i></button>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" type="button">直播 <i class="fas fa-video"></i></button>
+          <button class="dropdown-item" type="button">设置 <i class="fas fa-cog"></i></button>
+        </div>
+      </div>
+      <button id="future-search" class="btn btn-sm btn-outline-dark border-0 float-right mr-2" type="button"><i class="fas fa-search fa-lg"></i></button>
     </div>
 
     <div id="modebar" class="dx-modebar ml-1 mb-1">
-      <!-- <button class="btn btn-outline-dark" type="button"><i class="far fa-user fa-lg"></i></button> -->
-      <button class="btn btn-outline-dark" type="button"><i class="fas fa-cog fa-spin fa-lg"></i></button>      
+      <button class="btn btn-outline-dark" type="button">
+        <span class="fa-layers fa-fw fa-lg">
+          <i class="fas fa-user" data-fa-transform="shrink-5 up-5 left-8"></i>
+          <i class="fas fa-comment-alt" data-fa-transform="shrink-5 up-5 right-8"></i>
+          <i class="fas fa-video" data-fa-transform="shrink-5 down-8 left-8"></i>
+          <i class="fas fa-map-marker-alt" data-fa-transform="shrink-5 down-8 right-8"></i>
+        </span>
+      </button>
     </div>
 
     <div id="footbar" class="dx-footbar mr-1 mb-1 float-right">
-      <button id="toggle-elevation" class="btn btn-outline-info rounded-circle mr-5" type="button">99</button>
-      <button id="toggle-explorer" class="btn btn-outline-dark" type="button"><i class="far fa-images fa-lg"></i></button>
-      <button id="toggle-minimap" class="btn btn-outline-dark" type="button"><i class="far fa-map fa-lg"></i></button>
-      <button id="toggle-vision" class="btn btn-outline-dark" type="button"><i class="far fa-list-alt fa-lg"></i></button>
+      <button id="toggle-elevation" class="btn btn-sm btn-outline-info rounded-circle mr-5" type="button">99</button>
+      <button id="toggle-explorer" class="btn btn-sm btn-outline-dark border-0 mr-2" type="button"><i class="far fa-images fa-lg"></i></button>
+      <button id="toggle-minimap" class="btn btn-sm btn-outline-dark border-0 mr-2" type="button"><i class="far fa-map fa-lg"></i></button>
+      <button id="toggle-vision" class="btn btn-sm btn-outline-dark border-0 mr-1" type="button"><i class="fas fa-th fa-lg"></i></button>
     </div>
 
     <div id="explorer" class="dx-explorer dx-mini">
-      <div class="dx-toolbar">
+      <div class="dx-toolbar mt-1">
         <div class="dx-showbar"></div>
-        <button type="button" class="btn btn-outline-dark" id="swap-explorer"><i class="fas fa-expand"></i></button>
-        <button type="button" class="btn btn-outline-dark" id="toggle-showcase"><i class="fas fa-folder-open"></i></button>
+        <button type="button" class="btn btn-sm btn-outline-dark border-0 rounded-circle mr-2" id="swap-explorer"><i class="fas fa-expand fa-lg"></i></button>
+        <button type="button" class="btn btn-sm btn-outline-dark border-0 rounded-circle mr-2" id="toggle-showcase"><i class="fas fa-folder-open fa-lg"></i></button>
       </div>
       <div id="carousel" class="dx-carousel">
         <div class="owl-carousel owl-theme"></div>
@@ -108,15 +125,12 @@
     </div>
 
     <div id="minimap" class="dx-minimap dx-mini">
-      <div class="dx-toolbar">
-        <button type="button" class="btn btn-outline-dark" id="trash-maplayer"><i class="fas fa-trash"></i></button>
+      <div class="dx-toolbar mt-1">
+        <button type="button" class="btn btn-sm btn-outline-dark border-0 rounded-circle mr-2" id="trash-maplayer"><i class="fas fa-trash"></i></button>
       </div>
     </div>
 
     <div id="vision" class="dx-vision dx-mini">
-      <div class="dx-toolbar">
-        <button type="button" class="btn btn-outline-dark"><i class="fas fa-list"></i></button>
-      </div>
       <div class="dx-carousel">
         <div class="owl-carousel owl-theme"></div>
       </div>
@@ -135,9 +149,9 @@
 
     <!-- <div id="showcase" class="dx-fullscreen"> -->
     <!--   <div class="dx-toolbar"> -->
-    <!--     <button type="button" class="btn btn-outline-dark" id="toggle-showcase"><i class="fas fa-chevron-down"></i></button> -->
-    <!--     <button type="button" class="btn btn-outline-dark" id="hide-showcase"><i class="fas fa-trash"></i></button> -->
-    <!--     <button type="button" class="btn btn-outline-dark" id="close-showcase"><i class="fas fa-close"></i></button> -->
+    <!--     <button type="button" class="btn btn-outline-dark border-0" id="toggle-showcase"><i class="fas fa-chevron-down"></i></button> -->
+    <!--     <button type="button" class="btn btn-outline-dark border-0" id="hide-showcase"><i class="fas fa-trash"></i></button> -->
+    <!--     <button type="button" class="btn btn-outline-dark border-0" id="close-showcase"><i class="fas fa-close"></i></button> -->
     <!--   </div> -->
     <!--   <div id="carousels" class="dx-showcase"> -->
     <!--     <div class="owl-carousel owl-theme"></div> -->
