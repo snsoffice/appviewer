@@ -8,7 +8,7 @@
   cd com/eteks/sweethome3d/plugin/exportjson
   
   # Create file:  ApplicationPlugin.properties
-  # Create file: ExportJSONPlugin.java
+  # Create file:  ExportJSONPlugin.java
   
 ```
 
