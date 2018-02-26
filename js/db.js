@@ -13,8 +13,10 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
     _db.version( 1 ).stores( {
 
         settings: '++id, &name, value, description',
-        features: 'id, &title, geometry, category, icon, url',
+        organizations: '++id, title, category, geometry, geostyle, source',
 
+
+        features: 'id, &title, geometry, category, icon, url',
         user_images: '++id, title, description, timestamp, data',
         map_features: 'id, &title, geometry, category, mimetype, icon, url',
         map_layers: 'id, &title, category, source, extent, opacity, minResolution, maxResolution, favorite',
@@ -155,6 +157,31 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
             else
                 _db.features.where( 'title' ).startsWith( title ).toArray().then( callback );
         } );
+
+    }
+
+    //
+    // 查询服务器数据
+    //
+    function queryRemoteOrganizations( perPage, page, callback ) {
+        var request = new XMLHttpRequest();
+        var url = 'http://snsoffice.com:9098/future/ajax-house-search';
+        var params = 'portal_type=Organization&path=/future/organizations';
+
+        request.onerror = function ( event ) {
+            utils.warning( '查询组织机构 ' + url + '时出现了错误!' );
+        };
+
+        request.onloadend = function() {
+
+            if (request.status != 200) {
+                utils.warning( '查询组织机构 ' + url + '失败，服务器返回代码：' + request.status );
+                return;
+            }
+            callback( JSON.parse( request.responseText ) );
+        };
+        request.open('GET', url + '?' + params + '&perPage=' + perPage + '&page=' + page, true);
+        request.send();
 
     }
 

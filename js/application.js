@@ -1,7 +1,24 @@
-define( [ 'ifuture', 'map', 'minimap', 'explorer', 'manager',
+// 
+// 应用程序的状态:
+//
+//     当前组织机构/当前建筑物/当前楼层/当前房间
+//     当前图层视野
+//
+//     当前游客是否可见，当前游客位置，当前游客视角
+//     当前摄像机是否可见，当前摄像机位置，当前摄像机视角
+//
+//     正在直播、正在回放、正在浏览
+//     
+// 应用程序启动参数:
+//
+//     直接打开房间，隐含打开相关的组织机构/建筑物/楼层
+//     直接进入直播
+//     直接加入直播
+//
+define( [ 'ifuture', 'map', 'minimap', 'explorer', 'manager', 'vision',
           'navbar', 'modebar', 'footbar', 'responsebar', 'dialog', 'communicator' ],
 
-function( ifuture, Map, Minimap, Explorer, Manager,
+function( ifuture, Map, Minimap, Explorer, Manager, Vision,
           Navbar, Modebar, Footbar, Responsebar, Dialog, Communicator ) {
 
     Application = function ( opt_options ) {
@@ -13,6 +30,7 @@ function( ifuture, Map, Minimap, Explorer, Manager,
         this.modebar = new Modebar( this, opt_options );
         this.footbar = new Footbar( this, opt_options );
 
+        this.vision = new Vision( this, opt_options );
         this.explorer = new Explorer( this, opt_options );
         this.manager = new Manager( this, opt_options );
 
@@ -40,38 +58,52 @@ function( ifuture, Map, Minimap, Explorer, Manager,
 
     };
 
-    Application.prototype.run = function () {
-        // this.communicator.start();
+    Application.prototype.hiberate = function () {
+        this.map.hiberate();
+    };
 
-        // Debug        
-        this.explorer.addItem( {
-            name: 'chan',
-            title: 'Chan',
-            poster: 'data/html/images/chan.jpg',
-            mimetype: 'image/jpeg',
-            url: 'data/html/images/chan.jpg'
-        } );
-        this.explorer.addItem( {
-            name: 'test1',
-            title: 'Mountain and Lake',
-            poster: 'data/html/test1.jpg',
-            mimetype: 'panorama/equirectangular',
-            url: 'data/html/examplepano.jpg'
-        } );
-        this.explorer.addItem( {
-            name: 'test2',
-            title: 'Ocean and bird',
-            poster: 'data/html/test2.jpg',
-            mimetype: 'video/mp4',
-            url: 'data/html/oceans.webm'
-        } );
-        this.explorer.addItem( {
-            name: 'test3',
-            title: 'Beauty',
-            poster: 'data/html/images/test3.jpg',
-            mimetype: 'image/jpeg',
-            url: 'data/html/images/guifei.jpg'
-        } );
+
+    Application.prototype.revive = function () {
+        this.map.revive();
+    };
+
+    Application.prototype.run = function () {
+        //
+        // 恢复上次退出时候的状态
+        //
+        this.revive();
+
+        //
+        // 启动后台服务对象
+        //
+        this.communicator.start();
+
+        //
+        // 全局事件处理
+        //
+
+        //
+        // 退出页面的时候保存状态
+        //
+        window.addEventListener('unload', this.hibernate, false);
+
+        //
+        // 网络断开和连接事件
+        //
+        window.addEventListener( 'online', this._handleOnline, false );
+        window.addEventListener( 'offline', this._handleOffline, false );
+    };
+
+    Application.prototype.isOnline = function () {
+        return navigator.onLine;
+    };
+
+    Application.prototype._handleOnline = function ( e ) {
+        this.communicator.restart();
+    };
+
+    Application.prototype._handleOffline = function ( e ) {
+        this.communicator.stop();
     };
 
     return Application;

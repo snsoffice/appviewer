@@ -14,8 +14,8 @@ function( ifuture ) {
 
         element.querySelector( '#modebar > button' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            this.resetMode();
-            this.element.style.visibility = 'hidden';
+            // this.resetMode();
+            // this.element.style.visibility = 'hidden';
 
         }.bind( this ), false );
 

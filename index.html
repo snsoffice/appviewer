@@ -8,16 +8,16 @@
     <!-- Disable zooming capabilities on mobile devices -->
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <style type="text/css">
-      html {
-          height: 100%;
-      }
-      body {
-          padding: 0;
-          margin: 0;
-          overflow: hidden;
-          font-size: 100%;
-          line-height: 1.42857143;
-      }
+      <!-- html { -->
+      <!--     height: 100%; -->
+      <!-- } -->
+      <!-- body { -->
+      <!--     padding: 0; -->
+      <!--     margin: 0; -->
+      <!--     overflow: hidden; -->
+      <!--     font-size: 100%; -->
+      <!--     line-height: 1.42857143; -->
+      <!-- } -->
       .dx-splash {
           display: flex;
           flex-wrap: wrap;
@@ -56,7 +56,7 @@
     </style>
 
     <link rel="stylesheet" href="css/owl.carousel.min.css" type="text/css" />
-    <link rel="stylesheet" href="css/font-awesome/font-awesome.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/fa-svg-with-js.css" type="text/css" />
     <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
     <link rel="stylesheet" href="css/pannellum.css" type="text/css" />
     <link rel="stylesheet" href="css/ol.css" type="text/css" />
@@ -66,40 +66,40 @@
   </head>
 
   <body>
-    <div class="dx-splash hidden">
+    <div class="dx-splash d-none">
       <div class="slogan">天 涯 若 比 邻</div>
       <img alt="心连心" src="images/splash-logo.png"/>
       <div class="footer">
         <div>远景网</div>
-        <div class="copyright">版权所有 @ 2017 德新科技. 保留所有权利</div>
+        <div class="copyright">版权所有 @ 2018 德新科技. 保留所有权利</div>
       </div>
     </div>
 
     <div id="map" class="dx-map dx-page"></div>
 
-    <div id="navbar" class="dx-navbar">
-      <button id="show-toolbox" class="btn btn-default" type="button"><i class="fa fa-camera fa-lg"></i>&nbsp;远景网</button>
-      <button id="show-manager" class="btn btn-default pull-right" type="button"><i class="fa fa-user fa-lg"></i></button>
-      <button id="show-talk" class="btn btn-default pull-right" type="button"><i class="fa fa-comment fa-lg"></i></button>
-      <button id="show-search" class="btn btn-default pull-right" type="button"><i class="fa fa-search fa-lg"></i></button>
+    <div id="navbar" class="dx-navbar mt-1 ml-1">
+      <button id="future-refresh" class="btn btn-sm btn-outline-dark" type="button"><i class="far fa-building fa-lg"></i>&nbsp;远景网</button>
+      <button id="future-menu" class="btn btn-sm btn-outline-dark float-right mr-1" type="button"><i class="fas fa-bars fa-lg"></i></button>
+      <button id="future-search" class="btn btn-sm btn-outline-dark float-right mr-2" type="button"><i class="fas fa-search fa-lg"></i></button>
     </div>
 
-    <div id="modebar" class="dx-modebar">
-      <button class="btn btn-default" type="button"><i class="fa fa-hourglass fa-lg"></i></button>
+    <div id="modebar" class="dx-modebar ml-1 mb-1">
+      <!-- <button class="btn btn-outline-dark" type="button"><i class="far fa-user fa-lg"></i></button> -->
+      <button class="btn btn-outline-dark" type="button"><i class="fas fa-cog fa-spin fa-lg"></i></button>      
     </div>
 
-    <div id="footbar" class="dx-footbar">
-      <button id="show-minimap" class="btn btn-default pull-right" type="button"><i class="fa fa-map fa-lg"></i></button>
-      <button id="show-maplayer" class="btn btn-default pull-right" type="button"><i class="fa fa-th fa-lg"></i></button>
-      <button id="show-explorer" class="btn btn-default pull-right" type="button"><i class="fa fa-photo fa-lg"></i></button>
+    <div id="footbar" class="dx-footbar mr-1 mb-1 float-right">
+      <button id="toggle-elevation" class="btn btn-outline-info rounded-circle mr-5" type="button">99</button>
+      <button id="toggle-explorer" class="btn btn-outline-dark" type="button"><i class="far fa-images fa-lg"></i></button>
+      <button id="toggle-minimap" class="btn btn-outline-dark" type="button"><i class="far fa-map fa-lg"></i></button>
+      <button id="toggle-vision" class="btn btn-outline-dark" type="button"><i class="far fa-list-alt fa-lg"></i></button>
     </div>
 
     <div id="explorer" class="dx-explorer dx-mini">
       <div class="dx-toolbar">
         <div class="dx-showbar"></div>
-        <button type="button" class="btn btn-default" id="swap-explorer"><i class="fa fa-random"></i></button>
-        <button type="button" class="btn btn-default" id="trash-showcase"><i class="fa fa-trash"></i></button>
-        <button type="button" class="btn btn-default" id="toggle-showcase"><i class="fa fa-folder-open"></i></button>
+        <button type="button" class="btn btn-outline-dark" id="swap-explorer"><i class="fas fa-expand"></i></button>
+        <button type="button" class="btn btn-outline-dark" id="toggle-showcase"><i class="fas fa-folder-open"></i></button>
       </div>
       <div id="carousel" class="dx-carousel">
         <div class="owl-carousel owl-theme"></div>
@@ -109,9 +109,16 @@
 
     <div id="minimap" class="dx-minimap dx-mini">
       <div class="dx-toolbar">
-        <button type="button" class="btn btn-default btn-lg" id="love-maplayer"><i class="fa fa-heart-o"></i></button>
-        <button type="button" class="btn btn-default btn-lg" id="trash-maplayer"><i class="fa fa-trash"></i></button>
-        <button type="button" class="btn btn-default" id="hide-minimap"><i class="fa fa-close"></i></button>
+        <button type="button" class="btn btn-outline-dark" id="trash-maplayer"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+
+    <div id="vision" class="dx-vision dx-mini">
+      <div class="dx-toolbar">
+        <button type="button" class="btn btn-outline-dark"><i class="fas fa-list"></i></button>
+      </div>
+      <div class="dx-carousel">
+        <div class="owl-carousel owl-theme"></div>
       </div>
     </div>
 
@@ -128,9 +135,9 @@
 
     <!-- <div id="showcase" class="dx-fullscreen"> -->
     <!--   <div class="dx-toolbar"> -->
-    <!--     <button type="button" class="btn btn-default" id="toggle-showcase"><i class="fa fa-chevron-down"></i></button> -->
-    <!--     <button type="button" class="btn btn-default" id="hide-showcase"><i class="fa fa-trash"></i></button> -->
-    <!--     <button type="button" class="btn btn-default" id="close-showcase"><i class="fa fa-close"></i></button> -->
+    <!--     <button type="button" class="btn btn-outline-dark" id="toggle-showcase"><i class="fas fa-chevron-down"></i></button> -->
+    <!--     <button type="button" class="btn btn-outline-dark" id="hide-showcase"><i class="fas fa-trash"></i></button> -->
+    <!--     <button type="button" class="btn btn-outline-dark" id="close-showcase"><i class="fas fa-close"></i></button> -->
     <!--   </div> -->
     <!--   <div id="carousels" class="dx-showcase"> -->
     <!--     <div class="owl-carousel owl-theme"></div> -->
@@ -147,6 +154,5 @@
     <!--     <canvas id="live-canvas"></canvas> -->
     <!--   </div> -->
     <!-- </div> -->
-
   </body>
 </html>

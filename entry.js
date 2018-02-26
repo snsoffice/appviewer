@@ -3,8 +3,11 @@ require.config( {
     baseUrl: 'js',
 
     paths: {
-        jquery: 'lib/jquery.min',
-        ol: 'lib/ol-4.3.2/ol',
+        jquery: 'lib/jquery-3.3.1.slim.min',
+        popper: 'lib/popper.min',
+        bootstrap: 'lib/bootstrap.min',
+        fontawesome: 'lib/fontawesome-all.min',
+        ol: 'lib/ol-v4.6.4/ol',
         easyrtc: 'lib/easyrtc',
         dexie: 'lib/dexie-1.5.1/dexie.min',
         three: 'lib/three.min',
@@ -25,4 +28,4 @@ requirejs.onError = function ( err ) {
     throw err;
 };
 
-requirejs( [ 'jquery', 'main' ] );
+requirejs( [ 'fontawesome', 'jquery', 'bootstrap', 'main' ] );

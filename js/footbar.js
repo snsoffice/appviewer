@@ -9,17 +9,18 @@ function( ifuture ) {
         var element = document.getElementById( 'footbar' );
         this.element = element;
 
-        element.querySelector( '#show-maplayer' ).addEventListener( 'click', function ( e ) {
+        element.querySelector( '#toggle-vision' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            app.request( 'manager', 'show', 'maplayer' );
+            // app.request( 'manager', 'show', 'maplayer' );
+            app.request( 'vision', 'toggle' );
         }, false );
 
-        element.querySelector( '#show-explorer' ).addEventListener( 'click', function ( e ) {
+        element.querySelector( '#toggle-explorer' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
             app.request( 'explorer', 'toggle' );
         }, false );
 
-        element.querySelector( '#show-minimap' ).addEventListener( 'click', function ( e ) {
+        element.querySelector( '#toggle-minimap' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
             app.request( 'minimap', 'toggle' );
         }, false );

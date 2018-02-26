@@ -89,16 +89,13 @@ function( ifuture, ol ) {
         this.items = [];
 
         var element = this.ovmap.getTargetElement().querySelector( '.dx-toolbar' );
-        element.querySelector( '#love-maplayer' ).addEventListener( 'click', function ( e ) {
-            e.preventDefault();
-        }, false );
         element.querySelector( '#trash-maplayer' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
         }, false );
-        element.querySelector( '#hide-minimap' ).addEventListener( 'click', function ( e ) {
-            e.preventDefault();
-            this.toggle( false );
-        }.bind( this ), false );
+        // element.querySelector( '#hide-minimap' ).addEventListener( 'click', function ( e ) {
+        //     e.preventDefault();
+        //     this.toggle( false );
+        // }.bind( this ), false );
 
     }
     ifuture.inherits( Minimap, ifuture.Component );

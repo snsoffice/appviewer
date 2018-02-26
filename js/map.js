@@ -49,7 +49,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
 
     };
 
-    function createOverlay( map ) {
+    function createVisitorOverlay( name, src ) {
 
         var element = document.createElement( 'DIV' );
         element.style.textAlign = 'center';
@@ -60,21 +60,21 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
         img1.src = utils.createVisualization();
         img1.style.opacity = 0.168;
         var img2 = document.createElement( 'IMG' );
-        img2.src = 'images/marker.png';
+        img2.src = src;
         img2.width = 32;
         img2.height = 32;
         element.appendChild( img1 );
         element.appendChild( document.createElement( 'DIV' ) );
         element.appendChild( img2 );
 
-        var marker = new ol.Overlay({
+        var visitor = new ol.Overlay({
+            id: name,
             element: element,
             positioning: 'bottom-center',
             stopEvent: false,
             offset: [ 0, -32 ]
         });
-        map.addOverlay( marker );
-        marker.setPosition( map.getView().getCenter() );
+        return visitor;
 
     }
 
@@ -222,8 +222,11 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
         var visionLayer = createClusterLayer();
 
         var span = document.createElement( 'SPAN' );
-        span.className = 'fa fa-arrow-up';
-        var rotate = new ol.control.Rotate( { label: span } );
+        span.innerHTML = '<i class="fas fa-long-arrow-alt-up"></i>';
+        var rotate = new ol.control.Rotate( {
+            className: 'rounded-circle ol-rotate',
+            label: span,
+        } );
 
         var featureInteraction = new FeatureInteraction( this );
 
@@ -239,8 +242,10 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
             view: this.view,
         } );
 
-        this.visitor = null;
-        this.camera = null;
+        this.map.addOverlay( createVisitorOverlay( 'visitor', 'images/marker.png' ) );
+        this.map.addOverlay( createVisitorOverlay( 'camera', 'images/camera.png' ) );
+        this._isVisitorVisible = false;
+        this._isCameraVisible = false;
 
     }
     ifuture.inherits( Map, ifuture.Component );
@@ -250,6 +255,12 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
     };
 
     Map.prototype.addControl = function () {
+    };
+
+    Map.prototype.hiberate = function () {
+    };
+
+    Map.prototype.revive = function () {
     };
 
     return Map;

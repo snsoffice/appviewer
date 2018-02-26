@@ -2,6 +2,14 @@ define( [ 'ifuture', 'carousel' ],
 
 function( ifuture, Carousel ) {
 
+    // Item example {
+    //     name: 'chan',
+    //     title: 'Chan',
+    //     poster: 'html/images/chan-poster.jpg',
+    //     mimetype: 'image/jpeg',
+    //     url: 'html/images/chan.jpg'
+    // }
+    
     var Explorer = function ( app, opt_options ) {
 
         ifuture.Component.call( this );
@@ -17,9 +25,6 @@ function( ifuture, Carousel ) {
                 this.element.className = 'dx-explorer dx-mini';
             this.resizeCarousel();
         }.bind( this ), false );
-        element.querySelector( '#trash-showcase' ).addEventListener( 'click', function ( e ) {
-            e.preventDefault();
-        }, false );
         element.querySelector( '#toggle-showcase' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
             if ( ! this.viewname ) {

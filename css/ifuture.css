@@ -73,6 +73,11 @@ button, button:hover, button:focus {
     visibility: hidden;
 }
 
+.dx-vision {
+    z-index: 3;
+    visibility: hidden;
+}
+
 .dx-modebar {
     position: absolute;
     left: 0;
@@ -189,5 +194,4 @@ button, button:hover, button:focus {
     top: 3.6em;
     left: .5em;
     right: unset;
-    border-radius: .8em;
 }

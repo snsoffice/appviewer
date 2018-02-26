@@ -199,6 +199,12 @@ define( [ 'ifuture', 'easyrtc' ], function( ifuture, easyrtc ) {
         return users;
     };
 
+    Communicator.prototype.start = function () {
+    };
+
+    Communicator.prototype.restart = function () {
+    };
+
     return Communicator;
 
 } );
