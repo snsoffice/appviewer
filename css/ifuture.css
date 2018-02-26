@@ -31,22 +31,6 @@ button, button:hover, button:focus {
     z-index: 3;
 }
 
-.dx-toolbar > button {
-    opacity: .6;
-    padding: 6px 12px;
-    border: 0;
-    border-radius: 32px;
-    background: transparent;
-}
-
-.dx-toolbar button:hover,
-.dx-toolbar button:focus {
-    text-decoration: none;
-    opacity: .5;
-    background: transparent;
-}
-
-
 /*
  *
  * Part 2: Top Style
@@ -74,7 +58,7 @@ button, button:hover, button:focus {
 }
 
 .dx-vision {
-    z-index: 3;
+    z-index: 1;
     visibility: hidden;
 }
 
