@@ -9,7 +9,6 @@
     NAME/
         config.json
         house.sh3d
-        house.csv
 
         views/
             plan/
@@ -41,6 +40,7 @@
 * plan   平面图
 * solid  .obj 格式的三维模型
 * stereo 八张立体图，第一张为正北方向，然后依次顺时针旋转45度的立体图
+* live   直播历史视频
 
 ### features/ ###
 
@@ -63,7 +63,11 @@
     // 组织或者房子名称
     "name": "ID",
 
-    // 地理位置信息
+    // 地理位置信息，这部分暂时不用，目前地理信息获取方式
+    //     组织机构，直接从后台数据获取
+    //     建筑物，根据建筑物在组织机构的位置获取
+    //     房间，根据房间在建筑物的位置获取
+    
     // GeoJSON 格式，使用经纬度表示，小数位至少6位，这样基本能达到1米的精度
     "geometry": {
                "type": "Point",
@@ -88,6 +92,8 @@
             "imageExtent": [xmin, ymin, xmax, ymax],
             "urlPattern": "path/stereo_house%d.jpg",
         },
+        "title": [],
+        "live": [],
     },
 
     "features": {
@@ -103,7 +109,7 @@
     },
 
     "children": [
-        {name, {} }, ...
+        {name, url, position, geometry, }, ...
     ]
 }
 ```
