@@ -52,7 +52,7 @@ function( ifuture, $ ) {
             html.push( '</ul>' );
 
             var popover = document.createElement( 'DIV' );
-            popover.innerHTML = html.join();
+            popover.innerHTML = html.join('');
 
             popover.addEventListener( 'click', function ( e ) {
 
