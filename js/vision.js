@@ -20,8 +20,10 @@ function( ifuture, $ ) {
             if ( Math.abs( x - _clientX ) > _SLIDE_THRESHOLD ) {
                 $( carousel ).carousel( x > _clientX ? 'prev' : 'next' );
                 e.stopPropagation();
-            }            
+            }
         }, false );
+
+        this._initialized = false;
 
     }
     ifuture.inherits( Vision, ifuture.Component );
@@ -31,6 +33,8 @@ function( ifuture, $ ) {
         var element = this.element;
         visible = ( visible === true || visible === false ) ?  visible : element.style.visibility !== 'visible';
         if ( visible ) {
+            if ( ! this._initialized )
+                this._resetContent();
             Array.prototype.forEach.call( document.querySelectorAll( '.dx-mini' ), function ( mini ) {
                 mini.style.visibility = 'hidden';
             } );
@@ -42,10 +46,68 @@ function( ifuture, $ ) {
         this.toggle( true );
     }
 
-    Vision.prototype.resizeCarousel = function () {
-        this.carousel.resize();
-    };
+    Vision.prototype._resetContent = function () {
+        this.element.querySelector( '#vision-carousel' ).innerHTML =
+            '<ol class="carousel-indicators">' +
+            '  <li data-target="#vision-carousel" data-slide-to="0" class="active"></li>' +
+            '  <li data-target="#vision-carousel" data-slide-to="1"></li>' +
+            '  <li data-target="#vision-carousel" data-slide-to="2"></li>' +
+            '</ol>' +
+            '<div class="carousel-inner">' +
+            '  <div class="carousel-item active">' +
+            '    <div class="d-flex flex-wrap justify-content-around p-3 mt-4">' +
+            '      <figure class="figure p-1 w-30">' +
+            '        <img class="figure-img img-fluid rounded p-1 bg-info" src="images/visions/watercolor.jpg" alt="水彩图">' +
+            '        <figcaption class="figure-caption text-center">水彩图</figcaption>' +
+            '      </figure>' +
+            '      <figure class="figure p-1 w-30">' +
+            '        <img class="figure-img img-fluid rounded p-1" src="images/visions/aerial.jpg" alt="卫星图">' +
+            '        <figcaption class="figure-caption text-center">卫星图</figcaption>' +
+            '      </figure>' +
+            '      <figure class="figure p-1 w-30">' +
+            '        <img class="figure-img img-fluid rounded p-1" src="images/visions/road.jpg" alt="道路图">' +
+            '        <figcaption class="figure-caption text-center">道路图</figcaption>' +
+            '      </figure>' +
+            '    </div>' +
+            '  </div>' +
+            '  <div class="carousel-item">' +
+            '    <div class="d-flex flex-wrap justify-content-around p-3 mt-4">' +
+            '      <figure class="figure p-1 w-30">' +
+            '        <img class="figure-img img-fluid rounded p-1 bg-info" src="images/visions/plan.jpg" alt="平面图">' +
+            '        <figcaption class="figure-caption text-center">平面图</figcaption>' +
+            '      </figure>' +
+            '      <figure class="figure p-1 w-30">' +
+            '        <img class="figure-img img-fluid rounded p-1" src="images/visions/stereo.jpg" alt="立体图">' +
+            '        <figcaption class="figure-caption text-center">立体图</figcaption>' +
+            '      </figure>' +
+            '      <figure class="figure p-1 w-30">' +
+            '        <img class="figure-img img-fluid rounded p-1" src="images/visions/solid.jpg" alt="三维图">' +
+            '        <figcaption class="figure-caption text-center">三维图</figcaption>' +
+            '      </figure>' +
+            '    </div>' +
+            '  </div>' +
+            '  <div class="carousel-item">' +
+            '    <div class="d-flex flex-wrap justify-content-around p-3 mt-4">' +
+            '      <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="button" aria-pressed="false" autocomplete="off">' +
+            '        <span class="fa-layers fa-fw fa-lg">' +
+            '          <span class="fa-layers-text" data-fa-transform="shrink-1">T</span>' +
+            '        </span> 标题' +
+            '      </button>' +
+            '      <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="button" aria-pressed="false" autocomplete="off">' +
+            '        <i class="fas fa-map-pin fa-fw fa-lg"></i> 特征' +
+            '      </button>' +
+            '      <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="button" aria-pressed="false" autocomplete="off">' +
+            '        <i class="fas fa-street-view fa-fw fa-lg"></i> 游客' +
+            '      </button>' +
+            '      <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="button" aria-pressed="false" autocomplete="off">' +
+            '        <i class="fas fa-map-marker-alt fa-fw fa-lg"></i> 定位' +
+            '      </button>' +
+            '    </div>' +
+            '  </div>' +
+            '</div>';
+        this._initialized = true;
 
+    };
 
     return Vision;
 
