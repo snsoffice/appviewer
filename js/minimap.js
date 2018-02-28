@@ -104,6 +104,11 @@ function( ifuture, ol ) {
 
         var element = this.ovmap.getTargetElement();
         visible = ( visible === true || visible === false ) ?  visible : element.style.visibility !== 'visible';
+        if ( visible ) {
+            Array.prototype.forEach.call( document.querySelectorAll( '.dx-mini' ), function ( mini ) {
+                mini.style.visibility = 'hidden';
+            } );
+        }
         element.style.visibility = visible ? 'visible' : 'hidden';
 
     };

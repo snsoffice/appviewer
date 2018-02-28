@@ -9,32 +9,47 @@ function( ifuture, Carousel ) {
     //     mimetype: 'image/jpeg',
     //     url: 'html/images/chan.jpg'
     // }
-    
+
     var Explorer = function ( app, opt_options ) {
 
         ifuture.Component.call( this );
 
         this.element = document.querySelector( '#explorer' );
 
+        // 三种位置： mini, float, fullscreen
+        // 目前 float 暂不支持
+        this.position_ = 'mini';
+
         var element = this.element.querySelector( '.dx-toolbar' );
         element.querySelector( '#swap-explorer' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            if ( this.element.className.indexOf( 'dx-mini') > -1 )
+
+            if (  this.element.className.indexOf( 'dx-mini') > -1 ) {
                 this.element.className = 'dx-explorer dx-page';
-            else
+                this.position_ = 'fullscreen';
+            }
+            else {
                 this.element.className = 'dx-explorer dx-mini';
+                this.position_ = 'mini';
+                this.toggle( true );
+            }
+
             this.resizeCarousel();
+
         }.bind( this ), false );
+
         element.querySelector( '#toggle-showcase' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
+
             if ( ! this.viewname ) {
                 this.touchItem();
-                e.currentTarget.firstElementChild.className = 'fa fa-close';
+                e.currentTarget.firstElementChild.className = 'fas fa-times fa-lg';
             }
             else {
                 this.close();
-                e.currentTarget.firstElementChild.className = 'fa fa-folder-open';
+                e.currentTarget.firstElementChild.className = 'fas fa-folder-open fa-lg';
             }
+
         }.bind( this ), false );
 
         this.carousel = new Carousel( app, opt_options );
@@ -69,11 +84,12 @@ function( ifuture, Carousel ) {
 
         var element = this.element;
         visible = ( visible === true || visible === false ) ?  visible : element.style.visibility !== 'visible';
-        if ( visible )
+        if ( visible && this.position_ === 'mini' )
             Array.prototype.forEach.call( document.querySelectorAll( '.dx-mini' ), function ( mini ) {
                 mini.style.visibility = 'hidden';
             } );
         element.style.visibility = visible ? 'visible' : 'hidden';
+
     };
 
     Explorer.prototype.resizeCarousel = function () {
