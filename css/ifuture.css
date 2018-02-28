@@ -22,6 +22,11 @@ button, button:hover, button:focus {
     bottom: 2px;
     width: 240px;
     height: 180px;
+
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .dx-toolbar {
