@@ -181,6 +181,19 @@ button, button:hover, button:focus {
     overflow-y: auto;
 }
 
+.w-30 {
+    width: 30%!important;
+}
+
+/* 解决点击状态按钮之后背景还是 :hover 的样式 */
+#vision .carousel-item button.btn-outline-secondary {
+    background-color: transparent;
+}
+
+#vision .carousel-item button.btn-outline-secondary.active {
+    background-color: #6c757d;
+}
+
 /*
  *
  * Part 4: map
