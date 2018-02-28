@@ -104,8 +104,9 @@ function( ifuture, owl, utils, $ ) {
         this.name = 'carousel';
         this.title = '旋转木马';
 
-        var target = '#carousel > div.owl-carousel';
-        var baseElement = document.getElementById( 'carousel' );
+        var id = opt_options.target ? opt_options.target : 'explorer-carousel';
+        var target = '#' + id + ' > div.owl-carousel';
+        var baseElement = document.getElementById( id );
         this.owl_ = $( target ).owlCarousel( {
             items: 1,
             merge: false,
