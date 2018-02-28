@@ -1,3 +1,14 @@
+//
+// 组织机构图层
+//
+//     views: stamen.? bings.? gaode
+//            title layer
+//            feature layer
+//
+//     explorer: ? 没有位置的图片或者文档
+//
+//     minimap: ?
+//
 define( [ 'ifuture', 'ol', 'db', 'utils', 'config', 'plugins/interaction/feature' ],
 
 function( ifuture, ol, db, utils, config, FeatureInteraction ) {
