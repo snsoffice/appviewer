@@ -1,6 +1,6 @@
-define( [ 'ifuture', 'carousel' ],
+define( [ 'ifuture', 'jquery' ],
 
-function( ifuture, Carousel ) {
+function( ifuture, $ ) {
 
     var Vision = function ( app, opt_options ) {
 
@@ -8,9 +8,20 @@ function( ifuture, Carousel ) {
 
         this.element = document.querySelector( '#vision' );
 
-        var element = this.element.querySelector( '.dx-toolbar' );
+        var carousel = this.element.querySelector( '#vision-carousel' );
+        var _clientX;
+        var _SLIDE_THRESHOLD = 60;
+        carousel.addEventListener( 'touchstart', function ( e ) {
+            _clientX = e.changedTouches[0].clientX;
+        }, false );
 
-        this.carousel = new Carousel( app, opt_options );
+        carousel.addEventListener( 'touchend', function ( e ) {
+            var x = e.changedTouches[0].clientX;
+            if ( Math.abs( x - _clientX ) > _SLIDE_THRESHOLD ) {
+                $( carousel ).carousel( x > _clientX ? 'prev' : 'next' );
+                e.stopPropagation();
+            }            
+        }, false );
 
     }
     ifuture.inherits( Vision, ifuture.Component );
@@ -19,20 +30,22 @@ function( ifuture, Carousel ) {
 
         var element = this.element;
         visible = ( visible === true || visible === false ) ?  visible : element.style.visibility !== 'visible';
-        if ( visible )
+        if ( visible ) {
             Array.prototype.forEach.call( document.querySelectorAll( '.dx-mini' ), function ( mini ) {
                 mini.style.visibility = 'hidden';
             } );
+        }
         element.style.visibility = visible ? 'visible' : 'hidden';
-    };
-
-    Vision.prototype.resizeCarousel = function () {
-        this.carousel.resize();
     };
 
     Vision.prototype.show = function () {
         this.toggle( true );
     }
+
+    Vision.prototype.resizeCarousel = function () {
+        this.carousel.resize();
+    };
+
 
     return Vision;
 

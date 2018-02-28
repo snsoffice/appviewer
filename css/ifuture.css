@@ -28,7 +28,7 @@ button, button:hover, button:focus {
     position: absolute;
     right: 0;
     top: 0;
-    z-index: 3;
+    z-index: 20;
 }
 
 /*
@@ -47,18 +47,17 @@ button, button:hover, button:focus {
 }
 
 .dx-explorer {
-    background: #fcfcfc;
-    z-index: 1;
+    z-index: 10;
     visibility: hidden;
 }
 
 .dx-minimap {
-    z-index: 2;
+    z-index: 12;
     visibility: hidden;
 }
 
 .dx-vision {
-    z-index: 1;
+    z-index: 10;
     visibility: hidden;
 }
 
@@ -66,7 +65,7 @@ button, button:hover, button:focus {
     position: absolute;
     left: 0;
     bottom: 0;
-    z-index: 3;
+    z-index: 20;
     visibility: hidden;
 }
 
@@ -74,7 +73,7 @@ button, button:hover, button:focus {
     position: absolute;
     right: 0;
     bottom: 0;
-    z-index: 3;
+    z-index: 20;
 }
 
 .dx-manager {
@@ -126,7 +125,7 @@ button, button:hover, button:focus {
     right: 0;
     top: 0;
     bottom: 0;
-    z-index: 1;
+    z-index: 11;
 }
 
 .dx-carousel {
@@ -165,6 +164,21 @@ button, button:hover, button:focus {
     right: 0;
     top: 50px;
     bottom: 0;
+}
+
+/*
+ *
+ * Part 3.3: vision
+ *
+ */
+
+#vision .carousel-indicators {
+    bottom: unset;
+    top: 10px;
+}
+
+#vision .dx-carousel {
+    overflow-y: auto;
 }
 
 /*

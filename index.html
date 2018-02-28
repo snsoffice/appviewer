@@ -78,9 +78,9 @@
     <div id="map" class="dx-map dx-page"></div>
 
     <div id="navbar" class="dx-navbar mt-1 ml-1">
-      <button id="future-refresh" class="btn btn-sm btn-outline-dark border-0" type="button" disabled><i class="fas fa-globe fa-lg"></i>&nbsp;远景网</button>
+      <button id="future-refresh" class="btn btn-sm btn-outline-secondary border-0" type="button" disabled><i class="fas fa-globe fa-lg"></i>&nbsp;远景网</button>
       <div class="dropdown float-right mr-1">
-        <button class="btn btn-sm btn-outline-dark" type="button" id="future-dropdown-menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <button class="btn btn-sm btn-outline-secondary" type="button" id="future-dropdown-menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <i class="fas fa-bars fa-lg"></i>
         </button>
         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="future-dropdown-menu">
@@ -103,11 +103,11 @@
           </button>
         </div>
       </div>
-      <!-- <button id="future-search" class="btn btn-sm btn-outline-dark border-0 float-right mr-3" type="button"><i class="fas fa-search fa-lg"></i></button> -->
+      <!-- <button id="future-search" class="btn btn-sm btn-outline-secondary border-0 float-right mr-3" type="button"><i class="fas fa-search fa-lg"></i></button> -->
     </div>
 
     <div id="modebar" class="dx-modebar ml-1 mb-1">
-      <a tabindex="0" class="btn btn-outline-dark btn-sm" role="button">
+      <a tabindex="0" class="btn btn-outline-secondary btn-sm" role="button">
         <span class="fa-layers fa-fw">
           <i class="far fa-lightbulb"></i>
         </span>
@@ -116,18 +116,22 @@
 
     <div id="footbar" class="dx-footbar mr-1 mb-1 float-right">
       <button id="toggle-elevation" class="btn btn-sm btn-outline-info rounded-circle mr-5 invisible" type="button">1</button>
-      <button id="toggle-explorer" class="btn btn-sm btn-outline-dark border-0 mr-2" type="button"><i class="far fa-images fa-lg"></i></button>
-      <button id="toggle-minimap" class="btn btn-sm btn-outline-dark border-0 mr-2" type="button"><i class="far fa-map fa-lg"></i></button>
-      <button id="toggle-vision" class="btn btn-sm btn-outline-dark border-0 mr-1" type="button"><i class="fas fa-th fa-lg"></i></button>
+      <button id="toggle-explorer" class="btn btn-sm btn-outline-secondary border-0 mr-2" type="button"><i class="far fa-images fa-lg"></i></button>
+      <button id="toggle-minimap" class="btn btn-sm btn-outline-secondary border-0 mr-2" type="button"><i class="far fa-map fa-lg"></i></button>
+      <button id="toggle-vision" class="btn btn-sm btn-outline-secondary border-0 mr-1" type="button"><i class="fas fa-th fa-lg"></i></button>
     </div>
 
     <div id="explorer" class="dx-explorer dx-mini">
       <div class="dx-toolbar mt-1">
         <div class="dx-showbar"></div>
-        <button type="button" class="btn btn-sm btn-outline-dark border-0 rounded-circle mr-2" id="swap-explorer"><i class="fas fa-expand fa-lg"></i></button>
-        <button type="button" class="btn btn-sm btn-outline-dark border-0 rounded-circle mr-2" id="toggle-showcase"><i class="fas fa-folder-open fa-lg"></i></button>
+        <button type="button" class="btn btn-sm btn-outline-secondary border-0 mr-2" id="swap-explorer">
+          <i class="fas fa-expand fa-lg"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary border-0 mr-2" id="toggle-showcase">
+          <i class="fas fa-folder-open fa-lg"></i>
+        </button>
       </div>
-      <div id="carousel" class="dx-carousel">
+      <div id="explorer-carousel" class="dx-carousel bg-light">
         <div class="owl-carousel owl-theme"></div>
       </div>
       <!-- plugins class="dx-showcase" -->
@@ -135,13 +139,59 @@
 
     <div id="minimap" class="dx-minimap dx-mini">
       <div class="dx-toolbar mt-1">
-        <button type="button" class="btn btn-sm btn-outline-dark border-0 rounded-circle mr-2" id="trash-maplayer"><i class="fas fa-trash"></i></button>
+        <button type="button" class="btn btn-sm btn-outline-secondary border-0 mr-2" id="trash-maplayer">
+          <i class="fas fa-trash"></i>
+        </button>
       </div>
     </div>
 
     <div id="vision" class="dx-vision dx-mini">
-      <div class="dx-carousel">
-        <div class="owl-carousel owl-theme"></div>
+      <div class="dx-toolbar mt-1">
+        <button type="button" class="btn btn-sm btn-outline-secondary border-0 mr-2" id="join-living">
+          <i class="fas fa-tv"></i>
+        </button>
+      </div>
+      <div id="vision-carousel" class="carousel slide dx-carousel bg-dark">
+        <ol class="carousel-indicators">
+          <li data-target="#vision-carousel" data-slide-to="0" class="active"></li>
+          <li data-target="#vision-carousel" data-slide-to="1"></li>
+          <li data-target="#vision-carousel" data-slide-to="2"></li>
+        </ol>
+        <div class="carousel-inner">
+          <div class="carousel-item active">
+            <div class="d-flex flex-wrap justify-content-around p-4">
+              <div class="card p-1 m-2 w-25">
+                <img class="card-img-top" src="images/visions/watercolor.jpg" alt="水彩图">
+              </div>
+              <div class="card p-1 m-2 w-25">
+                <img class="card-img-top" src="images/visions/watercolor.jpg" alt="水彩图">
+              </div>
+              <div class="card p-1 m-2 w-25">
+                <img class="card-img-top" src="images/visions/watercolor.jpg" alt="水彩图">
+              </div>
+              <div class="card p-1 m-2 w-25">
+                <img class="card-img-top" src="images/visions/watercolor.jpg" alt="水彩图">
+              </div>
+              <div class="card p-1 m-2 w-25">
+                <img class="card-img-top" src="images/visions/watercolor.jpg" alt="水彩图">
+              </div>
+            </div>
+          </div>
+          <div class="carousel-item">
+            <div class="d-flex flex-wrap justify-content-around p-4">
+              <div class="card p-1 m-2 w-25">
+                <img class="card-img-top" src="images/visions/watercolor.jpg" alt="水彩图">
+              </div>
+              <div class="card p-1 m-2 w-25">
+                <img class="card-img-top" src="images/visions/watercolor.jpg" alt="水彩图">
+              </div>
+              <div class="card p-1 m-2 w-25">
+                <img class="card-img-top" src="images/visions/watercolor.jpg" alt="水彩图">
+              </div>
+            </div>
+          </div>
+          <div class="carousel-item"></div>
+        </div>
       </div>
     </div>
 
@@ -158,9 +208,9 @@
 
     <!-- <div id="showcase" class="dx-fullscreen"> -->
     <!--   <div class="dx-toolbar"> -->
-    <!--     <button type="button" class="btn btn-outline-dark border-0" id="toggle-showcase"><i class="fas fa-chevron-down"></i></button> -->
-    <!--     <button type="button" class="btn btn-outline-dark border-0" id="hide-showcase"><i class="fas fa-trash"></i></button> -->
-    <!--     <button type="button" class="btn btn-outline-dark border-0" id="close-showcase"><i class="fas fa-close"></i></button> -->
+    <!--     <button type="button" class="btn btn-outline-secondary border-0" id="toggle-showcase"><i class="fas fa-chevron-down"></i></button> -->
+    <!--     <button type="button" class="btn btn-outline-secondary border-0" id="hide-showcase"><i class="fas fa-trash"></i></button> -->
+    <!--     <button type="button" class="btn btn-outline-secondary border-0" id="close-showcase"><i class="fas fa-close"></i></button> -->
     <!--   </div> -->
     <!--   <div id="carousels" class="dx-showcase"> -->
     <!--     <div class="owl-carousel owl-theme"></div> -->
