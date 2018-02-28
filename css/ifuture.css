@@ -1,6 +1,6 @@
 /* Fix Opera issue */
 button, button:hover, button:focus {
-    outline: 0 !important;
+    outline: 0!important;
 }
 
 /*
