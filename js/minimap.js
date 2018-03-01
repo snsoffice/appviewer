@@ -92,10 +92,9 @@ function( ifuture, ol ) {
         element.querySelector( '#trash-maplayer' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
         }, false );
-        // element.querySelector( '#hide-minimap' ).addEventListener( 'click', function ( e ) {
-        //     e.preventDefault();
-        //     this.toggle( false );
-        // }.bind( this ), false );
+        element.querySelector( '#syn-maplayer' ).addEventListener( 'click', function ( e ) {
+            e.preventDefault();
+        }.bind( this ), false );
 
     }
     ifuture.inherits( Minimap, ifuture.Component );
@@ -232,6 +231,30 @@ function( ifuture, ol ) {
         }
         return index;
 
+    };
+
+    Minimap.prototype._toggleOrganizations = function ( visible ) {
+
+        var target = this.ovmap.getTargetElement();
+
+        if ( visible ) {
+            var element = document.createElement( 'div' );
+            element.className = 'dx-organizations dx-page bg-light';
+            element.style.zIndex = 1;
+            element.innerHTML =
+                '<ul class="list-group list-group-flush">' +
+                '  <li class="list-group-item active">华清鱼汤</li>' +
+                '  <li class="list-group-item">西北大学长安校区</li>' +
+                '  <li class="list-group-item">绿地世纪城</li>' +
+                '</ul>';            
+            target.appendChild( element );
+        }
+
+        else {
+            var element = target.querySelector( '.dx-organizations' );
+            if ( element ) 
+                target.removeChild( element );
+        }
     };
 
     return Minimap;

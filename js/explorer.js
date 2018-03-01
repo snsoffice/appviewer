@@ -27,11 +27,13 @@ function( ifuture, Carousel ) {
             if (  this.element.className.indexOf( 'dx-mini') > -1 ) {
                 this.element.className = 'dx-explorer dx-page';
                 this.position_ = 'fullscreen';
+                e.currentTarget.innerHTML = '<i class="fas fa-compress fa-lg"></i>';
                 app.request( 'footbar', 'remove', 'explorer' );
             }
             else {
                 this.element.className = 'dx-explorer dx-mini';
                 this.position_ = 'mini';
+                e.currentTarget.innerHTML = '<i class="fas fa-expand fa-lg"></i>';
                 app.request( 'footbar', 'add', 'explorer' );
                 this.toggle( true );
             }
