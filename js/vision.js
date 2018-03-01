@@ -47,7 +47,8 @@ function( ifuture, $ ) {
     }
 
     Vision.prototype._resetContent = function () {
-        this.element.querySelector( '#vision-carousel' ).innerHTML =
+        var carousel = this.element.querySelector( '#vision-carousel' )
+        carousel.innerHTML =
             '<ol class="carousel-indicators">' +
             '  <li data-target="#vision-carousel" data-slide-to="0" class="active"></li>' +
             '  <li data-target="#vision-carousel" data-slide-to="1"></li>' +
@@ -57,15 +58,15 @@ function( ifuture, $ ) {
             '  <div class="carousel-item active">' +
             '    <div class="d-flex flex-wrap justify-content-around p-3 mt-4">' +
             '      <figure class="figure p-1 w-30">' +
-            '        <img class="figure-img img-fluid rounded p-1 bg-info" src="images/visions/watercolor.jpg" alt="水彩图">' +
+            '        <img class="figure-img img-fluid rounded p-1 bg-info" src="images/visions/watercolor.jpg" alt="水彩">' +
             '        <figcaption class="figure-caption text-center">水彩图</figcaption>' +
             '      </figure>' +
             '      <figure class="figure p-1 w-30">' +
-            '        <img class="figure-img img-fluid rounded p-1" src="images/visions/aerial.jpg" alt="卫星图">' +
+            '        <img class="figure-img img-fluid rounded p-1" src="images/visions/aerial.jpg" alt="卫星">' +
             '        <figcaption class="figure-caption text-center">卫星图</figcaption>' +
             '      </figure>' +
             '      <figure class="figure p-1 w-30">' +
-            '        <img class="figure-img img-fluid rounded p-1" src="images/visions/road.jpg" alt="道路图">' +
+            '        <img class="figure-img img-fluid rounded p-1" src="images/visions/road.jpg" alt="道路">' +
             '        <figcaption class="figure-caption text-center">道路图</figcaption>' +
             '      </figure>' +
             '    </div>' +
@@ -73,15 +74,15 @@ function( ifuture, $ ) {
             '  <div class="carousel-item">' +
             '    <div class="d-flex flex-wrap justify-content-around p-3 mt-4">' +
             '      <figure class="figure p-1 w-30">' +
-            '        <img class="figure-img img-fluid rounded p-1 bg-info" src="images/visions/plan.jpg" alt="平面图">' +
+            '        <img class="figure-img img-fluid rounded p-1 bg-info" src="images/visions/plan.jpg" alt="平面">' +
             '        <figcaption class="figure-caption text-center">平面图</figcaption>' +
             '      </figure>' +
             '      <figure class="figure p-1 w-30">' +
-            '        <img class="figure-img img-fluid rounded p-1" src="images/visions/stereo.jpg" alt="立体图">' +
+            '        <img class="figure-img img-fluid rounded p-1" src="images/visions/stereo.jpg" alt="立体">' +
             '        <figcaption class="figure-caption text-center">立体图</figcaption>' +
             '      </figure>' +
             '      <figure class="figure p-1 w-30">' +
-            '        <img class="figure-img img-fluid rounded p-1" src="images/visions/solid.jpg" alt="三维图">' +
+            '        <img class="figure-img img-fluid rounded p-1" src="images/visions/solid.jpg" alt="三维">' +
             '        <figcaption class="figure-caption text-center">三维图</figcaption>' +
             '      </figure>' +
             '    </div>' +
@@ -105,6 +106,11 @@ function( ifuture, $ ) {
             '    </div>' +
             '  </div>' +
             '</div>';
+
+        carousel.querySelector( 'button' ).addEventListener( 'click', function ( e ) {
+            var target = e.target;            
+        }, false );
+
         this._initialized = true;
 
     };

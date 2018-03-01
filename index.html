@@ -116,9 +116,15 @@
 
     <div id="footbar" class="dx-footbar mr-1 mb-1 float-right">
       <button id="toggle-elevation" class="btn btn-sm btn-outline-info rounded-circle mr-5 invisible" type="button">1</button>
-      <button id="toggle-explorer" class="btn btn-sm btn-outline-secondary border-0 mr-2" type="button"><i class="far fa-images fa-lg"></i></button>
-      <button id="toggle-minimap" class="btn btn-sm btn-outline-secondary border-0 mr-2" type="button"><i class="far fa-map fa-lg"></i></button>
-      <button id="toggle-vision" class="btn btn-sm btn-outline-secondary border-0 mr-1" type="button"><i class="fas fa-th fa-lg"></i></button>
+      <button id="toggle-explorer" class="btn btn-sm btn-outline-secondary border-0 mr-2" data-toggle="mini" type="button">
+        <i class="far fa-images fa-lg"></i>
+      </button>
+      <button id="toggle-minimap" class="btn btn-sm btn-outline-secondary border-0 mr-2" data-toggle="mini" type="button">
+        <i class="far fa-map fa-lg"></i>
+      </button>
+      <button id="toggle-vision" class="btn btn-sm btn-outline-secondary border-0 mr-1" data-toggle="mini" type="button">
+        <i class="fas fa-th fa-lg"></i>
+      </button>
     </div>
 
     <div id="explorer" class="dx-explorer dx-mini">
@@ -131,7 +137,7 @@
           <i class="fas fa-folder-open fa-lg"></i>
         </button>
       </div>
-      <div id="explorer-carousel" class="dx-carousel bg-light">
+      <div id="explorer-carousel" class="dx-carousel bg-dark">
         <div class="owl-carousel owl-theme"></div>
       </div>
       <!-- plugins class="dx-showcase" -->
@@ -139,6 +145,12 @@
 
     <div id="minimap" class="dx-minimap dx-mini">
       <div class="dx-toolbar mt-1">
+        <button type="button" class="btn btn-sm btn-outline-secondary border-0 mr-2" id="list-organizations">
+          <i class="fas fa-undo-alt"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary border-0 mr-2" id="syn-maplayer">
+          <i class="fas fa-list-ul"></i>
+        </button>
         <button type="button" class="btn btn-sm btn-outline-secondary border-0 mr-2" id="trash-maplayer">
           <i class="fas fa-trash"></i>
         </button>

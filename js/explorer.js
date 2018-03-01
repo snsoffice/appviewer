@@ -27,10 +27,12 @@ function( ifuture, Carousel ) {
             if (  this.element.className.indexOf( 'dx-mini') > -1 ) {
                 this.element.className = 'dx-explorer dx-page';
                 this.position_ = 'fullscreen';
+                app.request( 'footbar', 'remove', 'explorer' );
             }
             else {
                 this.element.className = 'dx-explorer dx-mini';
                 this.position_ = 'mini';
+                app.request( 'footbar', 'add', 'explorer' );
                 this.toggle( true );
             }
 
@@ -84,10 +86,11 @@ function( ifuture, Carousel ) {
 
         var element = this.element;
         visible = ( visible === true || visible === false ) ?  visible : element.style.visibility !== 'visible';
-        if ( visible && this.position_ === 'mini' )
+        if ( visible && this.position_ === 'mini' ) {
             Array.prototype.forEach.call( document.querySelectorAll( '.dx-mini' ), function ( mini ) {
                 mini.style.visibility = 'hidden';
             } );
+        }        
         element.style.visibility = visible ? 'visible' : 'hidden';
 
     };
