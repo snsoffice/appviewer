@@ -101,7 +101,7 @@ function( ifuture, $ ) {
             '        <i class="fas fa-street-view fa-fw fa-lg"></i> 游客' +
             '      </button>' +
             '      <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="button" aria-pressed="false" autocomplete="off">' +
-            '        <i class="fas fa-map-marker-alt fa-fw fa-lg"></i> 定位' +
+            '        <i class="fas fa-map-marker-alt fa-fw fa-lg"></i> 视野' +
             '      </button>' +
             '    </div>' +
             '  </div>' +

@@ -1,3 +1,37 @@
+// 
+// 小地图浏览模式（browser）
+//
+//    游客表示大地图的中心，视野表示当前特征的视野
+//    
+//    左右滑动显示上一级和下一级图层
+//
+//    点击小地图，大地图切换到小地图所在的图层
+//
+//    同步按钮，小地图切换到大地图所在图层
+//
+//    删除按钮，删除当前图层（包括其所有的子图层）
+//
+// 主播模式（anchor)下的行为
+//
+//    游客表示观众位置，视野表示主播的视野
+//    
+//    左右滑动显示上一级和下一级图层（一致）
+//    
+//    点击小地图，切换主播位置
+//
+//    同步按钮和删除按钮，禁用
+//
+// 观众模式（viewer)和主播模式基本相同，除了
+//
+//    点击小地图，切换观众位置
+//
+// 每一个导航项包括
+//
+//    center
+//    resolution
+//    rotation
+//    layer, 可能为 undefined
+//    
 define( [ 'ifuture', 'ol' ],
 
 function( ifuture, ol ) {
@@ -72,6 +106,34 @@ function( ifuture, ol ) {
         var options = opt_options ? opt_options : {};
         var map = app.map.getMap();
 
+        /**
+         *
+         * 底图类型: watercolor, aerial, road
+         *
+         * @type {enum}
+         * @private
+         */
+        this.basemapType_ = 'watercolor';
+
+        /**
+         *
+         * 建筑物视野: plan, stereo, solid
+         *
+         * @type {enum}
+         * @private
+         */
+        this.visionType_ = 'stereo';
+
+
+        /**
+         *
+         * 行为模式: browser, anchor, viewer
+         *
+         * @type {enum}
+         * @private
+         */
+        this.mode_ = 'browser';
+
         this.view = new ol.View( {
             center: map.getView().getCenter(),
             zoom: 3,
@@ -88,11 +150,18 @@ function( ifuture, ol ) {
         this.currentIndex = 0;
         this.items = [];
 
-        var element = this.ovmap.getTargetElement().querySelector( '.dx-toolbar' );
-        element.querySelector( '#trash-maplayer' ).addEventListener( 'click', function ( e ) {
+        // 
+        // 工具栏
+        // 
+        var toolbar = this.ovmap.getTargetElement().querySelector( '.dx-toolbar' );
+
+        // 删除图层
+        toolbar.querySelector( '#trash-maplayer' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
         }, false );
-        element.querySelector( '#syn-maplayer' ).addEventListener( 'click', function ( e ) {
+
+        // 同步图层
+        toolbar.querySelector( '#syn-maplayer' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
         }.bind( this ), false );
 
@@ -233,7 +302,8 @@ function( ifuture, ol ) {
 
     };
 
-    Minimap.prototype._toggleOrganizations = function ( visible ) {
+    
+    Minimap.prototype.toggleOrganizations_ = function ( visible ) {
 
         var target = this.ovmap.getTargetElement();
 
