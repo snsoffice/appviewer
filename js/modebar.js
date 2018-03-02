@@ -41,6 +41,9 @@ function( ifuture, $ ) {
         this.modeName = [];
         this.modeList = [];
 
+        this.elevations = [];
+        this.currentElevation = -1;
+
         element.querySelector( '#modebar > a.btn' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
 
@@ -75,6 +78,7 @@ function( ifuture, $ ) {
             $btn.popover( 'show' );
 
         }.bind( this ), false );
+
 
     }
     ifuture.inherits( Modebar, ifuture.Component );
@@ -143,10 +147,10 @@ function( ifuture, $ ) {
         var btn = bar.querySelector( '#modebar > a.btn' );
 
         // 0 个模式，不显示 modebar
-        bar.style.visibility = n ? 'visible' : 'hidden';
+        bar.style.visibility = ( n > 0 || this.elevations ) ? 'visible' : 'hidden';
 
         // 1 ~ 2 个模式，使用 btn-sm
-        btn.className = btn > 2 ? 'btn btn-outline-dark' : 'btn btn-outline-dark btn-sm';
+        btn.className = 'btn btn-outline-dark' + ( n === 0 ? ' invisible' : n > 2 ? '' : ' btn-sm' );
 
         if ( n === 1 ) {
             btn.innerHTML =
@@ -192,6 +196,72 @@ function( ifuture, $ ) {
                 '  <i class="fas fa-ellipsis-h" data-fa-transform="shrink-5 down-8 right-8"></i>' +
                 '</span>';
         }
+
+        this.resetElevationDialog_();
+    };
+
+    Modebar.prototype.resetElevationDialog_ = function () {
+
+        if ( this.elevations.length === 0 ) {
+            Array.prototype.forEach( document.querySelectorAll( '.dx-modal-container' ), function ( dialog ) {
+                document.body.removeChild( dialog );
+            } );
+
+            this.element.querySelector( 'button[data-target=".dx-modal-container"]' ).style.visibility = 'hidden';
+        }
+
+        else {
+            var title = this.elevations[ this.currentElevation ];
+            var btn = this.element.querySelector( 'button[data-target=".dx-modal-container"]' );
+            btn.textContent = title;
+            btn.style.visibility = 'visible';
+
+            var html = [
+                '<div class="modal fade dx-modal-container" tabindex="-1" role="dialog" aria-hidden="true">' +
+                '  <div class="modal-dialog modal-dialog-centered dx-modal-elevation" role="document">' +
+                '    <div class="modal-content">' +
+                '      <div class="modal-header">' +
+                '        <h5 class="modal-title">选择楼层</h5>' +
+                '        <button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+                '          <span aria-hidden="true">&times;</span>' +
+                '        </button>' +
+                '      </div>' +
+                '      <div class="modal-body">' +
+                '        <ul class="list-group list-group-flush text-center">'
+            ];
+
+            for( var i = 0; i < this.elevations.length; i ++ ) {
+                if ( i === this.currentElevation )
+                    html.push( '          <li class="list-group-item bg-info" data-elevation="' + i + '">' + this.elevations[ i ] + '</li>' );
+                else
+                    html.push( '          <li class="list-group-item" data-elevation="' + i + '">' + this.elevations[ i ] + '</li>' );
+            }
+
+            html.push(
+                '        </ul>' +
+                '      </div>' +
+                '    </div>' +
+                '  </div>' +
+                '</div>'
+                );
+
+            var dialog = document.createElement( 'DIV' );
+            dialog.innerHTML = html.join( '' );
+            document.body.appendChild( dialog.firstElementChild );
+
+            document.querySelector( '.dx-modal-elevation .modal-body > ul' ).addEventListener( 'click', function ( e ) {
+                var ul = e.currentTarget;
+                for (var i = 0; i < ul.children.length; i++) {
+                    ul.children[i].className = 'list-group-item';
+                }
+                e.target.className = 'list-group-item bg-info';
+
+                this.element.querySelector( 'button[data-target=".dx-modal-container"]' ).textContent = e.target.textContent;
+                this.currentElevation = parseInt( e.target.getAttribute( 'data-elevation' ) );
+
+            }.bind( this ), false );
+        }
+
     };
 
     return Modebar;

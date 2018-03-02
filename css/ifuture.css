@@ -201,6 +201,17 @@
 
 /*
  *
+ * Part 5: modal
+ *
+ */
+
+.dx-modal-elevation {
+    max-width: 200px;
+    margin: 1.75rem auto;
+}
+
+/*
+ *
  * Polyfills
  *
  */
