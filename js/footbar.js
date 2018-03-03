@@ -23,8 +23,6 @@ function( ifuture ) {
             var target = e.currentTarget;
             if ( target.getAttribute( 'data-toggle' ) === 'mini' )
                 me.toggle( target );
-            else
-                target.classList.toggle( 'active' );
         }, false );
 
         element.querySelector( '#toggle-minimap' ).addEventListener( 'click', function ( e ) {
