@@ -199,6 +199,11 @@
     right: unset;
 }
 
+.ol-attribution {
+    left: .5em;
+    right: unset;
+}
+
 /*
  *
  * Part 5: modal
@@ -225,12 +230,17 @@
     background-color: #6c757d;
 }
 
-#footbar > button.btn-outline-secondary {
+#footbar > button.btn-outline-secondary,
+#footbar > button.btn-outline-info {
     background-color: transparent;
 }
 
 #footbar > button.btn-outline-secondary.active {
     background-color: #6c757d;
+}
+
+#footbar > button.btn-outline-info.active {
+    background-color: #17a2b8;
 }
 
 /* Fix Opera issue */
