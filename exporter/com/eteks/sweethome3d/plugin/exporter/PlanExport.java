@@ -92,6 +92,8 @@ public class PlanExport extends PlanComponent {
     }
 
     private static String join2(List<String> strs,String splitter) {
+        if (strs.size() == 0)
+            return "";
         StringBuffer sb = new StringBuffer();
         for(String s:strs){
             sb.append(s+splitter);

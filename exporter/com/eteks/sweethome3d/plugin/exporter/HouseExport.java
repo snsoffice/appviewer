@@ -97,6 +97,8 @@ import com.eteks.sweethome3d.viewcontroller.PlanController;
 public class HouseExport {
 
     private static String join2(List<String> strs,String splitter) {
+        if (strs.size() == 0)
+            return "";
         StringBuffer sb = new StringBuffer();
         for(String s:strs){
             sb.append(s+splitter);
@@ -222,8 +224,7 @@ public class HouseExport {
     }
 
     public static void writeViewData(OutputStreamWriter writer, Home home, Rectangle2D itemBounds,
-                                     double resolution, double stereoResolution, double margin, String path,
-                                     Level level) throws IOException {
+                                     double resolution, double stereoResolution, double margin, String path) throws IOException {
         writer.write(String.format("\"views\": {%n"));
 
         double scale = 1 / resolution / 100;
@@ -253,9 +254,11 @@ public class HouseExport {
                                    size[0], size[1],
                                    extent[0], extent[1], extent[2], extent[3],
                                    path));
+
+        Level level = home.getSelectedLevel();
         List<String> labels = new ArrayList<String>();
         for (Label label: home.getLabels()) {
-            if ( level == null || label.getLevel() == level)
+            if ( level == null || label.isAtLevel(level))
                 labels.add(String.format("{%n" +
                                          "  \"text\": \"%s\",%n" +
                                          "  \"geometry\": \"POINT (%f %f)\"%n" +
@@ -274,10 +277,11 @@ public class HouseExport {
         writer.write(String.format("\"elevations\":[ %s ]%n}%n", join2(results, ", ")));
     }
 
-    public static void writeChildren(OutputStreamWriter writer, Home home, Level level) throws IOException {
+    public static void writeChildren(OutputStreamWriter writer, Home home) throws IOException {
         List<String> results = new ArrayList<String>();        
+        Level level = home.getSelectedLevel();
         for (Room room: home.getRooms()) {
-            if (level != null && room.getLevel() != level)
+            if (level != null && !room.isAtLevel(level))
                 continue;
             String title = room.getName();
             if (title == null || title.equals(""))
@@ -295,7 +299,7 @@ public class HouseExport {
     }
 
     public static void export(Home home, UserPreferences preferences, float resolution, float stereoResolution,
-                              String levelName, String baseUrl, String viewPath, String output, Level level)
+                              String levelName, String baseUrl, String viewPath, String output)
         throws FileNotFoundException, RecorderException, IOException {
 
         String[] names = {"plan", "solid", "stereo"};
@@ -342,9 +346,9 @@ public class HouseExport {
         System.out.println("输出 JSON 文件 " + jsonFilename);
         writer.write(String.format("{%n\"name\": \"%s\",%n", levelName));
         writeCompassData(writer, home);
-        writeViewData(writer, home, itemBounds, resolution, stereoResolution, plan.getExtraMargin(), baseUrl, level);
+        writeViewData(writer, home, itemBounds, resolution, stereoResolution, plan.getExtraMargin(), baseUrl);
         plan.writeData(writer, baseUrl);
-        writeChildren(writer, home, level); 
+        writeChildren(writer, home); 
         writer.flush();
         out.close();
 
@@ -430,7 +434,7 @@ public class HouseExport {
 
             List<Level> levels = home.getLevels();
             if (levels.size() == 0) {
-                export(home, preferences, resolution, stereoResolution, homeName, baseUrl, viewPath, output, null);
+                export(home, preferences, resolution, stereoResolution, homeName, baseUrl, viewPath, output);
             } else {
                 for (int i = 0; i < levels.size(); i++) {
                     Level level = levels.get(i);
@@ -442,7 +446,7 @@ public class HouseExport {
                         String levelBaseUrl = baseUrl + "/" + levelName;
                         level.setVisible(true);
                         home.setSelectedLevel(level);
-                        export(home, preferences, resolution, stereoResolution, levelName, levelBaseUrl, levelViewPath, levelOutput, level);
+                        export(home, preferences, resolution, stereoResolution, levelName, levelBaseUrl, levelViewPath, levelOutput);
                     }
                 }
                 // 输出 config.json
@@ -466,6 +470,8 @@ public class HouseExport {
             System.out.println("输出失败: " + ex);
         } catch (ClassNotFoundException ex) {
             System.out.println("输出失败: " + ex);
+        } catch (Exception ex) {
+            System.out.println("未知错误: " + ex);
         } finally {
             if (in != null) {
                 try {
