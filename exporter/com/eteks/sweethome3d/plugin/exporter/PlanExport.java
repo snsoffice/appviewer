@@ -124,6 +124,7 @@ public class PlanExport extends PlanComponent {
      * @since 5.0
      */
     public List<Selectable> getSelectableViewableItems() {
+        Level level = this.home.getSelectedLevel();
         List<Selectable> homeItems = new ArrayList<Selectable>();
         addViewableItems(this.home.getWalls(), homeItems);
         addViewableItems(this.home.getRooms(), homeItems);
@@ -132,8 +133,8 @@ public class PlanExport extends PlanComponent {
         // addViewableItems(this.home.getLabels(), homeItems);
         for (HomePieceOfFurniture piece : this.home.getFurniture()) {
             if (piece.isVisible()
-                && (piece.getLevel() == null
-                    || piece.getLevel().isViewable())) {
+                && (piece.getName() == null)
+                && (piece.getLevel() == null || piece.isAtLevel(level))) {
                 homeItems.add(piece);
             }
         }
@@ -362,7 +363,7 @@ public class PlanExport extends PlanComponent {
     }
 
     private void buildItem(List<String> results, String baseUrl, HomePieceOfFurniture homeFurniture) {
-        String name = homeFurniture.getName();        
+        String name = homeFurniture.getName();
         if (name != null) {
             if (name.startsWith(PHOTO_PREFIX))
                 results.add(formatFeature(homeFurniture, baseUrl, "photo"));
@@ -375,13 +376,16 @@ public class PlanExport extends PlanComponent {
         List<String> results = new ArrayList<String>();
         baseUrl += "/features";
 
+        Level level = home.getSelectedLevel();
         for (HomePieceOfFurniture homeFurniture: home.getFurniture()) {
-            buildItem(results, baseUrl, homeFurniture);
+            if (level == null || homeFurniture.isAtLevel(level))
+                buildItem(results, baseUrl, homeFurniture);
         }
 
         for (HomeFurnitureGroup group: getFurnitureGroups()) {
             for (HomePieceOfFurniture homeFurniture: group.getAllFurniture()) {
-                buildItem(results, baseUrl, homeFurniture);
+                if (level == null || homeFurniture.isAtLevel(level))
+                    buildItem(results, baseUrl, homeFurniture);
             }
         }
 
