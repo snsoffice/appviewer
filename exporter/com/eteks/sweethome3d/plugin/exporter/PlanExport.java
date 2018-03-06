@@ -45,6 +45,7 @@ import com.eteks.sweethome3d.model.HomeFurnitureGroup;
 import com.eteks.sweethome3d.model.HomeRecorder;
 import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.InterruptedRecorderException;
+import com.eteks.sweethome3d.model.Label;
 import com.eteks.sweethome3d.model.LengthUnit;
 import com.eteks.sweethome3d.model.Level;
 import com.eteks.sweethome3d.model.Polyline;
@@ -126,7 +127,7 @@ public class PlanExport extends PlanComponent {
         addViewableItems(this.home.getRooms(), homeItems);
         addViewableItems(this.home.getDimensionLines(), homeItems);
         addViewableItems(this.home.getPolylines(), homeItems);
-        addViewableItems(this.home.getLabels(), homeItems);
+        // addViewableItems(this.home.getLabels(), homeItems);
         for (HomePieceOfFurniture piece : this.home.getFurniture()) {
             if (piece.isVisible()
                 && (piece.getLevel() == null
