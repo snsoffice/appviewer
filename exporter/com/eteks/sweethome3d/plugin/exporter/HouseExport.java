@@ -245,10 +245,9 @@ public class HouseExport {
         int[] size = PhotoMaker.getImageSize(home, itemBounds, stereoResolution);
         double[] extent = PhotoMaker.getImageExtent(home, itemBounds);
         writer.write(String.format("\"stereo\": {%n" +
-                                   "  \"constrainRotation\": 8,%n" +
                                    "  \"sze\": [ %d, %d ],%n" +
                                    "  \"bbox\": [ %f, %f, %f, %f ],%n" +
-                                   "  \"url\": \"%s/views/stereo/stereo_house%%d.jpg\"%n" +
+                                   "  \"url\": \"%s/views/stereo/stereo_house.jpg\"%n" +
                                    "},%n",
                                    size[0], size[1],
                                    extent[0], extent[1], extent[2], extent[3],
@@ -265,7 +264,12 @@ public class HouseExport {
     }
 
     public static void writeElevationData(OutputStreamWriter writer, Home home, List<Level> levels) throws IOException {
-        writer.write(String.format("\"elevations\":[]%n}%n"));
+        List<String> results = new ArrayList<String>();
+        for (int i = 0; i < levels.size(); i++) {
+            if (levels.get(i).isViewable())
+                results.add(String.format("\"floor%d\"", i));
+        }
+        writer.write(String.format("\"elevations\":[ %s ]%n}%n", join2(results, ", ")));
     }
 
     public static void writeChildren(OutputStreamWriter writer, Home home) throws IOException {
@@ -427,7 +431,8 @@ public class HouseExport {
                 for (int i = 0; i < levels.size(); i++) {
                     Level level = levels.get(i);
                     if (level.isViewable()) {
-                        String levelName = level.getName().replace(" ", "");
+                        String levelName = String.format("floor%d", i);
+                        String levelTitle = level.getName(); // .replace(" ", "");
                         String levelOutput = output + File.separator + levelName;
                         String levelViewPath = levelOutput + File.separator + "views";
                         String levelBaseUrl = baseUrl + "/" + levelName;
