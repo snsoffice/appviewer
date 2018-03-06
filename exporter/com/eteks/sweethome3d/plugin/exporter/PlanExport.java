@@ -90,6 +90,15 @@ public class PlanExport extends PlanComponent {
         this.preferences = preferences;
     }
 
+    private static String join2(List<String> strs,String splitter) {
+        StringBuffer sb = new StringBuffer();
+        for(String s:strs){
+            sb.append(s+splitter);
+        }
+        String s = sb.toString();
+        return s.substring(0, s.length() - splitter.length());
+    }
+
     /**
      * Adds the viewable items to the set of selectable viewable items.
      */
@@ -218,7 +227,10 @@ public class PlanExport extends PlanComponent {
      */
     public BufferedImage getPlanImage(float clipboardScale, int imageType) {
         // Create an image that contains only selected items
-
+        for (Room room: home.getRooms()) {
+            // Clear room title, use extra title
+            room.setName("");
+        }
         // home.getSelectableViewableItems()
         List<Selectable> selectedItems = getSelectableViewableItems();
         Rectangle2D selectionBounds = getItemsBounds(getGraphics(), selectedItems);
@@ -330,59 +342,47 @@ public class PlanExport extends PlanComponent {
         writer.write(System.getProperty("line.separator"));
     }
 
-    private String formatFeature(HomePieceOfFurniture homeFurniture, String baseUrl, String fmt) {
-        return String.format("{x: %f, y: %f, z: %f, yaw: %f, url: \"%s\", format: \"%s\"}",
+    private String formatFeature(HomePieceOfFurniture homeFurniture, String baseUrl, String mtype) {
+        return String.format("{%n" +
+                             "  \"type\": \"%s\",%n" +
+                             "  \"geometry\": \"POINT (%f %f %f)\",%n" +
+                             "  \"pose\": [%f %f %f],%n" +
+                             "  \"url\": \"%s\"%n}",
+                             mtype,
                              homeFurniture.getX() / 100,
                              homeFurniture.getY() / 100,
                              homeFurniture.getElevation() / 100,
                              homeFurniture.getAngle(),
-                             baseUrl + "/" + homeFurniture.getName(),
-                             fmt);
+                             homeFurniture.getPitch(),
+                             homeFurniture.getRoll(),
+                             baseUrl + "/" + homeFurniture.getName());
+    }
+
+    private void buildItem(List<String> results, String baseUrl, HomePieceOfFurniture homeFurniture) {
+        String name = homeFurniture.getName();        
+        if (name != null) {
+            if (name.startsWith(PHOTO_PREFIX))
+                results.add(formatFeature(homeFurniture, baseUrl, "photo"));
+            else if (name.startsWith(PANORAMA_PREFIX))
+                results.add(formatFeature(homeFurniture, baseUrl, "panorama"));
+        }
     }
 
     public void writeData(OutputStreamWriter writer, String baseUrl) throws IOException {
-        List photos = new ArrayList<String>();
-        List panoramas = new ArrayList<String>();
+        List<String> results = new ArrayList<String>();
         baseUrl += "/features";
 
         for (HomePieceOfFurniture homeFurniture: home.getFurniture()) {
-            if (homeFurniture.getName().startsWith(PHOTO_PREFIX))
-                photos.add(formatFeature(homeFurniture, baseUrl, "jpg"));
-            else if (homeFurniture.getName().startsWith(PANORAMA_PREFIX))
-                panoramas.add(formatFeature(homeFurniture, baseUrl, "equirectangular"));
+            buildItem(results, baseUrl, homeFurniture);
         }
 
-        for (HomeFurnitureGroup group: getFurnitureGroups())
+        for (HomeFurnitureGroup group: getFurnitureGroups()) {
             for (HomePieceOfFurniture homeFurniture: group.getAllFurniture()) {
-                if (homeFurniture.getName().startsWith(PHOTO_PREFIX))
-                    photos.add(formatFeature(homeFurniture, baseUrl, "jpg"));
-                else if (homeFurniture.getName().startsWith(PANORAMA_PREFIX))
-                    panoramas.add(formatFeature(homeFurniture, baseUrl, "equirectangular"));
+                buildItem(results, baseUrl, homeFurniture);
             }
-
-
-        writer.write(String.format("\"features\": {%n"));
-
-        String s = null;
-        for (String a: (List<String>)photos) {
-            if (s == null)
-                s = String.format("%n%s", a);
-            else
-                s += String.format(",%n%s", a);
         }
-        writer.write(String.format("\"photo\": [%s],%n", s == null ? "" : String.format("%s%n", s)));
 
-        s = null;
-        for (String a: (List<String>)panoramas) {
-            if (s == null)
-                s = String.format("%n%s", a);
-            else
-                s += String.format(",%n%s", a);
-        }
-        writer.write(String.format("\"panorama\": [%s],%n", s == null ? "" : String.format("%s%n", s)));
-        writer.write(String.format("\"page\": []%n"));
-
-        writer.write(String.format("},%n"));
+        writer.write(String.format("\"features\": [%n%s%n],%n", join2(results, ",\n")));
     }
 
     /**

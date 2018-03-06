@@ -151,7 +151,8 @@ public class PhotoMaker {
      */
     public static void makeStereoPhotos(Home home, Rectangle2D itemBounds, double resolution,
                                         String path, String imageType) throws IOException {
-        int constrainRotation = 8;
+        // int constrainRotation = 8;
+        int constrainRotation = 1;
         double pitch = Math.PI / 2;
         double fov = Math.PI / 180 * 63;
         int margin = (int)(home.getWallHeight() * Math.tan(fov / 2) / resolution );

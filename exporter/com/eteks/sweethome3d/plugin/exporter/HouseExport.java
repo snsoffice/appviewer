@@ -50,6 +50,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.io.InterruptedIOException;
+
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -72,6 +74,7 @@ import com.eteks.sweethome3d.model.HomeEnvironment;
 import com.eteks.sweethome3d.model.HomeRecorder;
 import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.InterruptedRecorderException;
+import com.eteks.sweethome3d.model.Label;
 import com.eteks.sweethome3d.model.LengthUnit;
 import com.eteks.sweethome3d.model.Level;
 import com.eteks.sweethome3d.model.RecorderException;
@@ -92,6 +95,15 @@ import com.eteks.sweethome3d.viewcontroller.PlanController;
  * @author Jondy Zhao
  */
 public class HouseExport {
+
+    private static String join2(List<String> strs,String splitter) {
+        StringBuffer sb = new StringBuffer();
+        for(String s:strs){
+            sb.append(s+splitter);
+        }
+        String s = sb.toString();
+        return s.substring(0, s.length() - splitter.length());
+    }
 
     public static void test(File homeFile, File outputFile,
                             int width, int height, String imageType,
@@ -216,8 +228,8 @@ public class HouseExport {
         double scale = 1 / resolution / 100;
         double s = margin * resolution;
         writer.write(String.format("\"plan\": {%n" +
-                                   "  \"imageSize\": [ %d, %d ],%n" +
-                                   "  \"imageExtent\": [ %f, %f, %f, %f ],%n" +
+                                   "  \"size\": [ %d, %d ],%n" +
+                                   "  \"bbox\": [ %f, %f, %f, %f ],%n" +
                                    "  \"url\": \"%s/views/plan/plan_house.png\"%n" +
                                    "},%n",
                                    (int)Math.ceil(itemBounds.getWidth() * scale + 2 * margin),
@@ -234,19 +246,44 @@ public class HouseExport {
         double[] extent = PhotoMaker.getImageExtent(home, itemBounds);
         writer.write(String.format("\"stereo\": {%n" +
                                    "  \"constrainRotation\": 8,%n" +
-                                   "  \"imageSize\": [ %d, %d ],%n" +
-                                   "  \"imageExtent\": [ %f, %f, %f, %f ],%n" +
-                                   "  \"urlPattern\": \"%s/views/stereo/stereo_house%%d.jpg\"%n" +
-                                   "}%n",
+                                   "  \"sze\": [ %d, %d ],%n" +
+                                   "  \"bbox\": [ %f, %f, %f, %f ],%n" +
+                                   "  \"url\": \"%s/views/stereo/stereo_house%%d.jpg\"%n" +
+                                   "},%n",
                                    size[0], size[1],
                                    extent[0], extent[1], extent[2], extent[3],
                                    path));
-
+        List<String> labels = new ArrayList<String>();
+        for (Label label: home.getLabels()) {
+            labels.add(String.format("{%n" +
+                                     "  \"text\": \"%s\",%n" +
+                                     "  \"geometry\": \"POINT (%f %f)\"%n" +
+                                     "}", label.getText(), label.getX(), label.getY()));
+        }
+        writer.write(String.format("\"label\": [%n%s%n]%n", join2(labels, ",\n")));
         writer.write(String.format("},%n"));
     }
 
     public static void writeElevationData(OutputStreamWriter writer, Home home, List<Level> levels) throws IOException {
         writer.write(String.format("\"elevations\":[]%n}%n"));
+    }
+
+    public static void writeChildren(OutputStreamWriter writer, Home home) throws IOException {
+        List<String> results = new ArrayList<String>();        
+        for (Room room: home.getRooms()) {
+            String title = room.getName();
+            if (title == null || title.equals(""))
+                continue;
+            List<String> pts = new ArrayList<String>();
+            for(float[] p: room.getPoints()) {
+                pts.add(String.format("%f %f", p[0], p[1]));
+            }
+            results.add(String.format("{%n" +
+                                      "  \"name\": \"%s\",%n" +
+                                      "  \"geometry\": \"POLYGON ((%s))\"%n}",
+                                      title, join2(pts, ", ")));
+        }
+        writer.write(String.format("\"children\": [%n%s%n]%n", join2(results, ",\n")));
     }
 
     public static void export(Home home, UserPreferences preferences, float resolution, float stereoResolution,
@@ -276,18 +313,18 @@ public class HouseExport {
         System.out.println("输出三维模型到 " + objFilename);
         pane.exportToOBJ(objFilename);
 
-        PlanExport plan = new PlanExport(home, preferences);
+        PlanExport plan = new PlanExport(home.clone(), preferences);
         float planScale = 1 / resolution / 100;
         String planFilename = viewPath + File.separator + "plan" + File.separator + "plan_house.png";
         String imageType = "PNG";
         System.out.printf("输出缩放比例为 %f 的平面图到 %s%n", planScale, planFilename);
-        plan.exportToPNG(planFilename, planScale, imageType);
+        // plan.exportToPNG(planFilename, planScale, imageType);
 
         String stereoPath = viewPath + File.separator + "stereo";
         Rectangle2D itemBounds = plan.getItemsBounds();
         System.out.printf("输出分辨率为 %f 的立体图到目录 %s%n", stereoResolution, stereoPath);
         imageType = "JPG";
-        PhotoMaker.makeStereoPhotos(home, itemBounds, stereoResolution * 100, stereoPath, imageType);
+        // PhotoMaker.makeStereoPhotos(home, itemBounds, stereoResolution * 100, stereoPath, imageType);
 
         // 输出 config.json
         String jsonFilename = output + File.separator + "config.json";
@@ -299,7 +336,7 @@ public class HouseExport {
         writeCompassData(writer, home);
         writeViewData(writer, home, itemBounds, resolution, stereoResolution, plan.getExtraMargin(), baseUrl);
         plan.writeData(writer, baseUrl);
-        writer.write(String.format("\"children\":[]%n}%n"));
+        writeChildren(writer, home); 
         writer.flush();
         out.close();
 
