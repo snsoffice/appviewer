@@ -2,17 +2,17 @@ define( [ 'ifuture', 'showcase' ],
 
 function( ifuture, Showcase ) {
 
-    Carousel = function ( app, opt_options ) {
+    Photo = function ( app, opt_options ) {
         Showcase.call( this );
     }
-    ifuture.inherits( Carousel, Showcase );
+    ifuture.inherits( Photo, Showcase );
 
-    Carousel.prototype.open = function () {
+    Photo.prototype.open = function () {
     };
 
-    Carousel.prototype.close = function () {
+    Photo.prototype.close = function () {
     };
 
-    return Carousel;
+    return Photo;
 
 } );
