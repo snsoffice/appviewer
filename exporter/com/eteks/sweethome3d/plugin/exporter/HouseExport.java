@@ -225,6 +225,14 @@ public class HouseExport {
 
     public static void writeViewData(OutputStreamWriter writer, Home home, Rectangle2D itemBounds,
                                      double resolution, double stereoResolution, double margin, String path) throws IOException {
+        double m = 2.0;
+        writer.write(String.format("\"extent\": [ %f, %f, %f, %f ],%n",
+                                   itemBounds.getMinX() / 100 - m,
+                                   itemBounds.getMinY() / 100 - m,
+                                   itemBounds.getMaxX() / 100 + m,
+                                   itemBounds.getMaxY() / 100 + m
+                                   ));
+
         writer.write(String.format("\"views\": {%n"));
 
         double scale = 1 / resolution / 100;
