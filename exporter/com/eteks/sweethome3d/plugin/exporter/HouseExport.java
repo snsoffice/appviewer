@@ -239,7 +239,7 @@ public class HouseExport {
         double s = margin * resolution;
         writer.write(String.format("\"plan\": {%n" +
                                    "  \"size\": [ %d, %d ],%n" +
-                                   "  \"bbox\": [ %f, %f, %f, %f ],%n" +
+                                   "  \"extent\": [ %f, %f, %f, %f ],%n" +
                                    "  \"url\": \"%s/views/plan/plan_house.png\"%n" +
                                    "},%n",
                                    (int)Math.ceil(itemBounds.getWidth() * scale + 2 * margin),
@@ -256,7 +256,7 @@ public class HouseExport {
         double[] extent = PhotoMaker.getImageExtent(home, itemBounds);
         writer.write(String.format("\"stereo\": {%n" +
                                    "  \"size\": [ %d, %d ],%n" +
-                                   "  \"bbox\": [ %f, %f, %f, %f ],%n" +
+                                   "  \"extent\": [ %f, %f, %f, %f ],%n" +
                                    "  \"url\": \"%s/views/stereo/stereo_house.jpg\"%n" +
                                    "},%n",
                                    size[0], size[1],
