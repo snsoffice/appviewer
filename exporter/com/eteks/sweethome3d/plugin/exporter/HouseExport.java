@@ -278,9 +278,13 @@ public class HouseExport {
 
     public static void writeElevationData(OutputStreamWriter writer, Home home, List<Level> levels) throws IOException {
         List<String> results = new ArrayList<String>();
-        for (int i = 0; i < levels.size(); i++) {
-            if (levels.get(i).isViewable())
-                results.add(String.format("\"floor%d\"", i));
+        // for (int i = 0; i < levels.size(); i++) {
+        //     if (levels.get(i).isViewable())
+        //         results.add(String.format("\"floor%d\"", i));
+        // }
+        for (Level level: levels) {
+            if (level.isViewable())
+                results.add(String.format("\"%s\"", level.getName()));
         }
         writer.write(String.format("\"elevations\":[ %s ]%n}%n", join2(results, ", ")));
     }
