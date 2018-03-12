@@ -306,8 +306,8 @@ public class HouseExport {
         writer.write(String.format("\"children\": [%n%s%n]%n", join2(results, ",\n")));
     }
 
-    public static void export(Home home, UserPreferences preferences, float resolution, float stereoResolution,
-                              String levelName, String baseUrl, String viewPath, String output)
+    public static Rectangle2D export(Home home, UserPreferences preferences, float resolution, float stereoResolution,
+                                     String levelName, String baseUrl, String viewPath, String output)
         throws FileNotFoundException, RecorderException, IOException {
 
         String[] names = {"plan", "solid", "stereo"};
@@ -360,6 +360,7 @@ public class HouseExport {
         writer.flush();
         out.close();
 
+        return itemBounds;
     }
 
     public static void main(String[] args) {
@@ -375,6 +376,8 @@ public class HouseExport {
         String filename = null;
         String basePath = "";
         String baseUrl = null;
+        float originX = 0;
+        float originY = 0;
 
         for (String arg: args) {
             if (arg.startsWith("--output", 0))
@@ -385,6 +388,12 @@ public class HouseExport {
                 stereoResolution = Float.parseFloat(arg.split("=")[1]);
             else if (arg.startsWith("--base", 0))
                 basePath = arg.split("=")[1];
+            else if (arg.startsWith("--originX", 0)) {
+                originX = Float.parseFloat(arg.split("=")[1]);
+            }
+            else if (arg.startsWith("--originY", 0)) {
+                originY = Float.parseFloat(arg.split("=")[1]);
+            }
             else
                 filename = arg;
         }
@@ -440,10 +449,15 @@ public class HouseExport {
             UserPreferences preferences = new DefaultUserPreferences();
             preferences.setUnit(LengthUnit.METER);
 
+            Compass compass = home.getCompass();
+            compass.setX( originX );
+            compass.setY( originY );
+
             List<Level> levels = home.getLevels();
             if (levels.size() == 0) {
                 export(home, preferences, resolution, stereoResolution, homeName, baseUrl, viewPath, output);
             } else {
+                Rectangle2D homeBounds = null;
                 for (int i = 0; i < levels.size(); i++) {
                     Level level = levels.get(i);
                     if (level.isViewable()) {
@@ -454,7 +468,12 @@ public class HouseExport {
                         String levelBaseUrl = baseUrl + "/" + levelName;
                         level.setVisible(true);
                         home.setSelectedLevel(level);
-                        export(home, preferences, resolution, stereoResolution, levelName, levelBaseUrl, levelViewPath, levelOutput);
+                        Rectangle2D levelBounds = export(home, preferences, resolution, stereoResolution, levelName, levelBaseUrl, levelViewPath, levelOutput);
+                        if ( homeBounds == null )
+                            homeBounds = levelBounds;
+                        else {
+                            Rectangle2D.union(homeBounds, levelBounds, homeBounds);
+                        }
                     }
                 }
                 // 输出 config.json
@@ -465,6 +484,12 @@ public class HouseExport {
                 System.out.println("输出 JSON 文件 " + jsonFilename);
                 writer.write(String.format("{%n\"name\": \"%s\",%n", homeName));
                 writeCompassData(writer, home);
+                writer.write(String.format("\"extent\": [ %f, %f, %f, %f ],%n",
+                                           homeBounds.getMinX() / 100 - 2,
+                                           homeBounds.getMinY() / 100 - 2,
+                                           homeBounds.getMaxX() / 100 + 2,
+                                           homeBounds.getMaxY() / 100 + 2
+                                           ));
                 writeElevationData(writer, home, levels);
                 writer.flush();
                 out.close();
