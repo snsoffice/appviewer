@@ -140,6 +140,12 @@ function( ifuture, $ ) {
         }
     };
 
+    Modebar.prototype.setElevations = function ( data ) {
+        this.elevations = data.elevations;
+        this.currentElevation = this.elevations.length - 1;
+        this.resetContent_();
+    };
+
     Modebar.prototype.resetContent_ = function () {
         var modes = this.modeList;
         var n = modes.length;
@@ -263,6 +269,7 @@ function( ifuture, $ ) {
         }
 
     };
+
 
     return Modebar;
 

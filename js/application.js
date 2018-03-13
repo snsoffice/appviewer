@@ -90,8 +90,8 @@ function( ifuture, Map, Minimap, Explorer, Manager, Vision,
         //
         // 网络断开和连接事件
         //
-        window.addEventListener( 'online', this._handleOnline, false );
-        window.addEventListener( 'offline', this._handleOffline, false );
+        window.addEventListener( 'online', this._handleOnline.bind( this ), false );
+        window.addEventListener( 'offline', this._handleOffline.bind( this ), false );
     };
 
     Application.prototype.isOnline = function () {

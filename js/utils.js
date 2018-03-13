@@ -55,7 +55,7 @@ define( function () {
 
     var _createPublicMap = function ( ol, options ) {
 
-        var vendor = options.vendor;
+        var vendor = options === undefined ? null : options.vendor;
 
         if ( vendor === 'bings' ) {
 
@@ -112,6 +112,39 @@ define( function () {
                     layer: layer
                 } )
             } )
+
+        }
+
+        else if ( vendor === 'cartodb' ) {
+
+            // https://a.basemaps.cartocdn.com/rastertiles/voyager/6/19/23.png
+            // https://b.basemaps.cartocdn.com/rastertiles/light_all/6/20/23.png
+            // https://b.basemaps.cartocdn.com/rastertiles/dark_all/6/20/23.png
+            // options: {
+            //     urlTemplate: "http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+            //     subdomains: ["a", "b", "c"]
+            // }
+            var layer = options.layer ? options.layer : 'light_all';
+            return new ol.layer.Tile( {                
+                source: new ol.source.XYZ( {
+                    crossOrigin: 'anonymous',
+                    url:'http://{a-c}.basemaps.cartocdn.com/rastertiles/' + layer + '/{z}/{x}/{y}.png',
+                } )
+            } )
+
+        }
+
+        else if ( vendor === 'mapbox' ) {
+
+            return new ol.layer.Tile({
+                source: new ol.source.TileJSON({
+                    url: 'https://api.tiles.mapbox.com/v3/mapbox.natural-earth-hypso-bathy.json?secure',
+                    // url: 'https://api.tiles.mapbox.com/v3/mapbox.geography-class.json?secure',
+                    // url: 'https://api.tiles.mapbox.com/v3/mapbox.world-dark.json?secure',
+                    // url: 'https://api.tiles.mapbox.com/v3/mapbox.world-light.json?secure',
+                    crossOrigin: 'anonymous'
+                }),
+            });
 
         }
 

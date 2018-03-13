@@ -8,23 +8,64 @@
 //
 //    点击打开图标，打开对应的条目，例如全景图，同时切换打开图标 为关闭
 //    图标，进入条目模式
-//    
+//
 //    touch 条目 等同于打开条目，并且在大地图显示当前条目的位置和视野。
 //    如果条目不可以打开，不切换到条目模式，例如文本就不可以打开
 //
 //    左右滑动，切换条目，切换之后在大地图显示当前条目的位置和视野
-//    
+//
 // 条目模式
-// 
+//
 //    点击关闭图标，关闭对应的条目
 //    操作条目，例如全景图，条目的位置和视角变化之后同步显示在大地图
 //
+// 支持的类型
+//
+//     html
+//
+//     <div data-name="html" class="d-flex flex-wrap justify-content-center align-items-center">
+//         <h5>远景网</h5>
+//     </div>
+//
+//     <div data-name="html" class="jumbotron jumbotron-fluid">
+//       <div class="container">
+//         <h3 class="display-4">远景网</h3>
+//         <p class="lead">中国有远景，天涯若比邻</p>
+//       </div>
+//     </div>
+//     
+//     photo
+//     
+//      <div data-name="photo" class="d-flex justify-content-center align-items-center">
+//        <img class="owl-lazy mw-100 mh-100" data-src="URL" alt="TITLE">
+//      </div>
+//      
+//     panorama
+//
+//      <div data-name="panorama" class="d-flex justify-content-center align-items-center">
+//        <img class="owl-lazy mw-100 mh-100" data-src="URL" alt="TITLE">
+//      </div>
+//      
+//     video5
+//     
+//     living
+//
+//  七牛图片瘦身，画质基本不变，存储大小减少
+//      http://oano6er3n.bkt.clouddn.com/giraffe.jpg?imageslim
+//      
+//  七牛图片处理
+//     参考 https://developer.qiniu.com/dora/manual/1279/basic-processing-images-imageview2
+//
+//     poster
+//
+//     http://oano6er3n.bkt.clouddn.com/giraffe.jpg?imageView2/0/w/200/interlace/1
+//     
 define( [ 'ifuture', 'carousel' ],
 
 function( ifuture, Carousel ) {
 
     // Item example {
-    //     name: 'chan',
+    //     type: 'photo',
     //     title: 'Chan',
     //     poster: 'html/images/chan-poster.jpg',
     //     mimetype: 'image/jpeg',
@@ -113,7 +154,7 @@ function( ifuture, Carousel ) {
             Array.prototype.forEach.call( document.querySelectorAll( '.dx-mini' ), function ( mini ) {
                 mini.style.visibility = 'hidden';
             } );
-        }        
+        }
         element.style.visibility = visible ? 'visible' : 'hidden';
 
     };
@@ -166,6 +207,15 @@ function( ifuture, Carousel ) {
         var position = ( this.carousel.current() - 1 ) % this.items.length;
         if ( position > -1 )
             this.open( this.items[ position ] );
+    };
+
+    Explorer.prototype.setItems = function ( items ) {
+        var html =
+            '<div data-name="' + item.name + '">' +
+            '  <img class="owl-lazy" data-src="' + item.poster + '" alt="' + item.title + '">' +
+            '</div>';
+        this.carousel.replace( html );
+        this.items =  items;
     };
 
     Explorer.prototype.findView = function ( item ) {

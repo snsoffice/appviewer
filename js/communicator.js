@@ -205,6 +205,9 @@ define( [ 'ifuture', 'easyrtc' ], function( ifuture, easyrtc ) {
     Communicator.prototype.restart = function () {
     };
 
+    Communicator.prototype.stop = function () {
+    };
+
     return Communicator;
 
 } );
