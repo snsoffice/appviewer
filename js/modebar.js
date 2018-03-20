@@ -209,7 +209,7 @@ function( ifuture, $ ) {
     Modebar.prototype.resetElevationDialog_ = function () {
 
         if ( this.elevations.length === 0 ) {
-            Array.prototype.forEach( document.querySelectorAll( '.dx-modal-container' ), function ( dialog ) {
+            Array.prototype.forEach.call( document.querySelectorAll( '.dx-modal-container' ), function ( dialog ) {
                 document.body.removeChild( dialog );
             } );
 

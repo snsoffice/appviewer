@@ -113,7 +113,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
         } );
 
     };
-
+    
     function createVisitorOverlay( name, src ) {
 
         var element = document.createElement( 'DIV' );
@@ -616,12 +616,12 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
      * 打开组织机构
      */
     Map.prototype.openFeature = function ( feature, level ) {
-        var url = feature.get( 'url' );
+        var url = config.resourceBaseUrl + '/' + feature.get( 'url' ) + '/config.json';
         var request = new XMLHttpRequest();
 
-        request.onerror = function ( event ) {
-            utils.warning( '读取特征数据 ' + url + '时出现了错误!' );
-        };
+        // request.onerror = function ( event ) {
+        //     utils.warning( '读取特征数据 ' + url + '时出现了错误!' );
+        // };
 
         request.onloadend = function() {
             if (request.status != 200) {
@@ -642,8 +642,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
     };
 
     Map.prototype.closeLevel_ = function ( level ) {
-        if ( level === undefined )
-            level = -1;
+        if ( level === undefined || level == -1)
+            level = 0;
         for ( var i = this.levels_.length; i > level ; i ++ ) {
             this.planGroup.getLayers().pop();
             this.stereoGroup.getLayers().pop();
@@ -674,7 +674,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
     // item.origin    参考原点的坐标，所有的特征、图层等都是基于这个原点的
     Map.prototype.openItem_ = function ( item, level ) {
 
-        this.map.setViewMode( 'viewer' );
+        this.setViewMode( 'viewer' );
 
         if ( level === undefined || level === -1 ) {
             // 组织机构已经打开
@@ -716,7 +716,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
         } );
 
         // 创建图层
-        var layers = this.createItemLayer_( item );
+        var layers = this.createItemLayers_( item );
         for ( var i = 0; i < layers.length; i ++ ) {
             layers[ i ].set( 'level', level, true );
         }
@@ -730,15 +730,23 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
         // 设置当前 level
         this.selectLevel_( level );
 
+        // 发出消息
+        this.dispatchEvent( new ifuture.Event( 'feature:open', level ) );
+        
     };
 
     // 返回五个 layer, 如果没有对应的图层数据，也返回一个空的 layer
     //     plan, stereo, label, feature, child
     Map.prototype.createItemLayers_ = function ( item ) {
 
+        function createEmptyLayer() {
+          return new ol.layer.Group();  
+        };
+
         // 对于多层，在 selectLevel 的时候生成对应的图层
         if ( item.elevations !== undefined ) {
-            return [ null, null, null, null, null, null ];
+            return [ createEmptyLayer(), createEmptyLayer(),
+                     createEmptyLayer(), createEmptyLayer(), createEmptyLayer() ];
         }
 
         var origin = item.origin;
@@ -754,14 +762,14 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
         var planlayer, stereolayer, labellayer, featurelayer, childlayer;
 
         if ( item.views === undefined ) {
-            planlayer = null;
-            stereolayer = null;
-            labellayer = null;
+            planlayer = createEmptyLayer();
+            stereolayer = createEmptyLayer();
+            labellayer = createEmptyLayer();
         }
         else {
             var plan = item.views.plan;
             if ( plan === undefined ) {
-                planlayer = null;
+                planlayer = createEmptyLayer();
             }
             else {
                 var imageExtent = plan.extent;
@@ -782,7 +790,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
 
             var stereo = item.views.stereo;
             if ( stereo === undefined ) {
-                stereolayer = null;
+                stereolayer = createEmptyLayer();
             }
             else {
                 var imageExtent = stereo.extent;
@@ -803,7 +811,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
 
             var label = item.views.label;
             if ( label === undefined ) {
-                labellayer = null;
+                labellayer = createEmptyLayer();
             }
             else {
                 features = [];
@@ -826,16 +834,19 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
         }
 
         features = [];
-        for ( var i = 0; i < item.children.length; i ++ ) {
-            var node = item.children[ i ];
-            var feature = fmt.readFeature( node.geometry );
-            if ( feature ) {
-                var url = node.name;
-                feature.setProperties( {
+        var fmt = new ol.format.WKT();
+        if ( item.children ) {
+            for ( var i = 0; i < item.children.length; i ++ ) {
+                var node = item.children[ i ];
+                var feature = fmt.readFeature( node.geometry );
+                if ( feature ) {
+                    var url = node.name;
+                    feature.setProperties( {
                         category: 'house',
                         url: url
-                }, true );
-                features.push( feature );
+                    }, true );
+                    features.push( feature );
+                }
             }
         }
         source = new ol.source.Vector( { features: features } );
@@ -846,18 +857,20 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
         } );
 
         features = [];
-        for ( var i = 0; i < item.features.length; i ++ ) {
-            var node = item.features[ i ];
-            var feature = fmt.readFeature( node.geometry );
-            if ( feature ) {
-                feature.setProperties( {
-                    category: 'showcase',
-                    type: node.type,
-                    pose: node.pose,
-                    mimetype: node.type === 'panorama' ? 'panorama/equirectangular' : 'image/jpeg',
-                    url: node.url,
-                }, true );
-                features.push( feature );
+        if ( item.features ) {
+            for ( var i = 0; i < item.features.length; i ++ ) {
+                var node = item.features[ i ];
+                var feature = fmt.readFeature( node.geometry );
+                if ( feature ) {
+                    feature.setProperties( {
+                        category: 'showcase',
+                        type: node.type,
+                        pose: node.pose,
+                        mimetype: node.type === 'panorama' ? 'panorama/equirectangular' : 'image/jpeg',
+                        url: node.url,
+                    }, true );
+                    features.push( feature );
+                }
             }
         }
         source = new ol.source.Vector( { features: features } );
@@ -896,7 +909,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
 
             // 创建旋转木马
             var layer = this.featureGroup.getLayers().item( level );
-            this.createItemCarousel( layer );
+            this.createItemCarousel_( layer );
         }
 
     };
@@ -907,8 +920,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
             type: 'cover',
             title: title === undefined ? '远景网' : title,
         } ];
-        if ( layer instanceof ol.layer.Layer ) {
-            layer.forEachFeature( function ( feature ) {
+        if ( layer instanceof ol.layer.Vector ) {
+            layer.getSource().forEachFeature( function ( feature ) {
                 var url = config.resourceBaseUrl + '/' + feature.get( 'url' );
                 items.push( {
                     type: feature.get( 'type' ),
@@ -920,7 +933,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
                 } );
             } );
         }
-        this.app_.request( 'explorer', 'setItems', items );
+        this.app_.request( 'explorer', 'setItems', [ items ] );
     };
 
     Map.prototype.selectElevation_ = function ( level, elevation ) {
@@ -953,7 +966,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction ) {
 
     Map.prototype.openElevation_ = function ( data, level ) {
 
-        var layers = this.createItemLayer_( data );
+        var layers = this.createItemLayers_( data );
         for ( var i = 0; i < layers.length; i ++ ) {
             layers[ i ].set( 'level', level, true );
         }

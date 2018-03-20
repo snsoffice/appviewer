@@ -3,12 +3,13 @@ define( function () {
     //
     // Message box
     //
-    var _elementMessage = document.getElementById( 'message' );
     var _showMessage = function ( msg, className ) {
-        _elementMessage.innerHTML = '<div class="alert alert-' + className + '" role="alert">' +
-            '<button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+        var element = document.createElement( 'DIV' );
+        element.innerHTML = '<div class="alert alert-dismissible alert-' + className + ' fade show" role="alert">' +
+            '<button type="button" class="close" aria-label="Close" data-dismiss="alert"><span aria-hidden="true">&times;</span></button>' +
             msg + '</div>';
-        _elementMessage.style.display = 'block';
+        element.firstElementChild.style.zIndex = 2001;
+        document.body.appendChild( element.firstElementChild );
     };
 
     // document.addEventListener( 'click', function ( e ) {

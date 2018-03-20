@@ -269,6 +269,13 @@ function( ifuture, ol, config, db, utils ) {
 
         }.bind( this ) );
 
+        // 打开特征
+        app.map.on( 'feature:open', function ( e ) {
+            var dxmap = e.target;
+            var level = e.argument;
+            
+        }.bind( this ) );
+
         //
         // 工具栏
         //

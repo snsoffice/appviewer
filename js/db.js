@@ -86,31 +86,31 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
             _db.transaction( 'rw', _db.features, function () {
                 _db.features.add( {
                     id: 1,
-                    title: '华清池御汤酒店',
-                    geometry: 'POINT (12156763.90 4077916.87)',
+                    title: '绿地世纪城',
+                    geometry: 'POINT (12119428.31 4055374.30)',
                     category: 'organization',
-                    url: 'http://owtayt1td.bkt.clouddn.com/huaqingchi',
-                } );
+                    url: 'greenland',
+                } )
                 _db.features.add( {
                     id: 2,
                     title: '西北大学长安校区',
                     geometry: 'POINT (12119354.46 4048989.50)',
                     category: 'organization',
-                    url: 'http://owtayt1td.bkt.clouddn.com/xibeidaxue/changanxiaoqu',
+                    url: 'northwestuniversity',
                 } );
                 _db.features.add( {
                     id: 3,
-                    title: '绿地世纪城',
-                    geometry: 'POINT (12119428.31 4055374.30)',
+                    title: '华清池御汤酒店',
+                    geometry: 'POINT (12156763.90 4077916.87)',
                     category: 'organization',
-                    url: 'http://owtayt1td.bkt.clouddn.com/lvdishijicheng',
+                    url: 'huaqingchi',
                 } );
                 _db.features.add( {
                     id: 4,
                     title: '咸阳国际机场',
                     geometry: 'POINT (12107045.45 4088525.52)',
                     category: 'organization',
-                    url: 'http://owtayt1td.bkt.clouddn.com/xianyangguojijichang',
+                    url: 'xianyangairport',
                 } );
                 return 4;
 
@@ -118,7 +118,6 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
                 console.log( '更新 ' + n + ' 条数据');
             } );
         }
-
     }
 
     //

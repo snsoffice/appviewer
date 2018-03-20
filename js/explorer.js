@@ -189,11 +189,25 @@ function( ifuture, Carousel ) {
         this.viewname = null;
     };
 
+    Explorer.prototype.buildItem_ = function ( item ) {
+        var html;
+        if ( item.type === 'cover' ) {
+            html = 
+                '<div data-name="html" class="bg-info text-white">' +
+                '  <p class="center">' + item.title + '</p>' +
+                '</div>';
+        }
+        else {
+            html =
+                '<div data-name="' + item.name + '">' +
+                '  <img class="owl-lazy" data-src="' + item.poster + '" alt="' + item.title + '">' +
+                '</div>';
+        }
+        return html;
+    };
+
     Explorer.prototype.addItem = function ( item ) {
-        var html =
-            '<div data-name="' + item.name + '">' +
-            '  <img class="owl-lazy" data-src="' + item.poster + '" alt="' + item.title + '">' +
-            '</div>'
+        var html = this.buildItem_( item );
         var position = this.items.length - 1;
         this.carousel.add( html, position );
         this.items.push( item );
@@ -210,11 +224,11 @@ function( ifuture, Carousel ) {
     };
 
     Explorer.prototype.setItems = function ( items ) {
-        var html =
-            '<div data-name="' + item.name + '">' +
-            '  <img class="owl-lazy" data-src="' + item.poster + '" alt="' + item.title + '">' +
-            '</div>';
-        this.carousel.replace( html );
+        var htmls = [];
+        if ( items )
+            for ( var i = 0; i < items.length; i ++ )
+                htmls.push( this.buildItem_( items[ i ] ) );
+        this.carousel.replace( htmls.join( '' ) );
         this.items =  items;
     };
 
