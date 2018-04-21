@@ -77,8 +77,7 @@ function( ifuture, owl, utils, $ ) {
         var height = this.viewport() + 'px';
         var element = this._core.$element;
         $( '.owl-stage', element).css('height' , height);
-        $( '.owl-item', element).css('height', height);
-        $( '.owl-item img', element).css('max-height', height);
+        $( '.owl-item', element).css('min-height', height);
     };
 
     /**

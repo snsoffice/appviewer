@@ -89,28 +89,28 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
                     title: '绿地世纪城',
                     geometry: 'POINT (12119428.31 4055374.30)',
                     category: 'organization',
-                    url: 'greenland',
+                    url: 'organizations/greenland',
                 } )
                 _db.features.add( {
                     id: 2,
                     title: '西北大学长安校区',
                     geometry: 'POINT (12119354.46 4048989.50)',
                     category: 'organization',
-                    url: 'northwestuniversity',
+                    url: 'organizations/northwestuniversity',
                 } );
                 _db.features.add( {
                     id: 3,
                     title: '华清池御汤酒店',
                     geometry: 'POINT (12156763.90 4077916.87)',
                     category: 'organization',
-                    url: 'huaqingchi',
+                    url: 'organizations/huaqingchi',
                 } );
                 _db.features.add( {
                     id: 4,
                     title: '咸阳国际机场',
                     geometry: 'POINT (12107045.45 4088525.52)',
                     category: 'organization',
-                    url: 'xianyangairport',
+                    url: 'organizations/xianyangairport',
                 } );
                 return 4;
 

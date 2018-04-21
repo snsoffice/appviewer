@@ -185,6 +185,11 @@
     width: 30%!important;
 }
 
+.owl-item {
+    overflow-y: auto;
+}
+
+
 /*
  *
  * Part 4: map
@@ -230,18 +235,18 @@
     background-color: #6c757d;
 }
 
-#footbar > button.btn-outline-secondary,
-#footbar > button.btn-outline-info {
-    background-color: transparent;
-}
+/* #footbar > button.btn-outline-secondary, */
+/* #footbar > button.btn-outline-info { */
+/*     background-color: transparent; */
+/* } */
 
-#footbar > button.btn-outline-secondary.active {
-    background-color: #6c757d;
-}
+/* #footbar > button.btn-outline-secondary.active { */
+/*     background-color: #6c757d; */
+/* } */
 
-#footbar > button.btn-outline-info.active {
-    background-color: #17a2b8;
-}
+/* #footbar > button.btn-outline-info.active { */
+/*     background-color: #17a2b8; */
+/* } */
 
 /* Fix Opera issue */
 /* button, button:hover, button:focus { */
