@@ -270,7 +270,7 @@ public class HouseExport {
                 labels.add(String.format("{%n" +
                                          "  \"text\": \"%s\",%n" +
                                          "  \"geometry\": \"POINT (%f %f)\"%n" +
-                                         "}", label.getText(), label.getX(), label.getY()));
+                                         "}", label.getText(), label.getX() / 100, label.getY() / 100));
         }
         writer.write(String.format("\"label\": [%n%s%n]%n", join2(labels, ",\n")));
         writer.write(String.format("},%n"));
@@ -300,7 +300,7 @@ public class HouseExport {
                 continue;
             List<String> pts = new ArrayList<String>();
             for(float[] p: room.getPoints()) {
-                pts.add(String.format("%f %f", p[0], p[1]));
+                pts.add(String.format("%f %f", p[0] / 100, p[1] / 100));
             }
             results.add(String.format("{%n" +
                                       "  \"name\": \"%s\",%n" +
