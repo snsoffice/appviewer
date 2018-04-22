@@ -52,7 +52,7 @@ function( ifuture, $ ) {
         this.modeName = [];
         this.modeList = [];
 
-        this.elevations = [];
+        this.elevations = {};
         this.currentElevation = -1;
 
         element.querySelector( '#modebar > a.btn' ).addEventListener( 'click', function ( e ) {
@@ -151,10 +151,21 @@ function( ifuture, $ ) {
         }
     };
 
-    Modebar.prototype.setElevations = function ( data ) {
-        this.elevations = data.elevations;
-        this.currentElevation = this.elevations.length - 1;
+    Modebar.prototype.setElevations = function ( elevations ) {
+        this.elevations = elevations;
+        this.currentElevation = - 1;
         this.resetContent_();
+    };
+
+    Modebar.prototype.setCurrentElevation = function ( value ) {
+        this.currentElevation = value;
+        this.resetElevationDialog_();
+    };
+
+    Modebar.prototype.handleElevationEvent = function ( e ) {
+        if ( e.type === 'elevation:changed' ) {
+            this.setCurrentElevation( e.argument );
+        }
     };
 
     Modebar.prototype.resetContent_ = function () {
@@ -164,7 +175,7 @@ function( ifuture, $ ) {
         var btn = bar.querySelector( '#modebar > a.btn' );
 
         // 0 个模式，不显示 modebar
-        bar.style.visibility = ( n > 0 || this.elevations ) ? 'visible' : 'hidden';
+        bar.style.visibility = ( n > 0 || this.elevations.data ) ? 'visible' : 'hidden';
 
         // 1 ~ 2 个模式，使用 btn-sm
         btn.className = 'btn btn-outline-dark' + ( n === 0 ? ' invisible' : n > 2 ? '' : ' btn-sm' );
@@ -219,7 +230,9 @@ function( ifuture, $ ) {
 
     Modebar.prototype.resetElevationDialog_ = function () {
 
-        if ( this.elevations.length === 0 ) {
+        var elevations = this.elevations.data;
+
+        if ( elevations === undefined || elevations.length === 0 ) {
             Array.prototype.forEach.call( document.querySelectorAll( '.dx-modal-container' ), function ( dialog ) {
                 document.body.removeChild( dialog );
             } );
@@ -228,7 +241,7 @@ function( ifuture, $ ) {
         }
 
         else {
-            var title = this.elevations[ this.currentElevation ];
+            var title = this.currentElevation === -1 ? '楼层' : elevations[ this.currentElevation ];
             var btn = this.element.querySelector( 'button[data-target=".dx-modal-container"]' );
             btn.textContent = title;
             btn.style.visibility = 'visible';
@@ -247,11 +260,11 @@ function( ifuture, $ ) {
                 '        <ul class="list-group list-group-flush text-center">'
             ];
 
-            for( var i = 0; i < this.elevations.length; i ++ ) {
+            for( var i = 0; i < elevations.length; i ++ ) {
                 if ( i === this.currentElevation )
-                    html.push( '          <li class="list-group-item bg-info" data-elevation="' + i + '">' + this.elevations[ i ] + '</li>' );
+                    html.push( '          <li class="list-group-item bg-info" data-elevation="' + i + '">' + elevations[ i ] + '</li>' );
                 else
-                    html.push( '          <li class="list-group-item" data-elevation="' + i + '">' + this.elevations[ i ] + '</li>' );
+                    html.push( '          <li class="list-group-item" data-elevation="' + i + '">' + elevations[ i ] + '</li>' );
             }
 
             html.push(
@@ -275,6 +288,12 @@ function( ifuture, $ ) {
 
                 this.element.querySelector( 'button[data-target=".dx-modal-container"]' ).textContent = e.target.textContent;
                 this.currentElevation = parseInt( e.target.getAttribute( 'data-elevation' ) );
+
+                if ( this.elevations.callback ) {
+                    this.elevations.callback( this.elevations.level, this.currentElevation );
+                }
+
+                $( '.dx-modal-container' ).modal( 'hide' );
 
             }.bind( this ), false );
         }

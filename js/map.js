@@ -1197,11 +1197,17 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
         // 隐藏楼层按钮
         if ( item.elevations === undefined )
-            this.app_.request( 'modebar', 'setElevations', { elevations: [] } );
+            this.app_.request( 'modebar', 'setElevations', {} );
 
         // 显示设置楼层按钮
         else
-            this.app_.request( 'modebar', 'setElevations', { elevations: item.elevations } );
+            this.app_.request( 'modebar', 'setElevations', {
+                data: item.elevations,
+                level: level,
+                callback: function ( level, elevation ) {
+                    this.selectElevation_( level, elevation );
+                }.bind( this ),
+            } );
 
         // 装载最顶层的图层
         if ( item.elevations !== undefined && item.currentElevation === undefined ) {
@@ -1253,13 +1259,18 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         var request = new XMLHttpRequest();
 
         request.onloadend = function() {
+
             if (request.status != 200) {
                 utils.warning( '读取楼层数据 ' + baseurl + '失败，服务器返回代码：' + request.status );
                 return;
             }
+
             this.openElevation_( JSON.parse( request.responseText ), baseurl, item.extent );
             item.currentElevation = elevation;
+            this.dispatchEvent( new ifuture.Event( 'elevation:changed', elevation ) );
+
         }.bind( this );
+
         request.open( 'GET', baseurl + '/config.json' );
         request.send();
 
