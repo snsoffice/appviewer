@@ -133,10 +133,12 @@ function( ifuture, $ ) {
             }, false );
         } );
 
-        carousel.querySelector( 'button' ).addEventListener( 'click', function ( e ) {
-            var target = e.currentTarget;            
-            app.request( 'map', 'toggleVisible', target.getAttribute( 'target-name' ) );
-        }, false );
+        Array.prototype.forEach.call( carousel.querySelectorAll( 'button' ), function ( btn ) {
+            btn.addEventListener( 'click', function ( e ) {
+                var target = e.currentTarget;            
+                app.request( 'map', 'toggleVisible', target.getAttribute( 'target-name' ) );
+            }, false );
+        } );
 
         this._initialized = true;
 

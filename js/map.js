@@ -670,8 +670,10 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                     label: span,
                 } ),
             ],
-            layers: [ this.baseGroup_, createClusterLayer(), this.planGroup, this.stereoGroup,
-                      this.childrenGroup, this.labelGroup, this.featureGroup ],
+            layers: [ this.baseGroup_, createClusterLayer(), this.childrenGroup,                       
+                      this.planGroup, this.stereoGroup, 
+                      this.labelGroup, this.featureGroup,
+                    ],
             view: this.view,
         } );
 
