@@ -128,37 +128,36 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     // Spherical Mercator (the default) then minResolution defaults to
     // 40075016.68557849 / 256 / Math.pow(2, 28) = 0.0005831682455839253.
     var minResolution = 0.01;
-
+    
     var resolution = config.mapResolution;
     resolution = resolution ? resolution : 20;
 
+    // 建筑物内部最大分辨率
+    var MAX_RESOLUTION = 6.18;
+    var MIN_RESOLUTION = 0.001;
+
     var viewLevels = [
         {
-            name: 'cluster',
             minResolution: 3000,
             maxResolution: 10000,
             resolution: 6000,
         },
         {
-            name: 'region',
-            minResolution: 1,
+            minResolution: 10,
             maxResolution: 90,
             resolution: 20,
         },
         {
-            name: 'organization',
-            minResolution: 0.012,
-            maxResolution: 1,
+            minResolution: 0.1,
+            maxResolution: 10,
             resolution: 1,
         },
         {
-            name: 'building',
             minResolution: 0.012,
             maxResolution: 1,
             resolution: 0.5,
         },
         {
-            name: 'room',
             minResolution: 0.012,
             maxResolution: 1,
             resolution: 0.1,
@@ -180,6 +179,33 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         CHILD: 4,
     };
 
+    var formatUrl = function ( url, base ) {
+        if ( url.startsWith( 'http://' ) || url.startsWith( 'https://' ) )
+            return url;
+
+        if ( base === undefined )
+            base = config.resourceBaseUrl;
+
+        var result = base + '/' + url;
+        var index = result.indexOf( '../' );
+        if ( index === -1 )
+            return result;
+
+        var parts = result.split( '/' );
+        var i = 0;
+        var n = parts.length;
+        while ( i < n ) {
+            if ( parts[ i ] === '..' ) {
+                parts.splice( i - 1, 2 );
+                i --;
+                n --, n --;
+            }
+            else
+                i ++;
+        }
+        return parts.join( '/' );
+    };
+
     var featureLoader = function ( extent, resolution, projection ) {
 
         var source = this;
@@ -193,7 +219,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                     feature.setProperties( {
                         type: FeatureType.ORGANIZATION,
                         title: item.title,
-                        url: item.url
+                        url: formatUrl( item.url ),
                     }, true );
                     source.addFeature( feature );
                 }
@@ -355,6 +381,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     var orglayer;
     function createClusterLayer() {
         orglayer = new ol.layer.Vector( {
+            // minResolution: viewLevels[ 1 ].minResolution,
             source: new ol.source.Cluster( {
                 distance: config.clusterDistance,
                 source: new ol.source.Vector( { loader: featureLoader, } ),
@@ -383,7 +410,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     }
 
     function labelStyleFunction( feature, resolution ) {
-        style = new ol.style.Style( {
+        var style = new ol.style.Style( {
             image: new ol.style.Circle( {
                 radius: 2.6,
                 opacity: 0.6,
@@ -400,12 +427,12 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     }
 
     function childStyleFunction( feature, resolution ) {
-        style = new ol.style.Style( {
+        var style = new ol.style.Style( {
             fill: new ol.style.Fill( {
-                color: 'rgba(255, 255, 255, 0.1)',
+                color: 'rgba(255, 255, 255, 0.3)',
             } ),
             stroke: new ol.style.Stroke( {
-                color: 'rgba(0, 0, 255, 0.1)',
+                color: 'rgba(0, 0, 255, 0.3)',
                 width: 1,
             } ),
         } );
@@ -413,7 +440,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     }
 
     function featureStyleFunction( feature, resolution ) {
-        style = new ol.style.Style( {
+        var style = new ol.style.Style( {
             image: new ol.style.Circle( {
                 radius: 5,
                 fill: null,
@@ -480,9 +507,9 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
          * @type {ol.layer.Group}
          */
         this.planGroup = new ol.layer.Group( {
-            minResolution: 0.001,
-            maxResolution: 1,
-            visible: false,
+            minResolution: MIN_RESOLUTION,
+            maxResolution: MAX_RESOLUTION,
+            visible: true,
         } );
 
         /**
@@ -493,8 +520,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
          * @type {ol.layer.Group}
          */
         this.stereoGroup = new ol.layer.Group( {
-            minResolution: 0.001,
-            maxResolution: 1,
+            minResolution: MIN_RESOLUTION,
+            maxResolution: MAX_RESOLUTION,
             visible: false,
         } );
 
@@ -514,9 +541,9 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
          * @type {ol.layer.Group}
          */
         this.labelGroup = new ol.layer.Group( {
-            minResolution: 0.001,
-            maxResolution: 1,
-            visible: false,
+            minResolution: MIN_RESOLUTION,
+            maxResolution: MAX_RESOLUTION,
+            visible: true,
         } );
 
         /**
@@ -527,9 +554,9 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
          * @type {ol.layer.Group}
          */
         this.featureGroup = new ol.layer.Group( {
-            minResolution: 0.001,
-            maxResolution: 1,
-            visible: false,
+            minResolution: MIN_RESOLUTION,
+            maxResolution: MAX_RESOLUTION,
+            visible: true,
         } );
 
         /**
@@ -542,8 +569,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
          * @type {ol.layer.Group}
          */
         this.childrenGroup = new ol.layer.Group( {
-            minResolution: 0.001,
-            maxResolution: 1,
+            minResolution: MIN_RESOLUTION,
+            maxResolution: MAX_RESOLUTION,
             visible: true,
         } );
 
@@ -634,7 +661,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         this.map = new ol.Map( {
             target: options.target ? options.target : 'map',
             interactions: ol.interaction.defaults().extend( [
-                new FeatureInteraction( this ),
+                // new FeatureInteraction( this ),
                 new DimensionInteraction( this ),
             ] ),
             controls: [
@@ -651,7 +678,25 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         this.map.addOverlay( createVisitorOverlay( 'visitor', 'images/marker.png' ) );
         this.map.addOverlay( createVisitorOverlay( 'camera', 'images/camera.png' ) );
 
-    }
+        this.map.on( 'singleclick', function( evt ) {
+            var map = evt.map;
+            var selected = map.forEachFeatureAtPixel( evt.pixel, function ( feature, layer ) {
+                return [ feature, layer ];
+            } );
+
+            var feature, layer;
+            if ( selected !== undefined ) {
+                feature = selected[ 0 ];
+                layer = selected[ 1 ];
+            }
+
+            this.handleClickEvent( evt, feature, layer );
+
+            return true;
+
+        }.bind( this ) );
+
+    };
     ifuture.inherits( Map, ifuture.Component );
 
     Map.prototype.getMap = function () {
@@ -728,12 +773,12 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
      * @param {enum} name: title, feature, visitor, camera
      * @public
      */
-    Map.prototype.toggleVisible = function ( name ) {
+    Map.prototype.toggleVisible = function ( name, visible ) {
         if ( name === 'title' ) {
-            this.labelGroup.setVisible( ! this.labelGroup.getVisible() );
+            this.labelGroup.setVisible( visible === undefined ? ! this.labelGroup.getVisible() : visible );
         }
         else if ( name === 'feature' ) {
-            this.featureGroup.setVisible( ! this.featureGroup.getVisible() );
+            this.featureGroup.setVisible( visible === undefined ? ! this.featureGroup.getVisible() : visible );
         }
         else if ( name === 'visitor' || name === 'camera' ) {
             var v = this.map.getOverlayById( name );
@@ -824,17 +869,16 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                 this.view.setCenter( ol.extent.getCenter( orgfeature.getGeometry().getExtent() ) );
             }
 
-            else if ( size > 1 ) {
-                console.assert ( this.viewLevel === ViewLevel.REGION );
+            else if ( this.viewLevel === ViewLevel.REGION ) {
                 var orgfeature = feature.get( 'features' )[ 0 ];
-                this.view.setCenter( ol.extent.getCenter( orgfeature.getGeometry().getExtent() ) );
-                this.view.setZoom( this.view.getZoom() + 1 );
-            }
+                if ( size > 1 ) {
+                    this.view.setCenter( ol.extent.getCenter( orgfeature.getGeometry().getExtent() ) );
+                    this.view.setZoom( this.view.getZoom() + 1 );
+                }
 
-            else {
-                console.assert ( this.viewLevel === ViewLevel.REGION );
-                var orgfeature = feature.get( 'features' )[ 0 ];
-                this.openOrganization_( orgfeature.get( 'url' ) );
+                else {
+                    this.openOrganization_( orgfeature.get( 'url' ), orgfeature.get( 'origin' ) );
+                }
             }
 
         }
@@ -844,7 +888,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             var type = feature.get( 'type' );
 
             if ( type === FeatureType.ORGANIZATION || type === FeatureType.CHILD ) {
-                this.openOrganization_( feature.get( 'url' ) );
+                this.openOrganization_( feature.get( 'url' ), feature.get( 'origin' ) );
             }
 
             else if ( type === FeatureType.FEATURE ) {
@@ -886,12 +930,19 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
      * 打开组织机构或者子结点
      *
      * @param {string} url 指向组织机构的链接
+     * @param {Array.<number>|undefined} origin 组织机构对应的原点
      * @private
      */
-    Map.prototype.openOrganization_ = function ( url ) {
-
-        var url = config.resourceBaseUrl + '/' + url + '/config.json';
+    Map.prototype.openOrganization_ = function ( url, origin ) {
+        
         var level = this.layerLevel;
+
+        // 如果已经打开该图层，则直接返回
+        // 这是因为点击地图的时候被挡住的特征也会被选择出来
+        for ( var i = 0; i < this.layerStack.length; i ++ ) {
+            if ( this.layerStack[ i ].url === url )
+                return;
+        }
 
         var request = new XMLHttpRequest();
         // request.onerror = function ( event ) {
@@ -903,9 +954,10 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                 return;
             }
             var item = JSON.parse( request.responseText );
-            this.openItem_( url, item, level );
+            this.openItem_( url, item, level, origin );
         }.bind( this );
-        request.open( 'GET', url );
+
+        request.open( 'GET', url + '/config.json' );
         request.send();
 
     };
@@ -934,7 +986,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
      * item.name      名称标识符
      * item.origin    参考原点的坐标，所有的特征、图层等都是基于这个原点的
      */
-    Map.prototype.openItem_ = function ( url, item, level ) {
+    Map.prototype.openItem_ = function ( url, item, level, origin ) {
 
         level = level === undefined ? 0 : level + 1;
 
@@ -949,7 +1001,10 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             this.removeViewLevel( level + ViewLevel.ORGANIZATION );
         }
 
-        var origin = item.origin;
+        if ( ! origin ) {
+            origin = ! item.origin ? [ 0., 0. ] : item.origin;
+        }
+
         var extent = item.extent;
         if ( extent === undefined ) {
             var view = this.map.getView();
@@ -967,15 +1022,12 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             title: item.title,
             url: url,
             extent: extent,
+            origin: origin,
             elevations: item.elevations,
         } );
 
         // 创建图层
-        var layers = this.createItemLayers_( item );
-        // for ( var i = 0; i < layers.length; i ++ ) {
-        //     layers[ i ].set( 'level', level, true );
-        // }
-
+        var layers = this.createItemLayers_( item, url, extent, origin );
         this.planGroup.getLayers().push( layers[ 0 ] );
         this.stereoGroup.getLayers().push( layers[ 1 ] );
         this.labelGroup.getLayers().push( layers[ 2 ] );
@@ -992,10 +1044,10 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
     // 返回五个 layer, 如果没有对应的图层数据，也返回一个空的 layer
     //     plan, stereo, label, feature, child
-    Map.prototype.createItemLayers_ = function ( item ) {
+    Map.prototype.createItemLayers_ = function ( item, baseurl, extent, origin ) {
 
         function createEmptyLayer() {
-          return new ol.layer.Group();
+            return new ol.layer.Group();
         };
 
         // 对于多层，在 selectLayerLevel 的时候生成对应的图层
@@ -1004,17 +1056,9 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                      createEmptyLayer(), createEmptyLayer(), createEmptyLayer() ];
         }
 
-        var origin = item.origin;
-        var extent = item.extent;
-        if ( extent === undefined ) {
-            extent = ol.extent.createEmpty();
-        }
-        else {
-            this.translateExtent( extent, origin );
-        }
-
         var features, source;
         var planlayer, stereolayer, labellayer, featurelayer, childlayer;
+        var fmt = new ol.format.WKT();
 
         if ( item.views === undefined ) {
             planlayer = createEmptyLayer();
@@ -1031,14 +1075,13 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                 this.translateExtent( imageExtent, origin );
                 ol.extent.extend( extent, imageExtent );
                 planlayer = new ol.layer.Image( {
-                    visible: false,
-                    minResolution: 0.001,
-                    maxResolution: 1,
+                    minResolution: MIN_RESOLUTION,
+                    maxResolution: MAX_RESOLUTION,
                     extent: extent,
                     source: new ol.source.ImageStatic( {
                         crossOrigin: 'anonymous',
                         imageExtent: imageExtent,
-                        url: plan.url,
+                        url: formatUrl( plan.url, baseurl ),
                     } )
                 } );
             }
@@ -1052,14 +1095,13 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                 this.translateExtent( imageExtent, origin );
                 ol.extent.extend( extent, imageExtent );
                 stereolayer = new ol.layer.Image( {
-                    visible: false,
-                    minResolution: 0.001,
-                    maxResolution: 1,
+                    minResolution: MIN_RESOLUTION,
+                    maxResolution: MAX_RESOLUTION,
                     extent: extent,
                     source: new ol.source.ImageStatic( {
                         crossOrigin: 'anonymous',
                         imageExtent: imageExtent,
-                        url: stereo.url,
+                        url: formatUrl( stereo.url, baseurl ),
                     } )
                 } );
             }
@@ -1074,31 +1116,35 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                     var node = label[ i ];
                     var feature = fmt.readFeature( node.geometry );
                     if ( feature ) {
-                        feature.set( title, node.text, true );
+                        feature.getGeometry().translate( origin[ 0 ], origin[ 1 ] );
+                        feature.set( 'title', node.text, true );
                         features.push( feature );
                     }
                 }
                 source = new ol.source.Vector( { features: features } );
 
-                var labellayer = new ol.layer.Vector( {
+                labellayer = new ol.layer.Vector( {
                     extent: extent,
                     source: source,
+                    minResolution: MIN_RESOLUTION,
+                    maxResolution: MAX_RESOLUTION,
                     style: labelStyleFunction,
                 } );
             }
         }
 
         features = [];
-        var fmt = new ol.format.WKT();
         if ( item.children ) {
             for ( var i = 0; i < item.children.length; i ++ ) {
                 var node = item.children[ i ];
                 var feature = fmt.readFeature( node.geometry );
                 if ( feature ) {
-                    var url = node.name;
+                    feature.getGeometry().translate( origin[ 0 ], origin[ 1 ] );
                     feature.setProperties( {
-                        category: 'house',
-                        url: url
+                        type: FeatureType.CHILD,
+                        title: node.title,
+                        url: formatUrl( node.name, baseurl ),
+                        origin: node.origin,
                     }, true );
                     features.push( feature );
                 }
@@ -1108,6 +1154,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         var childlayer = new ol.layer.Vector( {
             extent: extent,
             source: source,
+            minResolution: MIN_RESOLUTION,
+            maxResolution: MAX_RESOLUTION,
             style: childStyleFunction,
         } );
 
@@ -1117,12 +1165,12 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                 var node = item.features[ i ];
                 var feature = fmt.readFeature( node.geometry );
                 if ( feature ) {
+                    feature.getGeometry().translate( origin[ 0 ], origin[ 1 ] );
                     feature.setProperties( {
-                        category: 'showcase',
-                        type: node.type,
+                        type: FeatureType.FEATURE,
                         pose: node.pose,
                         mimetype: node.type === 'panorama' ? 'panorama/equirectangular' : 'image/jpeg',
-                        url: node.url,
+                        url: formatUrl( node.url, baseurl ),
                     }, true );
                     features.push( feature );
                 }
@@ -1132,6 +1180,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         var featurelayer = new ol.layer.Vector( {
             extent: extent,
             source: source,
+            minResolution: MIN_RESOLUTION,
+            maxResolution: MAX_RESOLUTION,
             style: featureStyleFunction,
         } );
 
@@ -1159,13 +1209,12 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         }
 
         // 显示选中的图层
-        else {
+        if ( ! ol.extent.isEmpty( item.extent ) )
             this.view.fit( item.extent );
 
-            // 创建旋转木马
-            var layer = this.featureGroup.getLayers().item( level );
-            this.createItemCarousel_( layer );
-        }
+        // 创建旋转木马
+        var layer = this.featureGroup.getLayers().item( level );
+        this.createItemCarousel_( layer );
 
     };
 
@@ -1198,27 +1247,28 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             return;
 
         // 选择不同的楼层，需要确保下级图层都被清除
-        this.removeViewLevel( level + ViewLevel.ORGANIZATION );
+        this.removeViewLevel( level + ViewLevel.ORGANIZATION + 1 );
 
-        var url = item.url + '/floor' + level + '/config.json';
+        var baseurl = item.url + '/floor' + elevation;
         var request = new XMLHttpRequest();
 
         request.onloadend = function() {
             if (request.status != 200) {
-                utils.warning( '读取楼层数据 ' + url + '失败，服务器返回代码：' + request.status );
+                utils.warning( '读取楼层数据 ' + baseurl + '失败，服务器返回代码：' + request.status );
                 return;
             }
-            this.openElevation_( JSON.parse( request.responseText ) );
+            this.openElevation_( JSON.parse( request.responseText ), baseurl, item.extent );
             item.currentElevation = elevation;
         }.bind( this );
-        request.open( 'GET', url.join( '/' ) );
+        request.open( 'GET', baseurl + '/config.json' );
         request.send();
 
     };
 
-    Map.prototype.openElevation_ = function ( data ) {
+    Map.prototype.openElevation_ = function ( data, baseurl, extent ) {
 
-        var layers = this.createItemLayers_( data );
+        var origin = ! data.origin ? [ 0, 0 ] : data.origin;
+        var layers = this.createItemLayers_( data, baseurl, extent, origin );
 
         this.planGroup.getLayers().pop();
         this.stereoGroup.getLayers().pop();
@@ -1245,10 +1295,12 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     Map.prototype.setViewLevel = function ( level ) {
         if ( this.viewLevel !== level ) {
             var view = this.views_[ level ];
+            this.map.setView( view );
+            this.map.render();
+
             this.view = view;
             this.viewLevel = level;
             this.layerLevel = Math.max( -1, level - ViewLevel.ORGANIZATION );
-            this.map.setView( view );
         }
     };
 
