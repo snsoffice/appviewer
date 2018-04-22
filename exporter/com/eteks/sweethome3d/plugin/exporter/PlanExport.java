@@ -349,13 +349,13 @@ public class PlanExport extends PlanComponent {
     private String formatFeature(HomePieceOfFurniture homeFurniture, String baseUrl, String mtype) {
         // 三维点格式: POINT Z ( X Y Z )
         return String.format("{%n" +
-                             "  \"type\": \"%s\",%n" +
+                             "  \"mimetype\": \"%s\",%n" +
                              "  \"geometry\": \"POINT (%f %f)\",%n" +
                              "  \"pose\": [%f, %f, %f],%n" +
                              "  \"url\": \"%s\"%n}",
                              mtype,
                              homeFurniture.getX() / 100,
-                             homeFurniture.getY() / 100,
+                             - homeFurniture.getY() / 100,
                              // homeFurniture.getElevation() / 100,
                              homeFurniture.getAngle(),
                              homeFurniture.getPitch(),

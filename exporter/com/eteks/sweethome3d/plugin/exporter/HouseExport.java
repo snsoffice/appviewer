@@ -228,9 +228,9 @@ public class HouseExport {
         double m = 2.0;
         writer.write(String.format("\"extent\": [ %f, %f, %f, %f ],%n",
                                    itemBounds.getMinX() / 100 - m,
-                                   itemBounds.getMinY() / 100 - m,
+                                   -itemBounds.getMaxY() / 100 - m,
                                    itemBounds.getMaxX() / 100 + m,
-                                   itemBounds.getMaxY() / 100 + m
+                                   -itemBounds.getMinY() / 100 + m
                                    ));
 
         writer.write(String.format("\"views\": {%n"));
@@ -245,9 +245,9 @@ public class HouseExport {
                                    (int)Math.ceil(itemBounds.getWidth() * scale + 2 * margin),
                                    (int)Math.ceil(itemBounds.getHeight() * scale + 2 * margin),
                                    itemBounds.getMinX() / 100 - s,
-                                   itemBounds.getMinY() / 100 - s,
+                                   -itemBounds.getMaxY() / 100 - s,
                                    itemBounds.getMaxX() / 100 + s,
-                                   itemBounds.getMaxY() / 100 + s));
+                                   -itemBounds.getMinY() / 100 + s));
 
         writer.write(String.format("\"solid\": {%n  \"url\": \"views/solid/house.obj\"%n},%n"));
 
@@ -259,7 +259,7 @@ public class HouseExport {
                                    "  \"url\": \"views/stereo/stereo_house.jpg\"%n" +
                                    "},%n",
                                    size[0], size[1],
-                                   extent[0], extent[1], extent[2], extent[3]));
+                                   extent[0], -extent[3], extent[2], -extent[1]));
 
         Level level = home.getSelectedLevel();
         List<String> labels = new ArrayList<String>();
@@ -268,7 +268,7 @@ public class HouseExport {
                 labels.add(String.format("{%n" +
                                          "  \"text\": \"%s\",%n" +
                                          "  \"geometry\": \"POINT (%f %f)\"%n" +
-                                         "}", label.getText(), label.getX() / 100, label.getY() / 100));
+                                         "}", label.getText(), label.getX() / 100, -label.getY() / 100));
         }
         writer.write(String.format("\"label\": [%n%s%n]%n", join2(labels, ",\n")));
         writer.write(String.format("},%n"));
@@ -298,7 +298,7 @@ public class HouseExport {
                 continue;
             List<String> pts = new ArrayList<String>();
             for(float[] p: room.getPoints()) {
-                pts.add(String.format("%f %f", p[0] / 100, p[1] / 100));
+                pts.add(String.format("%f %f", p[0] / 100, -p[1] / 100));
             }
             results.add(String.format("{%n" +
                                       "  \"name\": \"%s\",%n" +
