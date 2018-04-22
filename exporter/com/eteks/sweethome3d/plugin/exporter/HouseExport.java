@@ -361,6 +361,7 @@ public class HouseExport {
         writeViewData(writer, home, itemBounds, resolution, stereoResolution, plan.getExtraMargin(), baseUrl);
         plan.writeData(writer, baseUrl);
         writeChildren(writer, home); 
+        writer.write(String.format("}%n"));
         writer.flush();
         out.close();
 

@@ -350,7 +350,7 @@ public class PlanExport extends PlanComponent {
         return String.format("{%n" +
                              "  \"type\": \"%s\",%n" +
                              "  \"geometry\": \"POINT (%f %f %f)\",%n" +
-                             "  \"pose\": [%f %f %f],%n" +
+                             "  \"pose\": [%f, %f, %f],%n" +
                              "  \"url\": \"%s\"%n}",
                              mtype,
                              homeFurniture.getX() / 100,
