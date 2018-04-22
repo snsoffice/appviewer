@@ -37,10 +37,10 @@ define( [ 'ifuture', 'ol', 'config', 'db', 'utils' ],
 
 function( ifuture, ol, config, db, utils ) {
 
-    var ItemEvent = function( type, item, opt_feature ) {
+    var ItemEvent = function( minetype, item, opt_feature ) {
 
         this.propagationStopped = true;
-        this.type = type;
+        this.minetype = minetype;
         this.target = null;
         this.item = item;
         this.feature = opt_target;
@@ -115,11 +115,8 @@ function( ifuture, ol, config, db, utils ) {
             items.forEach( function ( item ) {
                 var feature = fmt.readFeature( item.geometry );
                 if ( feature ) {
-                    feature.setId( item.id );
                     feature.setProperties( {
-                        category: item.category,
-                        icon: item.icon,
-                        url: item.url
+                        title: item.title,
                     }, true );
                     source.addFeature( feature );
                 }
@@ -155,32 +152,20 @@ function( ifuture, ol, config, db, utils ) {
         this.dxmap_ = app.map;
 
         /**
-         *
-         * 底图类型: watercolor, aerial, road
-         *
-         * @type {enum}
+         * 当前迷你地图的显示级别，默认是 0
          * @private
+         * @type {int}
          */
-        this.basemapType_ = 'watercolor';
+        this.viewLevel_ = 0;
 
         /**
          *
-         * 建筑物视野: plan, stereo, solid
+         * 行为模式: browser, anchor, viewer
          *
          * @type {enum}
          * @private
          */
-        this.visionType_ = 'stereo';
-
-
-        /**
-         *
-         * 行为模式: summary, browser, viewer
-         *
-         * @type {enum}
-         * @private
-         */
-        this.mode_ = 'summary';
+        this.mode_ = 'browser';
 
         // 顶层显示中国总图
         //     图层: 高德, resolution: 28000
@@ -230,7 +215,7 @@ function( ifuture, ol, config, db, utils ) {
             this.dxmap_.stereoGroup,
         ];
 
-        this.ovmap = new ol.Map( {
+        this.ovmap_ = new ol.Map( {
             target: 'minimap',
             layers: layers,
             controls: new ol.Collection(),
@@ -239,64 +224,38 @@ function( ifuture, ol, config, db, utils ) {
         } );
 
         this.currentIndex = 0;
-        this.items = [ topItem ];
+        this.items_ = [ topItem ];
+
+        //
+        // 工具栏
+        //
+        var toolbar = this.ovmap_.getTargetElement().querySelector( '.dx-toolbar' );
 
         //
         // 事件绑定
         //
 
-        // 打开集簇，进入浏览模式
-        app.map.on( 'features:browser', function ( e ) {
-            var features = e.argument;
-            var dxmap = e.target;
-
-            // 删除原来的浏览图层和所有组织结构图层
-            this.removeItem( 1 );
-
-            // 切换到当前浏览图层
-            var extent = ol.extent.createEmpty();
-            var j, jj;
-            for ( j = 0, jj = features.length; j < jj; ++j ) {
-                ol.extent.extend( extent, features[ j ].getGeometry().getExtent());
-            }
-            this.view.fit( extent, { padding: [ 10, 10, 10, 10 ] } );
-
-            var item = {
-                center: this.view.getCenter(),
-                resolution: this.view.getResolution(),
-            };
-            this.items.push( item );
-            this.currentIndex = 1;
-
-        }.bind( this ) );
-
-        // 打开特征
-        app.map.on( 'feature:open', function ( e ) {
-            var dxmap = e.target;
-            var level = e.argument;
-            
-        }.bind( this ) );
-
-        //
-        // 工具栏
-        //
-        var toolbar = this.ovmap.getTargetElement().querySelector( '.dx-toolbar' );
-
         // 删除图层
         toolbar.querySelector( '#trash-maplayer' ).addEventListener( 'click', function ( e ) {
+
             e.preventDefault();
-            if ( this.currentIndex === 0 )
+            if ( this.currentIndex < 1 )
                 return;
+
             this.removeItem( this.currentIndex );
+            this.dxmap_.removeViewLevel( this.currentIndex );
+
             this.setCurrentItem( this.currentIndex - 1 );
-            if ( this.currentIndex === 0 ) {
-                this.dxmap_.setViewMode( 'summary' );
-            }
+            this.dxmap_.setViewLevel( this.currentIndex );
+
         }.bind( this ), false );
 
-        // 同步图层
+        // 同步图层，设置迷你地图的显示层次和大地图一致
         toolbar.querySelector( '#syn-maplayer' ).addEventListener( 'click', function ( e ) {
+
             e.preventDefault();
+            this.setCurrentItem( this.dxmap_.viewLevel );
+
         }.bind( this ), false );
 
     }
@@ -304,7 +263,7 @@ function( ifuture, ol, config, db, utils ) {
 
     Minimap.prototype.toggle = function ( visible ) {
 
-        var element = this.ovmap.getTargetElement();
+        var element = this.ovmap_.getTargetElement();
         visible = ( visible === true || visible === false ) ?  visible : element.style.visibility !== 'visible';
         if ( visible ) {
             Array.prototype.forEach.call( document.querySelectorAll( '.dx-mini' ), function ( mini ) {
@@ -327,31 +286,22 @@ function( ifuture, ol, config, db, utils ) {
             this.setCurrentItem( index );
         }
         else {
-            var item = this.items[ this.currentIndex ];
-            this.ovmap.dispatchEvent( new ItemEvent( 'item:show', item, feature ) );
+            var item = this.items_[ this.currentIndex ];
+            this.ovmap_.dispatchEvent( new ItemEvent( 'item:show', item, feature ) );
         }
 
     };
 
     Minimap.prototype.touch = function ( coordinate ) {
-        
+
         var d = this.dxmap_;
-
-        if ( this.currentIndex === 0 )
-            d.setViewMode( 'summary' );
-        else if ( this.currentIndex === 1 )
-            d.setViewMode( 'browser' );
-        else
-            d.setViewMode( 'viewer' );
-
-        var view = this.dxmap_.map.getView();
-        view.setCenter( coordinate );
+        d.setViewLevel( this.currentIndex );
+        d.view.setCenter( coordinate );
 
     };
 
     Minimap.prototype.open = function () {
         // 打开展示橱窗，使用旋转木马显示图层所有图片、全景和视频
-        this.ovmap.dispatchEvent( new ItemEvent( 'item:open', this.items[ this.currentIndex ] ) );
     };
 
     Minimap.prototype.prev = function () {
@@ -368,78 +318,82 @@ function( ifuture, ol, config, db, utils ) {
 
     Minimap.prototype.nextItem = function ( index ) {
         index ++;
-        return index === this.items.length ? 0 : index;
+        return index === this.items_.length ? 0 : index;
     };
 
     Minimap.prototype.prevItem = function ( index ) {
-        return index > 0 ? index - 1 : this.items.length - 1;
+        return index > 0 ? index - 1 : this.items_.length - 1;
     };
 
     Minimap.prototype.removeItem = function ( index ) {
-        if ( index === 0 )
-            return;
 
-        var layer;
-        for ( var i = this.items.length - 1; i >= index; i -- ) {
-            var item = this.items.pop();
-            if ( item.layer ) {
-                layer = item.layer;
-            }
-        }
-        if ( layer ) {
-            this.ovmap.removeLayer( layer );
-        }
+        if ( index < 1 )
+            return;
+        this.items_.splice( index );
+
     };
 
     Minimap.prototype.setCurrentItem = function ( index ) {
 
-        var item = this.items[ index ];
+        var item = this.items_[ index ];
         this.view.setCenter( item.center );
         this.view.setResolution( item.resolution );
         this.currentIndex = index;
 
     };
 
-    Minimap.prototype.addFeature = function ( feature ) {
+    Minimap.prototype.newRegionItem = function ( features ) {
 
-        var name = feature.get( 'name' );
-        var index = -1;
-        for ( var i = 0; i < this.items_.length; i ++ )
-            if ( this.items[ i ].name === name ) {
-                index = i;
-                break;
-            }
-        if ( index === -1 ) {
-            if ( this.currentIndex < 0 )
-                this.currentIndex = 0;
-            this.items.splice( this.currentIndex, 0, feature.getProperties() );
+        // ViewLevel.REGION
+        var level = 1;
+
+        this.removeItem( level );
+
+        var extent = ol.extent.createEmpty();
+        var j, jj;
+        for ( j = 0, jj = features.length; j < jj; ++j ) {
+            ol.extent.extend( extent, features[ j ].getGeometry().getExtent());
         }
-        return index;
+        this.view.fit( extent, { padding: [ 10, 10, 10, 10 ] } );
+
+        var item = {
+            center: this.view.getCenter(),
+            resolution: this.view.getResolution(),
+        };
+        this.items_.push( item );
+        this.currentIndex = level;
+
+    }
+
+    Minimap.prototype.newNodeItem = function ( level ) {
+
+        // ViewLevel.ORGANIZATION
+        if ( level < 2 )
+            return;
+
+        this.removeItem( level );
+
+        var layerLevel = level - 2;
+        var extent = this.dxmap_.layerStack[ layerLevel ].extent;
+        this.view.fit( extent, { padding: [ 10, 10, 10, 10 ] } );
+
+        var item = {
+            center: this.view.getCenter(),
+            resolution: this.view.getResolution(),
+        };
+        this.items_.push( item );
+        this.currentIndex = level;
 
     };
 
-    Minimap.prototype.toggleOrganizations_ = function ( visible ) {
+    Minimap.prototype.handleMapEvent = function ( e ) {
 
-        var target = this.ovmap.getTargetElement();
+        if ( e.type === 'node:open' )
+            this.newNodeItem( e.argument );
 
-        if ( visible ) {
-            var element = document.createElement( 'div' );
-            element.className = 'dx-organizations dx-page bg-light';
-            element.style.zIndex = 1;
-            element.innerHTML =
-                '<ul class="list-group list-group-flush">' +
-                '  <li class="list-group-item active">华清鱼汤</li>' +
-                '  <li class="list-group-item">西北大学长安校区</li>' +
-                '  <li class="list-group-item">绿地世纪城</li>' +
-                '</ul>';
-            target.appendChild( element );
-        }
+        else if ( e.type === 'cluster:open' )
+            this.newRegionItem( e.argument );
 
-        else {
-            var element = target.querySelector( '.dx-organizations' );
-            if ( element )
-                target.removeChild( element );
-        }
     };
 
     return Minimap;

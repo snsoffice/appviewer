@@ -39,6 +39,7 @@ function( ifuture, Map, Minimap, Explorer, Manager, Vision,
         this.responsebar = new Responsebar( this, opt_options );
 
         // 所有对象之间的事件绑定关系
+        this.map.on( [ 'node:open', 'cluster:open' ], this.minimap.handleMapEvent, this.minimap );
         this.map.on( 'elevation:changed', this.modebar.handleElevationEvent, this.modebar );
     };
     ifuture.inherits( Application, ifuture.Component );

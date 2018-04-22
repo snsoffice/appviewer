@@ -164,7 +164,7 @@ function( ifuture, $ ) {
 
     Modebar.prototype.handleElevationEvent = function ( e ) {
         if ( e.type === 'elevation:changed' ) {
-            this.setCurrentElevation( e.argument );
+            this.setCurrentElevation( e.argument.elevation );
         }
     };
 

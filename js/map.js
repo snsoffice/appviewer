@@ -813,6 +813,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             this.labelGroup.getLayers().pop();
             this.featureGroup.getLayers().pop();
             this.childrenGroup.getLayers().pop();
+            this.layerStack.pop();
             this.layerLevel --;
         }
     };
@@ -860,19 +861,21 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
             if ( this.viewLevel === ViewLevel.CLUSTER ) {
                 this.setViewLevel( ViewLevel.REGION );
-                var originalFeatures = feature.get( 'features' );
                 // var extent = ol.extent.createEmpty();
                 // var j, jj;
-                // for ( j = 0, jj = originalFeatures.length; j < jj; ++j ) {
-                //     ol.extent.extend( extent, originalFeatures[ j ].getGeometry().getExtent());
+                // for ( j = 0, jj = features.length; j < jj; ++j ) {
+                //     ol.extent.extend( extent, features[ j ].getGeometry().getExtent());
                 // }
                 // this.view.setCenter( ol.extent.getCenter( extent ) );
-                var orgfeature = feature.get( 'features' )[ 0 ];
+                var orgfeature = features[ 0 ];
                 this.view.setCenter( ol.extent.getCenter( orgfeature.getGeometry().getExtent() ) );
+
+                // 发出新的视图层次创建消息
+                this.dispatchEvent( new ifuture.Event( 'cluster:open', features ) );
             }
 
             else if ( this.viewLevel === ViewLevel.REGION ) {
-                var orgfeature = feature.get( 'features' )[ 0 ];
+                var orgfeature = features[ 0 ];
                 if ( size > 1 ) {
                     this.view.setCenter( ol.extent.getCenter( orgfeature.getGeometry().getExtent() ) );
                     this.view.setZoom( this.view.getZoom() + 1 );
@@ -939,11 +942,11 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         
         var level = this.layerLevel;
 
-        // 如果已经打开该图层，则直接返回
-        // 这是因为点击地图的时候被挡住的特征也会被选择出来
         for ( var i = 0; i < this.layerStack.length; i ++ ) {
-            if ( this.layerStack[ i ].url === url )
+            if ( this.layerStack[ i ].url === url ) {
+                this.selectLayerLevel_( i );
                 return;
+            }
         }
 
         var request = new XMLHttpRequest();
@@ -1039,8 +1042,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         // 设置当前 level
         this.selectLayerLevel_( level );
 
-        // 发出消息
-        // this.dispatchEvent( new ifuture.Event( 'feature:open', level ) );
+        // 发出新的视图层次创建消息
+        this.dispatchEvent( new ifuture.Event( 'node:open', this.viewLevel ) );
 
     };
 
@@ -1269,7 +1272,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
             this.openElevation_( JSON.parse( request.responseText ), baseurl, item.extent );
             item.currentElevation = elevation;
-            this.dispatchEvent( new ifuture.Event( 'elevation:changed', elevation ) );
+            this.dispatchEvent( new ifuture.Event( 'elevation:changed', { elevation: elevation, level: level } ) );
 
         }.bind( this );
 
