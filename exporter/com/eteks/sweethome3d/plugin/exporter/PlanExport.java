@@ -360,7 +360,8 @@ public class PlanExport extends PlanComponent {
                              homeFurniture.getAngle(),
                              homeFurniture.getPitch(),
                              homeFurniture.getRoll(),
-                             baseUrl + "/" + homeFurniture.getName());
+                             homeFurniture.getName());
+                             // baseUrl + "/" + homeFurniture.getName());
     }
 
     private void buildItem(List<String> results, String baseUrl, HomePieceOfFurniture homeFurniture) {

@@ -240,28 +240,26 @@ public class HouseExport {
         writer.write(String.format("\"plan\": {%n" +
                                    "  \"size\": [ %d, %d ],%n" +
                                    "  \"extent\": [ %f, %f, %f, %f ],%n" +
-                                   "  \"url\": \"%s/views/plan/plan_house.png\"%n" +
+                                   "  \"url\": \"views/plan/plan_house.png\"%n" +
                                    "},%n",
                                    (int)Math.ceil(itemBounds.getWidth() * scale + 2 * margin),
                                    (int)Math.ceil(itemBounds.getHeight() * scale + 2 * margin),
                                    itemBounds.getMinX() / 100 - s,
                                    itemBounds.getMinY() / 100 - s,
                                    itemBounds.getMaxX() / 100 + s,
-                                   itemBounds.getMaxY() / 100 + s,
-                                   path));
+                                   itemBounds.getMaxY() / 100 + s));
 
-        writer.write(String.format("\"solid\": {%n  \"url\": \"%s/views/solid/house.obj\"%n},%n", path));
+        writer.write(String.format("\"solid\": {%n  \"url\": \"views/solid/house.obj\"%n},%n"));
 
         int[] size = PhotoMaker.getImageSize(home, itemBounds, stereoResolution);
         double[] extent = PhotoMaker.getImageExtent(home, itemBounds);
         writer.write(String.format("\"stereo\": {%n" +
                                    "  \"size\": [ %d, %d ],%n" +
                                    "  \"extent\": [ %f, %f, %f, %f ],%n" +
-                                   "  \"url\": \"%s/views/stereo/stereo_house.jpg\"%n" +
+                                   "  \"url\": \"views/stereo/stereo_house.jpg\"%n" +
                                    "},%n",
                                    size[0], size[1],
-                                   extent[0], extent[1], extent[2], extent[3],
-                                   path));
+                                   extent[0], extent[1], extent[2], extent[3]));
 
         Level level = home.getSelectedLevel();
         List<String> labels = new ArrayList<String>();
@@ -290,7 +288,7 @@ public class HouseExport {
     }
 
     public static void writeChildren(OutputStreamWriter writer, Home home) throws IOException {
-        List<String> results = new ArrayList<String>();        
+        List<String> results = new ArrayList<String>();
         Level level = home.getSelectedLevel();
         for (Room room: home.getRooms()) {
             if (level != null && !room.isAtLevel(level))
@@ -360,7 +358,7 @@ public class HouseExport {
         writeCompassData(writer, home);
         writeViewData(writer, home, itemBounds, resolution, stereoResolution, plan.getExtraMargin(), baseUrl);
         plan.writeData(writer, baseUrl);
-        writeChildren(writer, home); 
+        writeChildren(writer, home);
         writer.write(String.format("}%n"));
         writer.flush();
         out.close();
