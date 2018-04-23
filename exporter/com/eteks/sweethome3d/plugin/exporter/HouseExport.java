@@ -190,7 +190,7 @@ public class HouseExport {
             System.out.println("Generate image (." + imageType.toLowerCase() + ", " + width + "x" + height + ")...");
             BufferedImage photo = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.LOW);
-            // renderer.render(photo, camera, null);
+            renderer.render(photo, camera, null);
 
             System.out.println("Write image to " + outputFile.getName());
             ImageIO.write(photo, imageType, outputFile);
@@ -345,7 +345,7 @@ public class HouseExport {
         String stereoPath = viewPath + File.separator + "stereo";
         Rectangle2D itemBounds = plan.getItemsBounds();
         System.out.printf("输出分辨率为 %f 的立体图到目录 %s%n", stereoResolution, stereoPath);
-        imageType = "JPG";
+        imageType = "PNG";
         PhotoMaker.makeStereoPhotos(home, itemBounds, stereoResolution * 100, stereoPath, imageType);
 
         // 输出 config.json
