@@ -63,7 +63,7 @@ import com.eteks.sweethome3d.model.Selectable;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 
-// import com.eteks.sweethome3d.j3d.PhotoRenderer;
+import com.eteks.sweethome3d.j3d.PhotoRenderer;
 
 
 /**

@@ -198,6 +198,15 @@ public class PhotoRenderer {
     }
     // Create a 3D ground large enough to join the sky at the horizon  
     Ground3D ground = new Ground3D(home, -1E7f / 2, -1E7f / 2, 1E7f, 1E7f, true);
+    /*
+    Shape3D groundShape = (Shape3D)ground.getChild(0);
+    Appearance groundAppearance = groundShape.getAppearance();
+    TransparencyAttributes transparencyAttributes = groundAppearance.getTransparencyAttributes();
+    transparencyAttributes.setCapability(TransparencyAttributes.ALLOW_VALUE_WRITE);
+    transparencyAttributes.setCapability(TransparencyAttributes.ALLOW_MODE_WRITE);    
+    transparencyAttributes.setTransparencyMode(TransparencyAttributes.SCREEN_DOOR);  
+    transparencyAttributes.setTransparency(.9f);  
+    */
     Transform3D translation = new Transform3D();
     translation.setTranslation(new Vector3f(0, -0.1f, 0));
     TransformGroup groundTransformGroup = new TransformGroup(translation);
