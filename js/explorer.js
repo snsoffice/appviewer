@@ -18,6 +18,11 @@
  *    点击关闭图标，关闭对应的对象
  *    操作对象，例如全景图，对象的位置和视角变化之后同步显示在大地图
  *
+ * 直播模式
+ *
+ *    显示直播视频
+ *    点击关闭图标，结束直播或者退出直播
+ *
  * 支持的类型
  *
  *     HTML
@@ -32,33 +37,33 @@
  *         <p class="lead">中国有远景，天涯若比邻</p>
  *       </div>
  *     </div>
- *     
+ *
  *     PHOTO
- *     
+ *
  *      <div data-name="photo" class="d-flex justify-content-center align-items-center">
  *        <img class="owl-lazy mw-100 mh-100" data-src="URL" alt="TITLE">
  *      </div>
- *      
+ *
  *     PANORAMA
  *
  *      <div data-name="panorama" class="d-flex justify-content-center align-items-center">
  *        <img class="owl-lazy mw-100 mh-100" data-src="URL" alt="TITLE">
  *      </div>
- *      
+ *
  *     video5
- *     
+ *
  *     living
  *
- *  七牛图片瘦身，画质基本不变，存储大小减少
+ *  七牛图片瘦身，画质基本不变，存储大小减少，这个是收费的
  *      http://oano6er3n.bkt.clouddn.com/giraffe.jpg?imageslim
- *      
+ *
  *  七牛图片处理
  *     参考 https://developer.qiniu.com/dora/manual/1279/basic-processing-images-imageview2
  *
  *     poster
  *
  *     http://oano6er3n.bkt.clouddn.com/giraffe.jpg?imageView2/0/w/200/interlace/1
- *     
+ *
  */
 
 define( [ 'ifuture', 'carousel' ],
@@ -110,11 +115,11 @@ function( ifuture, Carousel ) {
 
             if ( ! this.viewname ) {
                 this.touchItem();
-                e.currentTarget.firstElementChild.className = 'fas fa-times fa-lg';
+                e.currentTarget.innerHTML = '<i class="fas fa-times fa-lg"></i>';
             }
             else {
                 this.close();
-                e.currentTarget.firstElementChild.className = 'fas fa-folder-open fa-lg';
+                e.currentTarget.innerHTML = '<i class="fas fa-folder-open fa-lg"></i>';
             }
 
         }.bind( this ), false );
@@ -125,6 +130,13 @@ function( ifuture, Carousel ) {
         this.viewname = null;
         this.items = [];
         this.mimetypes = [];
+
+        this.items.push( {
+            type: 'panorama',
+            title: 'Example',
+            mimetype: 'panorama/equirectangular',
+            url: 'data/test/examplepano.jpg'
+        } );
 
     }
     ifuture.inherits( Explorer, ifuture.Component );
@@ -192,15 +204,15 @@ function( ifuture, Carousel ) {
 
     Explorer.prototype.buildItem_ = function ( item ) {
         var html;
-        if ( item.type === 'cover' ) {
-            html = 
-                '<div data-name="html" class="text-white">' +
-                '  <p class="center">' + item.title + '</p>' +
+        if ( item.minetype === 'cover' ) {
+            html =
+                '<div data-name="html" class="text-info h-100 d-flex align-items-center justify-content-center">' +
+                '  <h3>' + item.title + '</h3>' +
                 '</div>';
         }
         else {
             html =
-                '<div data-name="' + item.name + '">' +
+                '<div data-name="' + item.name + '" class="h-100 d-flex align-items-center justify-content-center">' +
                 '  <img class="owl-lazy" data-src="' + item.poster + '" alt="' + item.title + '">' +
                 '</div>';
         }
@@ -225,21 +237,27 @@ function( ifuture, Carousel ) {
     };
 
     Explorer.prototype.setItems = function ( items ) {
+
         var htmls = [];
         if ( items )
             for ( var i = 0; i < items.length; i ++ )
                 htmls.push( this.buildItem_( items[ i ] ) );
         this.carousel.replace( htmls.join( '' ) );
         this.items =  items;
+
+        this.resizeCarousel();
+
     };
 
     Explorer.prototype.findView = function ( item ) {
+
         var mimetype = item.mimetype;
         for ( var i = 0; i < this.mimetypes.length; i ++ ) {
             var m = this.mimetypes[ i ];
             if ( m[1].indexOf( mimetype ) > -1 )
                 return m[ 0 ];
         }
+
     };
 
     return Explorer;

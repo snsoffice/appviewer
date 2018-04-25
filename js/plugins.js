@@ -67,6 +67,11 @@ define({
             source: 'plugins/showcase/living',
             options: {}
         },
+        {
+            name: 'page',
+            source: 'plugins/showcase/page',
+            options: {}
+        },
     ]
 
 });

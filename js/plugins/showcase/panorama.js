@@ -23,7 +23,7 @@ function( ifuture, Showcase, pannellum, utils ) {
     }
     ifuture.inherits( Panorama, Showcase );
 
-    Panorama.prototype.open = function ( container, item ) {        
+    Panorama.prototype.open = function ( container, item ) {
         var config = {
             autoLoad: true,
             panorama: item.url,

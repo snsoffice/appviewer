@@ -77,7 +77,7 @@ function( ifuture, owl, utils, $ ) {
         var height = this.viewport() + 'px';
         var element = this._core.$element;
         $( '.owl-stage', element).css('height' , height);
-        $( '.owl-item', element).css('min-height', height);
+        $( '.owl-item', element).css('height', height);
     };
 
     /**
@@ -140,7 +140,9 @@ function( ifuture, owl, utils, $ ) {
     };
 
     Carousel.prototype.resize = function () {
+        this.owl_.trigger( 'resize.owl.carousel' );
         this.owl_.data( 'owl.carousel' ).onResize();
+        this.to( 0, 0 );
     };
 
     Carousel.prototype.show = function ( position ) {

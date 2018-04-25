@@ -136,6 +136,11 @@
     bottom: 0;
 }
 
+.dx-carousel .owl-carousel .owl-item img {
+    width: initial;
+    max-width: 100%;
+}
+
 /*
  *
  * Part 3.2: manager
@@ -181,11 +186,11 @@
     overflow-y: auto;
 }
 
-.w-30 {
+#vision .w-30 {
     width: 30%!important;
 }
 
-.owl-item {
+#vision .owl-item {
     overflow-y: auto;
 }
 

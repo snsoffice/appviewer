@@ -128,7 +128,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     // Spherical Mercator (the default) then minResolution defaults to
     // 40075016.68557849 / 256 / Math.pow(2, 28) = 0.0005831682455839253.
     var minResolution = 0.01;
-    
+
     var resolution = config.mapResolution;
     resolution = resolution ? resolution : 20;
 
@@ -148,17 +148,17 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             resolution: 20,
         },
         {
-            minResolution: 0.1,
+            minResolution: 0.05,
             maxResolution: 10,
             resolution: 1,
         },
         {
-            minResolution: 0.012,
+            minResolution: 0.0012,
             maxResolution: 1,
             resolution: 0.5,
         },
         {
-            minResolution: 0.012,
+            minResolution: 0.0012,
             maxResolution: 1,
             resolution: 0.1,
         },
@@ -349,7 +349,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                 text: new ol.style.Text( {
                     text: size.toString(),
                     fill: textFill,
-                    stroke: textStroke
+                    // stroke: textStroke
                 } )
             } );
 
@@ -556,7 +556,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         this.featureGroup = new ol.layer.Group( {
             minResolution: MIN_RESOLUTION,
             maxResolution: MAX_RESOLUTION,
-            visible: true,
+            visible: false,
         } );
 
         /**
@@ -670,8 +670,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                     label: span,
                 } ),
             ],
-            layers: [ this.baseGroup_, createClusterLayer(), this.childrenGroup,                       
-                      this.planGroup, this.stereoGroup, 
+            layers: [ this.baseGroup_, createClusterLayer(), this.childrenGroup,
+                      this.planGroup, this.stereoGroup,
                       this.labelGroup, this.featureGroup,
                     ],
             view: this.view,
@@ -939,7 +939,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
      * @private
      */
     Map.prototype.openOrganization_ = function ( url, origin ) {
-        
+
         var level = this.layerLevel;
 
         for ( var i = 0; i < this.layerStack.length; i ++ ) {
@@ -1174,7 +1174,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                     feature.setProperties( {
                         type: FeatureType.FEATURE,
                         pose: node.pose,
-                        mimetype: node.type === 'panorama' ? 'panorama/equirectangular' : 'image/jpeg',
+                        mimetype: node.minetype === 'panorama' ? 'panorama/equirectangular' : 'image/jpeg',
                         url: formatUrl( node.url, baseurl ),
                     }, true );
                     features.push( feature );
@@ -1195,60 +1195,99 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
     Map.prototype.selectLayerLevel_ = function ( level ) {
 
-        this.setViewLevel( level + ViewLevel.ORGANIZATION );
-
         var item = this.layerStack[ level ];
         this.layerLevel = level;
 
-        // 隐藏楼层按钮
-        if ( item.elevations === undefined )
-            this.app_.request( 'modebar', 'setElevations', {} );
+        // 当前和上级是否是多层
+        var i = level;
+        while ( i >= 0 ) {
 
-        // 显示设置楼层按钮
-        else
-            this.app_.request( 'modebar', 'setElevations', {
-                data: item.elevations,
-                level: level,
-                callback: function ( level, elevation ) {
-                    this.selectElevation_( level, elevation );
-                }.bind( this ),
-            } );
+            // 显示设置楼层按钮
+            if ( this.layerStack[ i ].elevations !== undefined ) {
+
+                this.app_.request( 'modebar', 'setElevations', {
+                    data: this.layerStack[ i ].elevations,
+                    level: i,
+                    callback: function ( level, elevation ) {
+                        this.selectElevation_( level, elevation );
+                        this.view.fit( this.layerStack[ level ].extent, { nearest: true, duration: 200 } );
+                    }.bind( this ),
+                } );
+
+                this.dispatchEvent( new ifuture.Event( 'elevation:changed', {
+                    elevation:
+                    this.layerStack[ i ].currentElevation,
+                    level: i
+                } ) );
+
+                break;
+
+            }
+
+            i --;
+
+        }
+
+        // 隐藏楼层按钮
+        if ( i < 0 )
+            this.app_.request( 'modebar', 'setElevations', {} );
 
         // 装载最顶层的图层
         if ( item.elevations !== undefined && item.currentElevation === undefined ) {
             this.selectElevation_( level, item.elevations.length - 1 );
         }
 
+        this.setViewLevel( level + ViewLevel.ORGANIZATION );
+
         // 显示选中的图层
         if ( ! ol.extent.isEmpty( item.extent ) )
             this.view.fit( item.extent );
 
-        // 创建旋转木马
-        var layer = this.featureGroup.getLayers().item( level );
-        this.createItemCarousel_( layer );
-
     };
 
-    Map.prototype.createItemCarousel_ = function ( layer ) {
-        var title = layer === null ? '远景网' : layer.get( 'title' );
-        var items = [ {
-            type: 'cover',
-            title: title === undefined ? '远景网' : title,
-        } ];
-        if ( layer instanceof ol.layer.Vector ) {
-            layer.getSource().forEachFeature( function ( feature ) {
-                var url = config.resourceBaseUrl + '/' + feature.get( 'url' );
-                items.push( {
-                    type: feature.get( 'type' ),
-                    poster: url + '?imageslim', // 这个请求在七牛是收费的
-                    mimetype: feature.get( 'mimetype' ),
-                    url: url,
-                    position: feature.getGeometry().getFirstCoordinate(),
-                    pose: feature.get( 'pose' ),
-                } );
+    Map.prototype.createViewCarousel_ = function ( level ) {
+
+        level = level === undefined ? this.viewLevel : level;
+
+        var items = [];
+
+        if ( level < ViewLevel.ORGANIZATION ) {
+
+            items.push( {
+                minetype: 'cover',
+                title: '远景网',
             } );
+
         }
+
+        else {
+
+            level -= ViewLevel.ORGANIZATION;
+
+            var layer = this.featureGroup.getLayers().item( level );
+            var title = this.layerStack[ level ].title;
+
+            items.push( {
+                minetype: 'cover',
+                title: title === undefined ? '远景网' : title,
+            } );
+
+            if ( layer instanceof ol.layer.Vector ) {
+                layer.getSource().forEachFeature( function ( feature ) {
+                    var url = feature.get( 'url' );
+                    items.push( {
+                        poster: url + '?imageslim', // 这个请求在七牛是收费的
+                        mimetype: feature.get( 'mimetype' ),
+                        url: url,
+                        position: feature.getGeometry().getFirstCoordinate(),
+                        pose: feature.get( 'pose' ),
+                    } );
+                } );
+            }
+        }
+
         this.app_.request( 'explorer', 'setItems', [ items ] );
+
     };
 
     Map.prototype.selectElevation_ = function ( level, elevation ) {
@@ -1258,6 +1297,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             return;
 
         // 选择不同的楼层，需要确保下级图层都被清除
+        // TODO: 需要通知 minimap 也删除下面的级别和层次
+        //       或者把 minimap 的信息也合并到 this.layerStack 中来
         this.removeViewLevel( level + ViewLevel.ORGANIZATION + 1 );
 
         var baseurl = item.url + '/floor' + elevation;
@@ -1309,6 +1350,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
      * @api
      */
     Map.prototype.setViewLevel = function ( level ) {
+
         if ( this.viewLevel !== level ) {
             var view = this.views_[ level ];
             this.map.setView( view );
@@ -1317,7 +1359,10 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             this.view = view;
             this.viewLevel = level;
             this.layerLevel = Math.max( -1, level - ViewLevel.ORGANIZATION );
+
+            this.createViewCarousel_( level );
         }
+
     };
 
     /**
