@@ -232,7 +232,7 @@ function( ifuture, Carousel ) {
 
 
     Explorer.prototype.touchItem = function () {
-        var position = ( this.carousel.current() - 1 ) % this.items.length;
+        var position = ( this.carousel.current() - 2 ) % this.items.length;
         if ( position > -1 )
             this.open( this.items[ position ] );
     };

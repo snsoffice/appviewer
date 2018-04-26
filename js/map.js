@@ -234,7 +234,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         element.style.textAlign = 'center';
         element.style.pointerEvents = 'none';
         element.style.userSelect = 'none';
-        // element.style.border = '2px solid #000';
+        element.style.transformOrigin = 'center bottom';
+        // element.style.border = '1px solid #000';
         var img1 = document.createElement( 'IMG' );
         img1.src = utils.createVisualization();
         img1.style.opacity = 0.168;
@@ -253,6 +254,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             stopEvent: false,
             offset: [ 0, -32 ]
         });
+
         return visitor;
 
     }
@@ -1174,7 +1176,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                     feature.setProperties( {
                         type: FeatureType.FEATURE,
                         pose: node.pose,
-                        mimetype: node.minetype === 'panorama' ? 'panorama/equirectangular' : 'image/jpeg',
+                        mimetype: node.mimetype === 'panorama' ? 'panorama/equirectangular' : 'image/jpeg',
                         url: formatUrl( node.url, baseurl ),
                     }, true );
                     features.push( feature );
@@ -1436,7 +1438,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             else if ( direction !== null ) {
                 var element = overlay.getElement();
                 element.querySelector( 'img:nth-of-type(2)' ).style.visiblility = 'visible';
-                element.style.transform = 'rotate(' + direction + 'deg)';
+                element.style.transform = 'rotate(' + direction + 'deg) translate(0, 16px)';
             }
 
         }

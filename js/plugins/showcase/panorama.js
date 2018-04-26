@@ -17,6 +17,7 @@ function( ifuture, Showcase, pannellum, utils ) {
     var Panorama = function ( app, opt_options ) {
         Showcase.call( this );
 
+        this.app_ = app;
         this.name = 'panorama';
         this.title = '全景';
         this.viewer_ = null;
@@ -27,7 +28,7 @@ function( ifuture, Showcase, pannellum, utils ) {
         var config = {
             autoLoad: true,
             panorama: item.url,
-            application: app
+            application: this.app_,
         };
         this.viewer_ = pannellum.viewer( container, config );
     };
