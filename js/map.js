@@ -785,7 +785,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         else if ( name === 'visitor' || name === 'camera' ) {
             var v = this.map.getOverlayById( name );
             var pos = v.getPosition();
-            if ( pos === undefined ) {
+            if ( ( pos === undefined && visible === undefined ) || visible === true ) {
                 var pos = v.get( 'lastPosition' );
                 v.setPosition( pos === undefined ? this.map.getView().getCenter() : pos );
             }
@@ -1210,7 +1210,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                     level: i,
                     callback: function ( level, elevation ) {
                         this.selectElevation_( level, elevation );
-                        this.view.fit( this.layerStack[ level ].extent, { nearest: true, duration: 200 } );
+                        this.createViewCarousel_( level + ViewLevel.ORGANIZATION );
+                        this.fitView( this.layerStack[ level ].extent );
                     }.bind( this ),
                 } );
 
@@ -1240,8 +1241,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         this.setViewLevel( level + ViewLevel.ORGANIZATION );
 
         // 显示选中的图层
-        if ( ! ol.extent.isEmpty( item.extent ) )
-            this.view.fit( item.extent );
+        this.fitView( item.extent );
 
     };
 
@@ -1287,7 +1287,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         }
 
         this.app_.request( 'explorer', 'setItems', [ items ] );
-
+        this.toggleVisible( 'visitor', false );
     };
 
     Map.prototype.selectElevation_ = function ( level, elevation ) {
@@ -1405,24 +1405,93 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
     /**
      *
-     * 设置游客或者摄像头的位置和视野，position 设置为 undefined 可以隐藏整个图标
+     * 设置游客或者摄像头的位置和视野，position 设置为 undefined 可以隐
+     * 藏整个图标，yaw 设置为 undefined 可以隐藏视野角度，如果为 null
+     * 则保持原来的值不变
      *
      * @param {string} name 名称，'visitor' 或者 'camera'
-     * @param {ol.Coordinate} position 位置坐标
+     * @param {ol.Coordinate|null} position 位置坐标，如果是 null 则不修改位置
      * @param {number} direction 视野方向，以正北为 0 度，顺时针为正
      * @observable
      * @api
      */
     Map.prototype.setVisionHelper = function ( name, position, direction ) {
-        if (name === 'visitor' || name === 'camera') {
-            var overlay = this.map.getOverlayById( 'visitor' );
-            overlay.setPosition( position );
 
-            if ( direction !== undefined ) {
+        if (name === 'visitor' || name === 'camera') {
+
+            var overlay = this.map.getOverlayById( 'visitor' );
+
+            if ( position !== null )
+                overlay.setPosition( position );
+
+            if ( direction === undefined ) {
                 var element = overlay.getElement();
+                element.querySelector( 'img:nth-of-type(2)' ).style.visiblility = 'hidden';
+            }
+
+            else if ( direction !== null ) {
+                var element = overlay.getElement();
+                element.querySelector( 'img:nth-of-type(2)' ).style.visiblility = 'visible';
                 element.style.transform = 'rotate(' + direction + 'deg)';
             }
+
         }
+
+    };
+
+    /**
+     *
+     * 事件处理程序
+     *
+     * @param {ifuture.Event} event 事件对象
+     * @observable
+     * @api
+     */
+    Map.prototype.handleFutureEvent = function ( event ) {
+
+        if ( event.type === 'helper:changed' ) {
+            var arg = event.argument;
+            this.setVisionHelper( arg.name, arg.position, arg.yaw );
+        }
+
+    };
+
+    /**
+     *
+     * 适应视图大小，并且使用动画方式过渡。首先是中心，然后在切换分辨率
+     *
+     * @param {ifuture.Event} event 事件对象
+     * @observable
+     * @api
+     */
+    Map.prototype.fitView = function ( extent ) {
+
+        if ( ol.extent.isEmpty( extent ) )
+            return;
+
+        var center = ol.extent.getCenter( extent );
+        var resolution = this.view.getResolutionForExtent( extent );
+
+        // var pt1 = this.map.getPixelFromCoordinate( center );
+        // var pt2 = this.map.getPixelFromCoordinate( this.view.getCenter() );
+
+        // // 计算中心移动的过渡时间
+        // var dx = pt1[ 0 ] - pt2[ 0 ], dy = pt1[ 1 ] - pt2[ 1 ];
+        // var duration1 = Math.sqrt( dx * dx + dy * dy ) * this.view.getResolution();
+
+        // // 计算目标分辨率，根据当前分辨率确定过渡时间
+        // var duration2 = this.view.getResolution() - resolution;
+
+        this.view.animate( { center: center, duration: 500 },
+                           { resolution: resolution, duration: 500 }
+                         );
+
+        // 所有其他视图也要统一修改中心
+        this.views_.forEach( function ( v ) {
+            if ( this.view !== v )
+                v.setCenter( center );
+        }.bind( this ) );
+
     };
 
     return Map;

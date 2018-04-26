@@ -41,6 +41,9 @@ function( ifuture, Map, Minimap, Explorer, Manager, Vision,
         // 所有对象之间的事件绑定关系
         this.map.on( [ 'node:open', 'cluster:open' ], this.minimap.handleMapEvent, this.minimap );
         this.map.on( 'elevation:changed', this.modebar.handleElevationEvent, this.modebar );
+
+        this.on( 'helper:changed', this.map.handleFutureEvent, this.map );
+        this.on( 'carousel:changed', this.explorer.handleFutureEvent, this.explorer );
     };
     ifuture.inherits( Application, ifuture.Component );
 

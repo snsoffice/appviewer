@@ -21,7 +21,7 @@
  * THE SOFTWARE.
  */
 
-define( [ 'libpannellum' ], function ( libpannellum ) {
+define( [ 'ifuture', 'libpannellum' ], function ( ifuture, libpannellum ) {
 
 return (function(window, document, undefined) {
 
@@ -100,6 +100,10 @@ var defaultConfig = {
     hotSpotDebug: false,
     backgroundColor: [0, 0, 0],
 };
+
+// Fix easyrtc issue: it redefine those 2 functions
+var nativeCreateObjectURL = window.URL.createObjectURL.bind(window.URL);
+var nativeRevokeObjectURL = window.URL.revokeObjectURL.bind(window.URL);
 
 // Initialize container
 container = typeof container === 'string' ? document.getElementById(container) : container;
@@ -329,7 +333,7 @@ function init() {
             p = absoluteURL(config.panorama) ? config.panorama : p + config.panorama;
 
             panoImage.onload = function() {
-                window.URL.revokeObjectURL(this.src);  // Clean up
+                nativeRevokeObjectURL(this.src);  // Clean up
                 onImageLoad();
             };
 
@@ -529,7 +533,7 @@ function parseGPanoXMP(image) {
         }
 
         // Load panorama
-        panoImage.src = window.URL.createObjectURL(image);
+        panoImage.src = nativeCreateObjectURL(image);
     });
     if (reader.readAsBinaryString !== undefined)
         reader.readAsBinaryString(image);
@@ -1398,6 +1402,16 @@ function render() {
         if (config.compass) {
             compass.style.transform = 'rotate(' + (-config.yaw - config.northOffset) + 'deg)';
             compass.style.webkitTransform = 'rotate(' + (-config.yaw - config.northOffset) + 'deg)';
+        }
+
+        // Jondy: the yaw of helper changed
+        if (config.application) {
+            // console.log('Panorama north is ' + (-config.yaw - config.northOffset) + 'deg' );
+            config.application.dispatchEvent( new ifuture.Event( 'helper:changed', {
+                name: 'visitor',
+                position: null,
+                yaw: -config.yaw - config.northOffset
+            } ) );
         }
     }
 }

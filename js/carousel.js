@@ -115,6 +115,12 @@ function( ifuture, owl, utils, $ ) {
             center: true,
             responsiveBaseElement: baseElement
         } );
+
+        this.owl_.on( 'translated.owl.carousel', function ( event ) {
+            var pos = ( event.item.index - 2 ) % event.item.count;
+            app.dispatchEvent( new ifuture.Event( 'carousel:changed', pos ) );
+        } );
+
     }
     // ifuture.inherits( Carousel, ifuture.Component );
 
@@ -142,7 +148,9 @@ function( ifuture, owl, utils, $ ) {
     Carousel.prototype.resize = function () {
         this.owl_.trigger( 'resize.owl.carousel' );
         this.owl_.data( 'owl.carousel' ).onResize();
-        this.to( 0, 0 );
+        // 解决初始化之后宽度设置不正确的问题
+        if ( this.current() === 0 )
+            this.to( 0, 0 );
     };
 
     Carousel.prototype.show = function ( position ) {

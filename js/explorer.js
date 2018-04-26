@@ -82,6 +82,8 @@ function( ifuture, Carousel ) {
 
         ifuture.Component.call( this );
 
+        this.app_ = app;
+
         this.element = document.querySelector( '#explorer' );
 
         // 三种位置： mini, float, fullscreen
@@ -132,10 +134,9 @@ function( ifuture, Carousel ) {
         this.mimetypes = [];
 
         this.items.push( {
-            type: 'panorama',
-            title: 'Example',
-            mimetype: 'panorama/equirectangular',
-            url: 'data/test/examplepano.jpg'
+            type: 'cover',
+            title: '远景网',
+            mimetype: 'html',
         } );
 
     }
@@ -212,7 +213,7 @@ function( ifuture, Carousel ) {
         }
         else {
             html =
-                '<div data-name="' + item.name + '" class="h-100 d-flex align-items-center justify-content-center">' +
+                '<div data-name="' + item.minetype + '" class="h-100 d-flex align-items-center justify-content-center">' +
                 '  <img class="owl-lazy" data-src="' + item.poster + '" alt="' + item.title + '">' +
                 '</div>';
         }
@@ -256,6 +257,30 @@ function( ifuture, Carousel ) {
             var m = this.mimetypes[ i ];
             if ( m[1].indexOf( mimetype ) > -1 )
                 return m[ 0 ];
+        }
+
+    };
+
+    /**
+     *
+     * 事件处理程序
+     *
+     * @param {ifuture.Event} event 事件对象
+     * @observable
+     * @api
+     */
+    Explorer.prototype.handleFutureEvent = function ( event ) {
+
+        if ( event.type === 'carousel:changed' ) {
+            var index = event.argument;
+            var item = this.items[ index ];
+            var pos = item.position;
+            var yaw = item.pose === undefined ? 0 : item.pose[ 0 ];
+            this.app_.dispatchEvent( new ifuture.Event( 'helper:changed', {
+                name: 'visitor',
+                position: pos,
+                yaw: yaw * 180 / Math.PI
+            } ) );
         }
 
     };

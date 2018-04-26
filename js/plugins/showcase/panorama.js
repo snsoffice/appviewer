@@ -27,6 +27,7 @@ function( ifuture, Showcase, pannellum, utils ) {
         var config = {
             autoLoad: true,
             panorama: item.url,
+            application: app
         };
         this.viewer_ = pannellum.viewer( container, config );
     };

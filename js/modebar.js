@@ -232,10 +232,11 @@ function( ifuture, $ ) {
 
         var elevations = this.elevations.data;
 
+        Array.prototype.forEach.call( document.querySelectorAll( '.dx-modal-container' ), function ( dialog ) {
+            document.body.removeChild( dialog );
+        } );
+
         if ( elevations === undefined || elevations.length === 0 ) {
-            Array.prototype.forEach.call( document.querySelectorAll( '.dx-modal-container' ), function ( dialog ) {
-                document.body.removeChild( dialog );
-            } );
 
             this.element.querySelector( 'button[data-target=".dx-modal-container"]' ).style.visibility = 'hidden';
         }
@@ -290,16 +291,16 @@ function( ifuture, $ ) {
                 this.currentElevation = parseInt( e.target.getAttribute( 'data-elevation' ) );
 
                 if ( this.elevations.callback ) {
-                    this.elevations.callback( this.elevations.level, this.currentElevation );
+                    this.elevations.callback( this.elevations.level, this.currentElevation );                    
                 }
 
                 $( '.dx-modal-container' ).modal( 'hide' );
+                return true;
 
             }.bind( this ), false );
         }
 
     };
-
 
     return Modebar;
 
