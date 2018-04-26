@@ -1210,7 +1210,6 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                     level: i,
                     callback: function ( level, elevation ) {
                         this.selectElevation_( level, elevation );
-                        this.createViewCarousel_( level + ViewLevel.ORGANIZATION );
                         this.fitView( this.layerStack[ level ].extent );
                     }.bind( this ),
                 } );
@@ -1313,6 +1312,11 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
             this.openElevation_( JSON.parse( request.responseText ), baseurl, item.extent );
             item.currentElevation = elevation;
+            var vlevel = level + ViewLevel.ORGANIZATION;
+            if ( this.viewLevel === vlevel )
+                this.createViewCarousel_( vlevel );
+            else
+                this.setViewLevel( vlevel );
             this.dispatchEvent( new ifuture.Event( 'elevation:changed', { elevation: elevation, level: level } ) );
 
         }.bind( this );
