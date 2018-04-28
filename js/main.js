@@ -82,6 +82,11 @@ function( Application, config, ifuture, plugins ) {
     //         overview.toggle( showcase.mini );
     // }, false );
 
+    // 删除原来的 map, 否则刷新的时候会出现两个 viewport
+    document.getElementById( 'map' ).remove();
+    var div = document.createElement( 'DIV' );
+    div.innerHTML = '<div id="map" class="dx-map dx-page"></div>';
+    document.body.appendChild( div.firstElementChild );
 
     var app = new Application( config );
 
@@ -94,6 +99,16 @@ function( Application, config, ifuture, plugins ) {
     plugins.toolcase.forEach( function ( toolcase ) {
         app.manager.addPlugin( app, toolcase );
     } );
+
+    // Bind menu event
+    document.getElementById( 'start-living' ).addEventListener( 'click', function ( e ) {
+        app.request( 'map', 'startBroadcast' );
+        e.currentTarget.setAttribute( 'disabled', true );
+    }, false );
+
+    document.getElementById( 'join-living' ).addEventListener( 'click', function ( e ) {
+        app.request( 'map', 'openLiving' );
+    }, false );
 
     app.run();
 

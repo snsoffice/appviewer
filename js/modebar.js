@@ -71,7 +71,7 @@ function( ifuture, $ ) {
             popover.addEventListener( 'click', function ( e ) {
 
                 var target = e.target;
-                while ( target && target.tagName.toUpper() !== 'LI' ) {
+                while ( target && target.tagName.toUpperCase() !== 'LI' ) {
                     target = target.parentElement;
                 }
                 var index = parseInt( target.getAttribute( 'index' ) );

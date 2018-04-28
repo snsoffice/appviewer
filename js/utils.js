@@ -1,21 +1,29 @@
 define( function () {
 
     //
-    // Message box
+    // 消息框
     //
+    var msglist = [];
     var _showMessage = function ( msg, className ) {
-        var element = document.createElement( 'DIV' );
-        element.innerHTML = '<div class="alert alert-dismissible alert-' + className + ' fade show" role="alert">' +
-            '<button type="button" class="close" aria-label="Close" data-dismiss="alert"><span aria-hidden="true">&times;</span></button>' +
-            msg + '</div>';
-        element.firstElementChild.style.zIndex = 2001;
-        document.body.appendChild( element.firstElementChild );
+        var element = document.getElementById( 'message-box' );
+        if ( ! element ) {
+            element = document.createElement( 'DIV' );
+            element.id = 'message-box';
+            element.style.zIndex = 2001;
+            document.body.appendChild( element );
+        }
+        msglist.push( msg );
+        element.innerHTML = '<div class="alert alert-' + className + ' fade show" role="alert">' +
+            '<button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
+            msglist.join( '<p>' ) + '</div>';        
     };
 
-    // document.addEventListener( 'click', function ( e ) {
-    //     _elementMessage.style.display = 'none';
-    // }, false );
-
+    document.addEventListener( 'click', function ( e ) {
+        var element = document.getElementById( 'message-box' );
+        if ( element )
+            element.remove();
+        msglist = [];
+    }, false );
 
     //
     // Map Visualization
@@ -126,7 +134,7 @@ define( function () {
             //     subdomains: ["a", "b", "c"]
             // }
             var layer = options.layer ? options.layer : 'light_all';
-            return new ol.layer.Tile( {                
+            return new ol.layer.Tile( {
                 source: new ol.source.XYZ( {
                     crossOrigin: 'anonymous',
                     url:'http://{a-c}.basemaps.cartocdn.com/rastertiles/' + layer + '/{z}/{x}/{y}.png',

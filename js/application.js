@@ -42,6 +42,8 @@ function( ifuture, Map, Minimap, Explorer, Manager, Vision,
         this.map.on( [ 'node:open', 'cluster:open' ], this.minimap.handleMapEvent, this.minimap );
         this.map.on( 'elevation:changed', this.modebar.handleElevationEvent, this.modebar );
 
+        this.communicator.on( 'living:opened', this.map.handleFutureEvent, this.map );
+
         this.on( 'helper:changed', this.map.handleFutureEvent, this.map );
         this.on( 'carousel:changed', this.explorer.handleFutureEvent, this.explorer );
     };

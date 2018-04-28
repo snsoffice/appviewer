@@ -234,7 +234,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         element.style.textAlign = 'center';
         element.style.pointerEvents = 'none';
         element.style.userSelect = 'none';
-        element.style.transformOrigin = 'center bottom';
+        element.style.transformOrigin = 'center 105px';
         // element.style.border = '1px solid #000';
         var img1 = document.createElement( 'IMG' );
         img1.src = utils.createVisualization();
@@ -252,7 +252,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             element: element,
             positioning: 'bottom-center',
             stopEvent: false,
-            offset: [ 0, -32 ]
+            offset: [ 0, 16 ]
         });
 
         return visitor;
@@ -469,6 +469,12 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
          * @type {enum} browser, anchor, viewer
          */
         this.majorMode_ = 'browser';
+
+        /**
+         * @private
+         * @type {boolean}
+         */
+        this.isLiving_ = false;
 
         /**
          * @private
@@ -870,7 +876,10 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                 // }
                 // this.view.setCenter( ol.extent.getCenter( extent ) );
                 var orgfeature = features[ 0 ];
-                this.view.setCenter( ol.extent.getCenter( orgfeature.getGeometry().getExtent() ) );
+                var center = ol.extent.getCenter( orgfeature.getGeometry().getExtent() );
+                this.views_.forEach( function ( v ) {
+                    v.setCenter( center );
+                } );
 
                 // 发出新的视图层次创建消息
                 this.dispatchEvent( new ifuture.Event( 'cluster:open', features ) );
@@ -1102,6 +1111,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                 this.translateExtent( imageExtent, origin );
                 ol.extent.extend( extent, imageExtent );
                 stereolayer = new ol.layer.Image( {
+                    opacity: 0.8,
                     minResolution: MIN_RESOLUTION,
                     maxResolution: MAX_RESOLUTION,
                     extent: extent,
@@ -1381,6 +1391,28 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
      */
     Map.prototype.setMajorMode = function ( mode ) {
 
+        if ( this.majorMode_ === mode )
+            return;
+
+        if ( this.majorMode_ === 'anchor' ) {
+            if( window.DeviceOrientationEvent ) {
+                window.removeEventListener( 'deviceorientation', this.onCameraPoseChanged_, false );
+            }
+        }
+
+        if ( mode === 'anchor' ) {
+
+            if( window.DeviceOrientationEvent ) {
+                window.addEventListener( 'deviceorientation', this.onCameraPoseChanged_, false );
+            }
+            else {
+                console.log( '设备不支持指南针，无法显示摄像头的方向' );
+            }
+
+        }
+
+        this.majorMode_ = mode;
+
     };
 
 
@@ -1425,7 +1457,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
         if (name === 'visitor' || name === 'camera') {
 
-            var overlay = this.map.getOverlayById( 'visitor' );
+            var overlay = this.map.getOverlayById( name );
 
             if ( position !== null )
                 overlay.setPosition( position );
@@ -1438,7 +1470,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             else if ( direction !== null ) {
                 var element = overlay.getElement();
                 element.querySelector( 'img:nth-of-type(2)' ).style.visiblility = 'visible';
-                element.style.transform = 'rotate(' + direction + 'deg) translate(0, 16px)';
+                element.style.transform = 'rotate(' + direction + 'deg)';
             }
 
         }
@@ -1458,6 +1490,10 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         if ( event.type === 'helper:changed' ) {
             var arg = event.argument;
             this.setVisionHelper( arg.name, arg.position, arg.yaw );
+        }
+
+        else if ( event.type === 'living:opened' ) {
+            this.setMajorMode( 'viewer' );
         }
 
     };
@@ -1497,6 +1533,130 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             if ( this.view !== v )
                 v.setCenter( center );
         }.bind( this ) );
+
+    };
+
+    /**
+     *
+     * 直播模式下面自动设置摄像头的方向，根据手机指南针的方向
+     *
+     * @param {DeviceOrientationEvent} event 事件对象
+     * @private
+     *
+     */
+    Map.prototype.onCameraPoseChanged_ = function ( event ) {
+
+        var heading = event.webkitCompassHeading;
+        if ( heading === undefined )
+            return;
+
+        this.setVisionHelper( 'camera', null, heading );
+
+        if ( this.isLiving_ ) {
+            // Send message to peer
+        }
+
+    };
+
+    /**
+     *
+     * 开始直播
+     *
+     * @api
+     *
+     */
+    Map.prototype.startBroadcast = function () {
+
+        if ( this.majorMode_ === 'anchor' )
+            return ;
+
+        var roomName = this.getRoomName_();
+        if ( ! roomName ) {
+            return ;
+        }
+
+        this.setMajorMode( 'anchor' );
+        this.isLiving_ = false;
+        
+        this.app_.request( 'communicator', 'startBroadcast', roomName );
+        this.app_.request( 'modebar', 'add', [ 'living', {
+            name: 'living',
+            title: '直播',
+            icon: 'fas fa-video',
+            menuitem: '结束直播',
+            callback: this.stopBroadcast.bind( this ),
+            exclusive: true,
+        } ] );
+
+    };
+
+    /**
+     *
+     * 结束直播
+     *
+     * @api
+     *
+     */
+    Map.prototype.stopBroadcast = function () {
+
+        var roomName = this.getRoomName();
+
+        this.setMajorMode( 'browser' );
+        this.isLiving_ = false;
+
+        this.setVisionHelper( 'camera' );
+        this.app_.request( 'communicator', 'stopBroadcast', roomName );
+        this.app_.request( 'modebar', 'remove', 'living' );
+        document.getElementById( 'start-living' ).removeAttribute( 'disabled' );
+
+    };
+
+    /**
+     *
+     * 观看直播
+     *
+     * @api
+     *
+     */
+    Map.prototype.getRoomName_ = function () {
+        if ( this.layerLevel > -1 ) 
+            return this.layerStack[ this.layerLevel ].url.slice( config.resourceBaseUrl.length + 1 ).replace( /\//g, '.' );
+    };
+
+    /**
+     *
+     * 观看直播
+     *
+     * @api
+     *
+     */
+    Map.prototype.openLiving = function () {
+
+        if ( this.majorMode_ !== 'browser' )
+            return ;
+
+        var roomName = this.getRoomName_();
+        if ( ! roomName ) {
+            return ;
+        }
+
+        this.app_.request( 'communicator', 'openLiving', roomName );
+
+    };
+
+    /**
+     *
+     * 关闭直播
+     *
+     * @api
+     *
+     */
+    Map.prototype.closeLiving = function () {
+
+        this.setMajorMode( 'browser' );
+
+        this.setVisionHelper( 'camera' );
+        this.app_.request( 'communicator', 'stopLiving' );
 
     };
 
