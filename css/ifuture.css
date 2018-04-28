@@ -44,6 +44,7 @@
 }
 
 .dx-map {
+    z-index: -1;
 }
 
 .dx-explorer {
