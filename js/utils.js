@@ -3,27 +3,36 @@ define( function () {
     //
     // 消息框
     //
-    var msglist = [];
+    var msglist = null;
+
+    var _clearMessage = function ( e ) {
+
+        if ( msglist !== null ) {
+            var element = document.getElementById( 'messagebox' );
+            element.remove();
+            msglist = [];
+            document.removeEventListener( 'click', _clearMessage, false );
+        }
+
+    };
     var _showMessage = function ( msg, className ) {
-        var element = document.getElementById( 'message-box' );
+
+        var element = document.getElementById( 'messagebox' );
         if ( ! element ) {
             element = document.createElement( 'DIV' );
-            element.id = 'message-box';
-            element.style.zIndex = 2001;
+            element.id = 'messagebox';
+            element.className = 'dx-messagebox';
             document.body.appendChild( element );
+            msglist = [];
+            document.addEventListener( 'click', _clearMessage, false );
         }
+
         msglist.push( msg );
         element.innerHTML = '<div class="alert alert-' + className + ' fade show" role="alert">' +
             '<button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>' +
-            msglist.join( '<p>' ) + '</div>';        
-    };
+            msglist.join( '<p>' ) + '</div>';
 
-    document.addEventListener( 'click', function ( e ) {
-        var element = document.getElementById( 'message-box' );
-        if ( element )
-            element.remove();
-        msglist = [];
-    }, false );
+    };
 
     //
     // Map Visualization

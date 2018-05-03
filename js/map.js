@@ -2,6 +2,45 @@
  *
  * 德新地图类定义，这是核心展示组件之一
  *
+ * 概念和定义，名称全部小写，以下划线开头的是内部对象
+ *
+ *     cluster
+ *     site
+ *     spot
+ *
+ *     basemap
+ *     sitelayer
+ *
+ *     sitestack
+ *     sitelevel
+ *
+ *     viewstack ?
+ *     viewlevel ?
+ *
+ *     plangroup
+ *     stereogroup
+ *
+ *     _planlayer
+ *     _stereolayer
+ *     _solidlayer
+ *
+ *     helper
+ *         visitor
+ *         anchor/camera
+ *
+ * 状态和模式
+ *
+ *     browse    浏览
+ *     anchor    直播
+ *     visit     观看直播等
+ *     guide     导游
+ *
+ * 行为和方法，使用大小写混合方式定义名称
+ *
+ *     setRootSite
+ *
+ * 消息和事件
+ *
  * 底图
  *      watercolor: stamen.watercolor + stamen.toner-labels
  *      aerial: bings.aerial + stamen.terrain-labels
@@ -452,6 +491,43 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         return style;
     }
 
+    //
+    // 定义定位按钮
+    //
+
+
+    /**
+     * @constructor
+     * @extends {ol.control.Control}
+     * @param {Object=} opt_options Control options.
+     */
+    var LocatorControl = function( opt_options ) {
+
+        var options = opt_options || {};
+
+        var button = document.createElement( 'BUTTON' );
+        button.className = 'rounded-circle';
+        button.innerHTML = '<i class="fas fa-map-marker"></i>';
+
+        var scope = this;
+        var handleClickLocator = function () {
+            scope.getMap().getView().setRotation( 0 );
+        };
+
+        button.addEventListener( 'click', handleClickLocator, false );
+        button.addEventListener( 'touchstart', handleClickLocator, false );
+
+        var element = document.createElement( 'DIV' );
+        element.className = 'ol-locator ol-unselectable ol-control';
+        element.appendChild( button );
+
+        ol.control.Control.call( this, {
+            element: element,
+            target: options.target
+        } );
+
+    };
+    ol.inherits( LocatorControl, ol.control.Control );
 
     Map = function ( app, opt_options ) {
         ifuture.Component.call( this );
@@ -677,6 +753,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                     className: 'rounded-circle ol-rotate',
                     label: span,
                 } ),
+                new LocatorControl(),
             ],
             layers: [ this.baseGroup_, createClusterLayer(), this.childrenGroup,
                       this.planGroup, this.stereoGroup,
@@ -684,6 +761,20 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                     ],
             view: this.view,
         } );
+
+        var geolocation = new ol.Geolocation( {
+            projection: this.view.getProjection()
+        } );
+        geolocation.on( 'change', function( evt ) {
+            console.log( geolocation.getPosition() );
+        } );
+
+        geolocation.on( 'error', function () {
+            // FIXME we should remove the coordinates in positions
+            console.log( 'geolocation error' );
+        } );
+
+        this.map.on( 'postrender', this.onPostRender_.bind( this ) );
 
         this.map.addOverlay( createVisitorOverlay( 'visitor', 'images/marker.png' ) );
         this.map.addOverlay( createVisitorOverlay( 'camera', 'images/camera.png' ) );
@@ -773,6 +864,11 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                 this.planGroup.setVisible( false );
                 this.stereoGroup.setVisible( false );
                 this.solidView.setVisible( true );
+            }
+            else {
+                requirejs( [ 'solid' ], function ( Solid ) {
+                    this.solidView = new Solid();
+                }.bind( this ) );
             }
         }
     };
@@ -1479,27 +1575,6 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
     /**
      *
-     * 事件处理程序
-     *
-     * @param {ifuture.Event} event 事件对象
-     * @observable
-     * @api
-     */
-    Map.prototype.handleFutureEvent = function ( event ) {
-
-        if ( event.type === 'helper:changed' ) {
-            var arg = event.argument;
-            this.setVisionHelper( arg.name, arg.position, arg.yaw );
-        }
-
-        else if ( event.type === 'living:opened' ) {
-            this.setMajorMode( 'viewer' );
-        }
-
-    };
-
-    /**
-     *
      * 适应视图大小，并且使用动画方式过渡。首先是中心，然后在切换分辨率
      *
      * @param {ifuture.Event} event 事件对象
@@ -1577,7 +1652,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
         this.setMajorMode( 'anchor' );
         this.isLiving_ = false;
-        
+
         this.app_.request( 'communicator', 'startBroadcast', roomName );
         this.app_.request( 'modebar', 'add', [ 'living', {
             name: 'living',
@@ -1599,13 +1674,11 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
      */
     Map.prototype.stopBroadcast = function () {
 
-        var roomName = this.getRoomName();
-
         this.setMajorMode( 'browser' );
         this.isLiving_ = false;
 
         this.setVisionHelper( 'camera' );
-        this.app_.request( 'communicator', 'stopBroadcast', roomName );
+        this.app_.request( 'communicator', 'stopBroadcast' );
         this.app_.request( 'modebar', 'remove', 'living' );
         document.getElementById( 'start-living' ).removeAttribute( 'disabled' );
 
@@ -1619,7 +1692,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
      *
      */
     Map.prototype.getRoomName_ = function () {
-        if ( this.layerLevel > -1 ) 
+        if ( this.layerLevel > -1 )
             return this.layerStack[ this.layerLevel ].url.slice( config.resourceBaseUrl.length + 1 ).replace( /\//g, '.' );
     };
 
@@ -1656,10 +1729,47 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         this.setMajorMode( 'browser' );
 
         this.setVisionHelper( 'camera' );
-        this.app_.request( 'communicator', 'stopLiving' );
+        this.app_.request( 'communicator', 'closeLiving' );
 
     };
 
+    /**
+     *
+     * 绘制局部三维地图
+     *
+     * @private
+     *
+     */
+    Map.prototype.onPostRender_ = function ( event ) {
+        if ( this.solidView )
+            this.solidView.render();
+    };
+
     return Map;
+
+    /**
+     *
+     * 事件处理程序，相对于对外部的所有接口，可以响应的外部事件
+     *
+     * @param {ifuture.Event} event 事件对象
+     * @observable
+     * @api
+     */
+    Map.prototype.handleFutureEvent = function ( event ) {
+
+        //
+        //
+        //
+        if ( event.type === 'helper:changed' ) {
+            var arg = event.argument;
+            this.setVisionHelper( arg.name, arg.position, arg.yaw );
+        }
+
+        else if ( event.type === 'living:opened' ) {
+            this.setMajorMode( 'viewer' );
+        }
+
+    };
+
 
 } );

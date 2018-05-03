@@ -108,7 +108,7 @@ function( ifuture, Carousel ) {
                 this.toggle( true );
             }
 
-            this.resizeCarousel();
+            this.onResized();
 
         }.bind( this ), false );
 
@@ -173,8 +173,16 @@ function( ifuture, Carousel ) {
 
     };
 
-    Explorer.prototype.resizeCarousel = function () {
+    Explorer.prototype.onResized = function () {
+
         this.carousel.resize();
+
+        var rect = this.element.getBoundingClientRect();
+        Array.prototype.forEach.call( this.element.querySelectorAll( '.dx-showcase video' ), function ( video ) {
+            video.setAttribute( 'width', rect.width );
+            video.setAttribute( 'height', rect.height );
+        } );
+
     };
 
     Explorer.prototype.show = function () {
@@ -246,7 +254,7 @@ function( ifuture, Carousel ) {
         this.carousel.replace( htmls.join( '' ) );
         this.items =  items;
 
-        this.resizeCarousel();
+        this.carousel.resize();
 
     };
 

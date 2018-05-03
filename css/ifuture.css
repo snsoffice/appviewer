@@ -50,6 +50,7 @@
 .dx-explorer {
     z-index: 10;
     visibility: hidden;
+    overflow-y: auto;
 }
 
 .dx-minimap {
@@ -111,6 +112,17 @@
     border-color: #bce8f1;
 }
 
+.dx-messagebox {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 1080;
+}
+
+.dx-messagebox > .alert {
+    z-index: 1080;    
+}
 
 /*
  *
@@ -215,6 +227,13 @@
     right: unset;
 }
 
+.ol-locator {
+    left: .5em;
+    top: 8.6em;
+    background: transparent;
+    visibility: hidden;
+}
+
 /*
  *
  * Part 5: modal
@@ -224,6 +243,24 @@
 .dx-modal-elevation {
     max-width: 200px;
     margin: 1.75rem auto;
+}
+
+/*
+ *
+ * Part 6: video
+ *
+ */
+
+.dx-mirror {
+    -webkit-transform: scaleX(-1);
+    -moz-transform: scaleX(-1);
+    -ms-transform: scaleX(-1);
+    -o-transform: scaleX(-1);
+    transform: scaleX(-1);
+}
+
+.dx-video {
+    object-fit: fill;
 }
 
 /*

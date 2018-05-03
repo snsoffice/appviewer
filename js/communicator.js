@@ -53,13 +53,13 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
          * @private
          * @type {number>}
          */
-        this.videoWidth_ = 160;
+        this.videoWidth_ = 240;
 
         /**
          * @private
          * @type {number>}
          */
-        this.videoHeight_ = 120;
+        this.videoHeight_ = 180;
 
     };
 
@@ -81,13 +81,13 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
         easyrtc.setPeerListener( this.peerListener_.bind( this ) );
         easyrtc.setPeerClosedListener( this.peerClosedListener_.bind( this ) );
         easyrtc.setAcceptChecker( this.onRequestTalking_.bind( this ) );
-        easyrtc.setVideoDims( this.videoWidth_, this.videoHeight_ );
+        // easyrtc.setVideoDims( this.videoWidth_, this.videoHeight_ );
         easyrtc.setRoomOccupantListener( this.onRoomOccupants_.bind( this ) );
 
         easyrtc.connect(
             this.easyrtcAppKey_,
             this.loginSuccess_.bind( this ),
-            this.loginFailure_.bind( this ),
+            this.loginFailure_.bind( this )
         );
 
     };
@@ -153,18 +153,22 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
 
             var anchor;
 
+            if ( isPrimary )
+                return;
+
             for( var other in occupants ) {
-                if ( other === this.easyrtcid_ )
-                    continue;
                 if ( occupants[ other ].apiField.anchor && occupants[ other ].apiField.anchor.fieldValue === true ) {
                     anchor = other;
                     break;
                 }
             }
 
+            if ( anchor === this.easyrtcid_ )
+                return;
+
             if ( anchor === undefined ) {
                 utils.warning( '这里(' + roomName + ')没有直播信号' );
-                return ;
+                return;
             }
 
             if ( config.userName === undefined ) {
@@ -258,7 +262,8 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
      *
      * @param {string} easyrtcid
      */
-    Communicator.prototype.peerClosedListener_ = function( easyrtcid ) {
+    Communicator.prototype.peerClosedListener_ = function ( easyrtcid ) {
+        console.log( 'easyrtc: peer ' + easyrtcid + ' closed' );
     };
 
 
@@ -270,7 +275,7 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
         var explorer = document.getElementById( 'explorer' );
         var container = document.createElement( 'DIV' );
         container.className = 'dx-showcase';
-        container.innerHTML = '<video autoplay="autoplay" class="easyrtcMirror w-100 h-100" muted="muted" volume="0"></video>';
+        container.innerHTML = '<video autoplay="autoplay" class="dx-mirror dx-video" muted="muted" volume="0"></video>';
         explorer.appendChild( container );
 
         easyrtc.enableAudio( true );
@@ -280,7 +285,11 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
 
         easyrtc.initMediaSource(
             function( mediastream ) {
-                easyrtc.setVideoObjectSrc( container.firstElementChild, mediastream );
+                var rect = container.getBoundingClientRect();
+                var video = container.firstElementChild;
+                video.setAttribute( 'width', rect.width );
+                video.setAttribute( 'height', rect.height );
+                easyrtc.setVideoObjectSrc( video, mediastream );
             },
             function( errorCode, errorText ){
                 console.log( 'initMediaSource return ' + errorCode + ': '  + errorText );
@@ -289,6 +298,7 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
         );
 
         easyrtc.setStreamAcceptor( function ( easyrtcid, stream ) {} );
+        easyrtc.setOnStreamClosed( function ( easyrtcid ) {} );
 
         easyrtc.joinRoom( roomName, null,
             function ( roomName ) {
@@ -298,13 +308,20 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
             function ( errorCode, errorText, roomName ) {
                 this.roomName_ = '';
                 console.log( 'Join room  ' + roomName + ' return ' + errorCode + ': '  + errorText);
-                utlils.warning( '无法进行直播: ' + errorText );
+                utils.warning( '无法进行直播: ' + errorText );
             }
         );
 
     };
 
     Communicator.prototype.stopBroadcast = function () {
+
+        var roomName = this.roomName_;
+        if ( roomName ) {
+            // easyrtc.setRoomApiField( roomName, 'anchor', false );
+            easyrtc.leaveRoom( roomName );
+            this.roomName_ = '';
+        }
 
         var explorer = document.getElementById( 'explorer' );
         var container = explorer.querySelector( '.dx-showcase' );
@@ -316,12 +333,6 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
             container.remove();
         }
 
-        var roomName = this.roomName_;
-        if ( roomName ) {
-            easyrtc.setRoomApiField( roomName, 'anchor', false );
-            easyrtc.leaveRoom( roomName );
-        }
-
     };
 
     Communicator.prototype.openLiving = function ( roomName ) {
@@ -330,9 +341,15 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
             var explorer = document.getElementById( 'explorer' );
             var container = document.createElement( 'DIV' );
             container.className = 'dx-showcase';
-            container.innerHTML = '<video autoplay="autoplay" class="w-100 h-100"></video>';
+            container.innerHTML = '<video autoplay="autoplay" class="dx-video"></video>';
             explorer.appendChild( container );
-            easyrtc.setVideoObjectSrc( container.firstElementChild, stream );
+
+            var rect = container.getBoundingClientRect();
+            var video = container.firstElementChild;
+            video.setAttribute( 'width', rect.width );
+            video.setAttribute( 'height', rect.height );
+
+            easyrtc.setVideoObjectSrc( video, stream );
         });
 
         easyrtc.setOnStreamClosed( function ( easyrtcid ) {
@@ -346,18 +363,28 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
             }
         } );
 
+        this.roomName_ = roomName;
         easyrtc.joinRoom( roomName, null,
             function ( roomName ) {
                 console.log( 'Joined room: ' + roomName );
             },
             function ( errorCode, errorText, roomName ) {
-                utlils.warning( 'join room  ' + roomName + ' failed(' + errorCode + '): '  + errorText);
+                this.roomName_ = '';
+                console.log( 'Join room  ' + roomName + ' return ' + errorCode + ': '  + errorText);
+                utlils.warning( '无法观看直播: ' + errorText );
             }
         );
 
     };
 
     Communicator.prototype.closeLiving = function () {
+
+        var roomName = this.roomName_;
+        if ( roomName ) {
+            easyrtc.leaveRoom( roomName );
+            this.roomName_ = '';
+        }
+
     };
 
     Communicator.prototype.start = function () {

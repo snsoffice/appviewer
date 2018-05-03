@@ -1,4 +1,4 @@
-define(['jquery'], function($) {
+define( [ 'jquery' ], function ( $ ) {
 
     Dialog = function ( app, opt_options ) {
         this.element = null;
@@ -42,7 +42,8 @@ define(['jquery'], function($) {
         this.element = element;
     };
 
-    Dialog.prototype.show = function ( callback, cancelCallback ) {
+    Dialog.prototype.show = function ( callback ) {
+
         var scope = this;
         var backdrop = document.createElement( 'DIV' );
         backdrop.className = 'modal-backdrop in';
@@ -52,6 +53,7 @@ define(['jquery'], function($) {
             backdrop.remove();
             scope.element.remove();
         } );
+
     };
 
     return Dialog;

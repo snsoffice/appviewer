@@ -1,5 +1,33 @@
 /**
  *
+ * 迷你地图，导航地图或者缩略地图
+ *
+ * 概念和定义
+ *
+ *     _planlayer
+ *     _stereolayer
+ *
+ *     helper
+ *         center
+ *         marker, visitor or anchor
+ *
+ * 状态和模式
+ *
+ *     overview 和大地图同时显示，作为缩略图使用
+ *     birdseye 和展示橱窗同时显示，作为导航图使用
+ *
+ * 行为和方法
+ *
+ *     reset 重新设置，和大地图数据同步
+ *
+ * 消息和事件
+ *
+ *
+ * 小地图迷你模式，当大地图处于显示状态的时候，小地图处于迷你模式
+ *
+ *     组织机构图层一直是平面图
+ *     显示大地图的中心位置
+ *
  * 小地图浏览模式（browser）
  *
  *    游客表示大地图的中心，视野表示当前特征的视野
@@ -36,16 +64,6 @@
 define( [ 'ifuture', 'ol', 'config', 'db', 'utils' ],
 
 function( ifuture, ol, config, db, utils ) {
-
-    var ItemEvent = function( minetype, item, opt_feature ) {
-
-        this.propagationStopped = true;
-        this.minetype = minetype;
-        this.target = null;
-        this.item = item;
-        this.feature = opt_target;
-
-    };
 
     var DragAction = function( minimap ) {
 
@@ -100,7 +118,6 @@ function( ifuture, ol, config, db, utils ) {
         return false;
     }
 
-
     var topItem = {
         center: [ 12119628.52, 4055386.0 ],
         resolution: 28000.0,
@@ -146,6 +163,7 @@ function( ifuture, ol, config, db, utils ) {
     }
 
     Minimap = function ( app, map, opt_options ) {
+
         ifuture.Component.call( this );
 
         var options = opt_options ? opt_options : {};
@@ -160,7 +178,7 @@ function( ifuture, ol, config, db, utils ) {
 
         /**
          *
-         * 行为模式: browser, anchor, viewer
+         * 行为模式: mini, browser, anchor, viewer
          *
          * @type {enum}
          * @private
@@ -223,8 +241,30 @@ function( ifuture, ol, config, db, utils ) {
             view: this.view,
         } );
 
+
         this.currentIndex = 0;
         this.items_ = [ topItem ];
+
+        var element = document.createElement( 'DIV' );
+        element.innerHTML = '<img src="images/geolocation_marker_heading.png" />';
+        var marker = new ol.Overlay( {
+            id: 'marker',
+            positioning: 'center-center',
+            element: element,
+            stopEvent: false
+        } );
+        this.ovmap_.addOverlay( marker );
+
+        element = document.createElement( 'DIV' );
+        element.className = 'text-danger';
+        element.innerHTML = '<i class="fas fa-circle"></i>';
+        marker = new ol.Overlay( {
+            id: 'center',
+            positioning: 'center-center',
+            element: element,
+            stopEvent: false
+        } );
+        this.ovmap_.addOverlay( marker );
 
         //
         // 工具栏
@@ -393,6 +433,18 @@ function( ifuture, ol, config, db, utils ) {
 
         else if ( e.type === 'cluster:open' )
             this.newRegionItem( e.argument );
+
+    };
+
+    /**
+     *
+     * 事件处理程序，相对于对外部的所有接口，可以响应的外部事件
+     *
+     * @param {ifuture.Event} event 事件对象
+     * @observable
+     * @api
+     */
+    Minimap.prototype.handleFutureEvent = function ( event ) {
 
     };
 
