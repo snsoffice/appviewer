@@ -7,6 +7,8 @@
  *     _planlayer
  *     _stereolayer
  *
+ *     sitelevel
+ *
  *     helper
  *         center
  *         marker, visitor or anchor
@@ -65,7 +67,7 @@ define( [ 'ifuture', 'ol', 'config', 'db', 'utils' ],
 
 function( ifuture, ol, config, db, utils ) {
 
-    var DragAction = function( minimap ) {
+    var DragAction = function ( minimap ) {
 
         ol.interaction.Pointer.call( this, {
             handleDownEvent: DragAction.prototype.handleDownEvent,
@@ -73,19 +75,23 @@ function( ifuture, ol, config, db, utils ) {
             handleUpEvent: DragAction.prototype.handleUpEvent
         } );
 
-        this.minimap_ = minimap;
+        /**
+         * @type {Minimap}
+         * @private
+         */
+        this._minimap = minimap;
 
         /**
          * @type {ol.Pixel}
          * @private
          */
-        this.coordinate_ = null;
+        this._coordinate = null;
 
         /**
          * @type {Boolean}
          * @private
          */
-        this.drag_ = false;
+        this._drag = false;
 
     };
     ol.inherits( DragAction, ol.interaction.Pointer );
@@ -96,25 +102,25 @@ function( ifuture, ol, config, db, utils ) {
      * @return {boolean} `true` to start the drag sequence.
      */
     DragAction.prototype.handleDownEvent = function( evt ) {
-        this.coordinate_ = evt.coordinate;
-        this.drag_ = false;
+        this._coordinate = evt.coordinate;
+        this._drag = false;
         return true;
     };
 
     DragAction.prototype.handleDragEvent = function( evt ) {
-        this.drag_ = true;
+        this._drag = true;
     };
 
     DragAction.prototype.handleUpEvent = function( evt ) {
-        var deltaX = evt.coordinate[ 0 ] - this.coordinate_[ 0 ];
-        if ( this.drag_ ) {
-            if ( ( evt.coordinate[ 0 ] - this.coordinate_[ 0 ] ) > 0 )
-                this.minimap_.prev();
+        var deltaX = evt.coordinate[ 0 ] - this._coordinate[ 0 ];
+        if ( this._drag ) {
+            if ( ( evt.coordinate[ 0 ] - this._coordinate[ 0 ] ) > 0 )
+                this._minimap.prev();
             else
-                this.minimap_.next();
+                this._minimap.next();
         }
         else
-            this.minimap_.touch( evt.coordinate );
+            this._minimap.touch( evt.coordinate );
         return false;
     }
 
@@ -142,23 +148,21 @@ function( ifuture, ol, config, db, utils ) {
 
     };
 
-    function styleFunction( feature, resolution ) {
+    
+    function clusterStyleFunction( feature, resolution ) {
 
+        // 透明度和集簇中的特征数目成反比
         var size = feature.get( 'features' ).length;
+        var opacity = Math.min( 0.98, 0.4 + Math.sqrt( size ) / 20 );
+
         return new ol.style.Style( {
-                image: new ol.style.Circle({
-                    radius: 8,
-                    fill: new ol.style.Fill( {
-                        color: [ 255, 153, 0, Math.min( 0.81, 0.68 ) ]
-                    } )
-                } ),
-                text: new ol.style.Text( {
-                    text: size.toString(),
-                    fill: new ol.style.Fill( {
-                        color: '#fff'
-                    } )
-                } ),
-            } );
+            image: new ol.style.Circle({
+                radius: 8,
+                fill: new ol.style.Fill( {
+                    color: [ 255, 153, 0, opacity ]
+                } )
+            } ),
+        } );
 
     }
 
@@ -226,7 +230,7 @@ function( ifuture, ol, config, db, utils ) {
                     distance: config.clusterDistance / 2,
                     source: new ol.source.Vector( { loader: featureLoader, } ),
                 } ),
-                style: styleFunction
+                style: clusterStyleFunction
             } ),
 
             this.dxmap_.planGroup,

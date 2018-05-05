@@ -192,6 +192,39 @@ define( function () {
 
     }
 
+    var _formatUrl = function ( url, base ) {
+
+        // 如果 url 是绝对地址，那么直接返回
+        if ( url.startsWith( 'http://' ) || url.startsWith( 'https://' ) )
+            return url;
+
+        if ( base === undefined )
+            base = config.resourceBaseUrl;
+
+        // 如果 url 没有包含 .. ，那么返回 base + url
+        var result = base + '/' + url;
+        var index = result.indexOf( '../' );
+        if ( index === -1 )
+            return result;
+
+        // 替换 .. 为上级，返回一个合法的 url
+        var parts = result.split( '/' );
+        var i = 0;
+        var n = parts.length;
+        while ( i < n ) {
+            if ( parts[ i ] === '..' ) {
+                parts.splice( i - 1, 2 );
+                i --;
+                n --, n --;
+            }
+            else
+                i ++;
+        }
+
+        return parts.join( '/' );
+
+    };
+
     return {
 
         warning: function ( msg ) {
@@ -205,6 +238,8 @@ define( function () {
         createVisualization: _createVisualization,
 
         createPublicMap: _createPublicMap,
+
+        formatUrl: _formatUrl,
     }
 
 } );
