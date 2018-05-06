@@ -67,6 +67,11 @@ define( [ 'ifuture', 'ol', 'config', 'db', 'utils' ],
 
 function( ifuture, ol, config, db, utils ) {
 
+    var MAX_RESOLUTION = 20000;
+    var MIDDLE_RESOLUTION = 600;
+    var MIN_CLUSTER_RESOLUTION = 10;
+    var MIN_RESOLUTION = 0.001;
+
     var DragAction = function ( minimap ) {
 
         ol.interaction.Pointer.call( this, {
@@ -124,40 +129,15 @@ function( ifuture, ol, config, db, utils ) {
         return false;
     }
 
-    var topItem = {
-        center: [ 12119628.52, 4055386.0 ],
-        resolution: 28000.0,
-    };
-
-    var featureLoader = function ( extent, resolution, projection ) {
-
-        var source = this;
-        var fmt = new ol.format.WKT();
-
-        db.query( function ( items ) {
-            items.forEach( function ( item ) {
-                var feature = fmt.readFeature( item.geometry );
-                if ( feature ) {
-                    feature.setProperties( {
-                        title: item.title,
-                    }, true );
-                    source.addFeature( feature );
-                }
-            } );
-        } );
-
-    };
-
-    
     function clusterStyleFunction( feature, resolution ) {
 
         // 透明度和集簇中的特征数目成反比
         var size = feature.get( 'features' ).length;
-        var opacity = Math.min( 0.98, 0.4 + Math.sqrt( size ) / 20 );
+        var opacity = Math.min( 0.6, 0.4 + Math.sqrt( size ) / 20 );
 
         return new ol.style.Style( {
             image: new ol.style.Circle({
-                radius: 8,
+                radius: 4.0,
                 fill: new ol.style.Fill( {
                     color: [ 255, 153, 0, opacity ]
                 } )
@@ -166,7 +146,7 @@ function( ifuture, ol, config, db, utils ) {
 
     }
 
-    Minimap = function ( app, opt_options ) {
+    var Minimap = function ( app, opt_options ) {
 
         ifuture.Component.call( this );
 
@@ -191,37 +171,48 @@ function( ifuture, ol, config, db, utils ) {
          */
         this._mode = 'overview';
 
-        this.view = new ol.View();
+        this._clusterlayer = new ol.layer.Vector( {
+            maxResolution: MAX_RESOLUTION,
+            minResolution: MIN_CLUSTER_RESOLUTION,
+            source: new ol.source.Cluster( {
+                distance: config.clusterDistance,
+                source: new ol.source.Vector(),
+            } ),
+            style: clusterStyleFunction
+        } );
+
+        this._planlayer = new ol.layer.Group( {
+            layers: [ this._dxmap.plangroup ],
+        } );
+
+        this._solidlayer = new ol.layer.Group( { 
+            layers: [ this._dxmap.solidgroup ],
+            visible: false,
+        } );
+
+        this.view = new ol.View( { resolution: MAX_RESOLUTION, } );
 
         var layers = [
             new ol.layer.Tile( {
-                maxResolution: 30000,
-                minResolution: 600,
+                maxResolution: MAX_RESOLUTION * 1.1,
+                minResolution: MIDDLE_RESOLUTION,
+                opacity: 0.6,
                 source: new ol.source.XYZ( {
                     crossOrigin: 'anonymous',
                     url:'http://webst0{1-4}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'
                 } ),
             } ),
             new ol.layer.Tile( {
-                maxResolution: 600,
-                minResolution: 0.1,
+                maxResolution: MIDDLE_RESOLUTION,
+                minResolution: MIN_RESOLUTION,
                 source: new ol.source.XYZ( {
                     crossOrigin: 'anonymous',
                     url:'http://{a-c}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
                 } ),
             } ),
-            new ol.layer.Vector( {
-                maxResolution: 600,
-                minResolution: 10,
-                source: new ol.source.Cluster( {
-                    distance: config.clusterDistance / 2,
-                    source: new ol.source.Vector( { loader: featureLoader, } ),
-                } ),
-                style: clusterStyleFunction
-            } ),
-
-            this._dxmap.plangroup,
-            this._dxmap.solidgroup,
+            this._clusterlayer,
+            this._planlayer,
+            this._solidlayer,
 
         ];
 
@@ -311,6 +302,11 @@ function( ifuture, ol, config, db, utils ) {
         var d = this._dxmap;
         d.selectSiteLevel_( this._sitelevel );
 
+        d.view.animate( {
+            center: coordinate,
+            duration: 250,
+        } );
+
     };
 
     Minimap.prototype.open = function () {
@@ -318,13 +314,13 @@ function( ifuture, ol, config, db, utils ) {
     };
 
     Minimap.prototype.prev = function () {
-        var index = this.prevItem( this.currentIndex );
+        var index = this.prevItem( this._sitelevel );
         if ( index !== -1 )
             this.setCurrentItem( index );
     };
 
     Minimap.prototype.next = function () {
-        var index = this.nextItem( this.currentIndex );
+        var index = this.nextItem( this._sitelevel );
         if ( index !== -1 )
             this.setCurrentItem( index );
     };
@@ -340,11 +336,16 @@ function( ifuture, ol, config, db, utils ) {
 
     Minimap.prototype.setCurrentItem = function ( index ) {
 
+        if ( index === this._sitelevel )
+            return;
+
+        var duration = 250;
         var extent = this._dxmap.sitestack[ index ].extent;
+        var resolution = Math.min( MAX_RESOLUTION, this.view.getResolutionForExtent( extent ) * 1.1 );
         this.view.animate( {
             center: ol.extent.getCenter( extent ), 
-            resolution: this.view.getResolutionForExtent( extent ),
-            duration: 300,
+            resolution: resolution,
+            duration: duration,
         } );
 
         this._sitelevel = index;
@@ -360,6 +361,22 @@ function( ifuture, ol, config, db, utils ) {
      * @api
      */
     Minimap.prototype.handleFutureEvent = function ( event ) {
+        
+        if ( event.type === 'site:changed' ) {
+
+            this._clusterlayer.setSource( 
+                new ol.source.Cluster( {
+                    distance: config.clusterDistance / 2,
+                    source: this._dxmap.source,
+                } )
+            );
+            this.setCurrentItem( 0 );
+
+        }
+
+        else if ( event.type === 'view:opened' ) {
+            this.setCurrentItem( this._dxmap.sitelevel );
+        }
 
     };
 

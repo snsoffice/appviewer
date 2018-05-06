@@ -162,7 +162,7 @@ function( ifuture, $ ) {
         this.resetElevationDialog_();
     };
 
-    Modebar.prototype.handleElevationEvent = function ( e ) {
+    Modebar.prototype.handleFutureEvent = function ( e ) {
         if ( e.type === 'elevation:changed' ) {
             this.setCurrentElevation( e.argument.elevation );
         }

@@ -21,6 +21,7 @@
  *
  *     map
  *     view
+ *     source
  *
  *     _clusterlayer
  *     _planlayer
@@ -512,6 +513,15 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
          */
         this.stacklevel = -1;
 
+
+        /**
+         * 数据源
+         *
+         * @public
+         * @type {ol.source.Verctor}
+         */
+        this.source = new ol.source.Vector();
+
         /**
          * 集簇图层
          *
@@ -522,7 +532,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             minResolution: CLUSTER_MIN_RESOLUTION,
             source: new ol.source.Cluster( {
                 distance: CLUSTER_DEFAULT_DISTANCE,
-                source: new ol.source.Vector(),
+                source: this.source,
             } ),
             style: clusterStyleFunction,
         } );
@@ -692,7 +702,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         var scope = this;
         var site = {
             id: 'root',
-            title: '',
+            title: '远景网',
         };
         var features = [];
         db.query( function ( items ) {
@@ -869,15 +879,10 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             if ( size > 1 ) {
 
                 this.buildClusterView_( features );
-                this.plangroup.getLayers().push( emptyLayer() );
-                this.solidgroup.getLayers().push( emptyLayer() );
-                this.titlegroup.getLayers().push( emptyLayer() );
-                this.scenegroup.getLayers().push( emptyLayer() );
-                this.childgroup.getLayers().push( emptyLayer() );
 
                 this.selectSiteLevel_( this.sitestack.length - 1 );
 
-                this.dispatchEvent( new ifuture.Event( 'site:changed' ) );
+                this.dispatchEvent( new ifuture.Event( 'view:opened' ) );
             }
 
             else {
@@ -967,12 +972,14 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         extent[ 3 ] += origin[ 1 ];
     };
 
-    Map.prototype.buildClusterView_ = function ( features ) {
+    Map.prototype.buildClusterView_ = function ( features, extent ) {
 
-        var extent = ol.extent.createEmpty();
-        var j, jj;
-        for ( j = 0, jj = features.length; j < jj; ++j ) {
-            ol.extent.extend( extent, features[ j ].getGeometry().getExtent() );
+        if ( extent === undefined ) {
+            extent = ol.extent.createEmpty();
+            var j, jj;
+            for ( j = 0, jj = features.length; j < jj; ++j ) {
+                ol.extent.extend( extent, features[ j ].getGeometry().getExtent() );
+            }
         }
 
         jj = this.sitestack.length;
@@ -983,6 +990,12 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         this.popSiteStack_( j );
 
         this.buildExtentView_( extent );
+
+        this.plangroup.getLayers().push( emptyLayer() );
+        this.solidgroup.getLayers().push( emptyLayer() );
+        this.titlegroup.getLayers().push( emptyLayer() );
+        this.scenegroup.getLayers().push( emptyLayer() );
+        this.childgroup.getLayers().push( emptyLayer() );
 
     };
 
@@ -1046,10 +1059,10 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         // 装载最顶层的图层
         if ( item.elevations !== undefined )
             this.selectElevation_( level, item.elevations.length - 1 );
-        else
+        else {
             this.selectSiteLevel_( level );
-
-        this.dispatchEvent( new ifuture.Event( 'site:changed' ) );
+            this.dispatchEvent( new ifuture.Event( 'view:opened' ) );
+        }
 
     };
 
@@ -1265,8 +1278,10 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
             if ( this.sitelevel === level )
                 this.createSiteCarousel_( level );
-            else
+            else {
                 this.selectSiteLevel_( level );
+                this.dispatchEvent( new ifuture.Event( 'view:opened' ) );
+            }
 
             this.dispatchEvent( new ifuture.Event( 'elevation:changed', { elevation: elevation, level: level } ) );
 
@@ -1683,21 +1698,17 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     Map.prototype.setRootSite = function ( site, features, options ) {
 
         this.popSiteStack_( 0 );
-
+        
+        this.source = new ol.source.Vector( { features: features } );
         var distance = options.distance === undefined ? CLUSTER_DEFAULT_DISTANCE : options.distance;
         this._clusterlayer.setSource(
             new ol.source.Cluster( {
                 distance: distance,
-                source: new ol.source.Vector( { features: features } ),
+                source: this.source,
             } )
         );
 
-        ( options && options.extent ) ? this.buildExtentView_( options.extent ) : this.buildClusterView_( features );
-        this.plangroup.getLayers().push( emptyLayer() );
-        this.solidgroup.getLayers().push( emptyLayer() );
-        this.titlegroup.getLayers().push( emptyLayer() );
-        this.scenegroup.getLayers().push( emptyLayer() );
-        this.childgroup.getLayers().push( emptyLayer() );
+        this.buildClusterView_( features, options && options.extent );
 
         this.sitestack[ 0 ].site = site;
         this.selectSiteLevel_( 0 );
