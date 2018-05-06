@@ -69,24 +69,16 @@ function( ifuture, Map, Minimap, Explorer, Manager, Vision,
 
     Application.prototype.hiberate = function () {
         this.map.hiberate();
+        this.communicator.stop();
     };
 
 
     Application.prototype.revive = function () {
+        this.communicator.start();
         this.map.revive();
     };
 
     Application.prototype.run = function () {
-        //
-        // 恢复上次退出时候的状态
-        //
-        this.revive();
-
-        //
-        // 启动后台服务对象
-        //
-        this.communicator.start();
-
         //
         // 全局事件处理
         //
@@ -101,6 +93,11 @@ function( ifuture, Map, Minimap, Explorer, Manager, Vision,
         //
         window.addEventListener( 'online', this._handleOnline.bind( this ), false );
         window.addEventListener( 'offline', this._handleOffline.bind( this ), false );
+
+        //
+        // 恢复上次退出时候的状态
+        //
+        this.revive();
     };
 
     Application.prototype.isOnline = function () {

@@ -96,13 +96,13 @@ function( ifuture, $ ) {
             '          <span class="fa-layers-text" data-fa-transform="shrink-1">T</span>' +
             '        </span> 标题' +
             '      </button>' +
-            '      <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="button" aria-pressed="false" autocomplete="off" target-name="feature">' +
+            '      <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="button" aria-pressed="false" autocomplete="off" target-name="scene">' +
             '        <i class="fas fa-map-pin fa-fw fa-lg"></i> 特征' +
             '      </button>' +
             '      <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="button" aria-pressed="false" autocomplete="off" target-name="visitor">' +
             '        <i class="fas fa-street-view fa-fw fa-lg"></i> 游客' +
             '      </button>' +
-            '      <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="button" aria-pressed="false" autocomplete="off" target-name="camera">' +
+            '      <button type="button" class="btn btn-outline-secondary mb-3" data-toggle="button" aria-pressed="false" autocomplete="off" target-name="anchor">' +
             '        <i class="fas fa-map-marker-alt fa-fw fa-lg"></i> 视野' +
             '      </button>' +
             '    </div>' +

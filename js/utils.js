@@ -198,9 +198,6 @@ define( function () {
         if ( url.startsWith( 'http://' ) || url.startsWith( 'https://' ) )
             return url;
 
-        if ( base === undefined )
-            base = config.resourceBaseUrl;
-
         // 如果 url 没有包含 .. ，那么返回 base + url
         var result = base + '/' + url;
         var index = result.indexOf( '../' );

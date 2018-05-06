@@ -56,54 +56,45 @@
  *
  *     id
  *     title
- *     url
  *
  * }
  *
  * SiteStack {
  *
+ *     url, 可能是 undefined
+ *
  *     site {
  *
  *         id
  *         title
- *         url
+ *
+ *         elevations
  *
  *     }
  *
  *     center
  *     resolution
+ *     extent
  *     maxzoom
  *     minzoom
  *
- *     overview {
- *
- *         center
- *         resolution
- *
- *     }
+ *     elevation
  *
  * }
  *
- * 底图
+ * 底图图层
  *      watercolor: stamen.watercolor + stamen.toner-labels
  *      aerial: bings.aerial + stamen.terrain-labels
  *      road: gaode
  *
- * 组织机构图层
+ * 站点图层
  *
  *     views: plan, stereo, solid
  *            title layer
- *            feature layer
- *            children layer
+ *            scene layer
+ *            child layer
  *
- *     explorer: 第一张是当前图层的标题，例如 远景网，华清御汤，二号院，二楼，201
- *
- *     minimap:
- *
- *       底图分为集簇和区域两级
- *       下面分别是 组织机构、建筑物或者楼层、房间三级
- *
- * 大地图浏览模式（browser)
+ * 大地图浏览模式（browse)
  *
  *     放大缩小, 拖曳移动地图中心
  *     点击移动 visitor
@@ -112,21 +103,11 @@
  *
  * 大地图导播模型（anchor）
  *
- *     点击移动 camera
+ *     点击移动 anchor
  *
- * 大地图观看模式（viewer）
+ * 大地图观看模式（visit）
  *
  *    点击移动 visitor
- *
- * 大地图楼层模式（elevation），小模式
- *
- *    旋转拖曳切换楼层
- *
- *
- * 默认视图
- *
- *     center
- *     resolution
  *
  * 分辨率
  *     世界 20000
@@ -145,41 +126,12 @@
  *   建筑物   0.1
  *     房间  0.01
  *
- * 地图显示级别
- *
- *     集簇级，大范围，国家和省份，集簇方式显示组织机构
- *     区域级，小范围，城市，显示每一个组织机构
- *     组织级，显示一个组织机构或者景区
- *     楼房级，显示一个楼房或者楼层
- *     房间级，显示一个具体的房间
- *
- * 定位按钮
- *
- *     当前地图显示级别为集簇或者区域级，定位到地图的某一个位置
- *
- *     显示级别为组织级的时候，如果在组织机构内，那么定位到地图位置；
- *     如果不在组织机构内，地球切换到区域级进行显示
- *
- *     显示级别为楼房或者房间级，如果在当前建筑物内部，那么切换到对应
- *     的楼房或者房间；如果在组织机构内部，那么切换到组织机构级别；其
- *     他情况则切换到区域级别显示
- *
- * 方向指针
- *
- *     在不支持陀螺仪或者指北针的设备上，当地图旋转之后出现，点击设置
- *     地图指向正北方向
- *
- *     在支持陀螺仪或者指北针的设备上，在定位模式下，地图自动旋转，始
- *     终指向正北方向，点击可以固定地图方向，再次点击则
- *
- *     非定位模式则仅当地图旋转之后出现，点击设置地图指向正北方向
- *
  * 游客视野
  *
  *     显示当前视野和位置，一般和旋转木马配合使用，显示对应照片的位置
  *     和拍摄角度
  *
- * 直播视野
+ * 主播视野
  *
  *     显示直播摄像头的位置和视野
  */
@@ -193,11 +145,11 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     var formatUrl = utils.formatUrl;
     var fmtwkt = new ol.format.WKT();
 
-    var CLUSTER_MIN_RESOLUTION = 10;
-    var CLUSTER_DEFAULT_DISTANCE = 20;
+    var CLUSTER_MIN_RESOLUTION = 1;
+    var CLUSTER_DEFAULT_DISTANCE = 50;
 
     var BASEMAP_MIN_RESOLUTION = 0.1;
-    var BASEMAP_LABEL_MIN_RESOLUTION = 800;
+    var BASEMAP_MAX_RESOLUTION = 300;
 
     var FeatureType = {
         CLUSTER: 0,
@@ -226,20 +178,39 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         width: 3
     } );
 
+    //
     // 集簇样式
-    function culsterStyleFunction( feature, resolution ) {
+    //
+    function calculateClusterInfo( feature, resolution ) {
+        var features = feature.get( 'features' );
+        var extent = ol.extent.createEmpty();
+        for (var i = features.length - 1; i >= 0; --i) {
+            ol.extent.extend( extent, features[ i ].getGeometry().getExtent() );
+        }
+        var radius = 0.25 * ( ol.extent.getWidth( extent ) + ol.extent.getHeight( extent ) ) / resolution;
+        feature.set( 'radius', Math.max( 8.0, radius ) );
+        feature.set( 'extent', extent );
+    }
+
+    var currentResolution;
+    function clusterStyleFunction( feature, resolution ) {
+
+        if ( resolution !== currentResolution ) {
+            calculateClusterInfo( feature, resolution );
+            currentResolution = resolution;
+        }
 
         var style;
         var size = feature.get( 'features' ).length;
-        var radius = size < 10 ? 16 : size < 100 ? 24 : 32;
-        var opacity = Math.min( 0.8, 0.4 + ( size / radius );
+        var radius = feature.get( 'radius' );
+        var opacity = Math.min( 0.6, 0.2 + ( size / 10 ) );
 
         if ( size > 1 ) {
             style = new ol.style.Style( {
                 image: new ol.style.Circle({
                     radius: radius,
                     fill: new ol.style.Fill( {
-                        color: [ 255, 153, 0, opacity ) ]
+                        color: [ 255, 153, 0, opacity ]
                     } )
                 } ),
                 text: new ol.style.Text( {
@@ -275,19 +246,21 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         return style;
     }
 
-    var labelstyle = new ol.style.Style( {
-        image: new ol.style.Circle( {
-            radius: 2.6,
-            opacity: 0.6,
-            fill: spritefill,
-        } ),
-        text: new ol.style.Text( {
-            text: feature.get( 'title' ),
-            scale: 2.0,
-            offsetY: 20,
-            padding: [ 2, 2, 2, 2 ],
-        } )
-    } );
+    function labelStyleFunction( feature, resolution ) {
+        return new ol.style.Style( {
+            image: new ol.style.Circle( {
+                radius: 2.6,
+                opacity: 0.6,
+                fill: spritefill,
+            } ),
+            text: new ol.style.Text( {
+                text: feature.get( 'title' ),
+                scale: 2.0,
+                offsetY: 20,
+                padding: [ 2, 2, 2, 2 ],
+            } )
+        } );
+    };
 
     var childstyle = new ol.style.Style( {
         fill: new ol.style.Fill( {
@@ -342,47 +315,38 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
     }
 
+    function emptyLayer() {
+        return new ol.layer.Group( { visible: false } );
+    }
+
     // 默认坐标系 EPSG:3857
 
     // 绿地世纪城东门位置
     var defaultlocation = [ 12119628.52, 4055386.0 ];
-    var defaultresolution = 20;
+    var defaultresolution = 6000;
 
     // 底图分辨率
     var maxresolution = 100;
     var minresolution = 0.01;
 
     // 建筑物内部最大分辨率
-    var MAX_RESOLUTION = 6.18;
+    var MAX_RESOLUTION = 3.8;
     var MIN_RESOLUTION = 0.001;
 
+    // 地图显示级别
+    //
+    // 集簇级，大范围，国家和省份，集簇方式显示组织机构
+    // 区域级，小范围，城市，显示每一个组织机构
+    // 站点级，显示一个组织机构或者景区
+    // 楼房级，显示一个楼房或者楼层
+    // 房间级，显示一个具体的房间
+    //
     var ViewLevel = {
         CLUSTER: 0,
         REGION: 1,
         SITE: 2,
         BUILDING: 3,
         ROOM: 4,
-    };
-
-    var featureLoader = function ( extent, resolution, projection ) {
-
-        var features = [];
-
-        db.query( function ( items ) {
-            items.forEach( function ( item ) {
-                var feature = fmtwkt.readFeature( item.geometry );
-                if ( feature ) {
-                    feature.setId( item.id );
-                    feature.setProperties( {
-                        type: FeatureType.SITE,
-                        title: item.title,
-                        url: formatUrl( item.url ),
-                    }, true );
-                    features.push( feature );
-                }
-            } );
-        } );
-
     };
 
     function loadLayer( url, callback ) {
@@ -406,6 +370,14 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     //
     // 定位按钮
     //
+    // 当前地图显示级别为集簇或者区域级，定位到地图的某一个位置
+    //
+    // 显示级别为组织级的时候，如果在组织机构内，那么定位到地图位置；
+    // 如果不在组织机构内，地球切换到区域级进行显示
+    //
+    // 显示级别为楼房或者房间级，如果在当前建筑物内部，那么切换到对应
+    // 的楼房或者房间；如果在组织机构内部，那么切换到组织机构级别；其
+    // 他情况则切换到区域级别显示
 
     /**
      * @constructor
@@ -440,7 +412,42 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     };
     ol.inherits( LocatorControl, ol.control.Control );
 
-    Map = function ( app, opt_options ) {
+    //
+    // 罗盘按钮
+    //
+    // 在不支持陀螺仪或者指北针的设备上，当地图旋转之后出现，点击设置
+    // 地图指向正北方向
+    //
+    // 在支持陀螺仪或者指北针的设备上，在定位模式下，地图自动旋转，始
+    // 终指向正北方向，点击可以固定地图方向，再次点击则
+    //
+    // 非定位模式则仅当地图旋转之后出现，点击设置地图指向正北方向
+
+    /**
+     * @constructor
+     * @extends {ol.control.Control}
+     * @param {Object=} opt_options Control options.
+     */
+    var CompassControl = function( opt_options ) {
+
+        var options = opt_options ? opt_options : {};
+        options.className = 'rounded-circle ol-rotate';
+
+        var span = document.createElement( 'SPAN' );
+        span.innerHTML = '<i class="fas fa-long-arrow-alt-up"></i>';
+        options.label = span;
+
+        options.resetNorth = function () {
+            ol.control.Rotate.resetNorth_.call( this );
+        }.bind( this );
+
+        ol.control.Rotate.call( this, options );
+
+    };
+    ol.inherits( CompassControl, ol.control.Control );
+
+
+    var Map = function ( app, opt_options ) {
 
         ifuture.Component.call( this );
 
@@ -519,31 +526,31 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
         this._planlayer = new ol.layer.Group( {
             layers: [ this.plangroup ],
-            maxResolution: CLUSTER_MIN_RESOLUTION,
+            maxResolution: MAX_RESOLUTION,
             visible: true,
         } );
 
         this._solidlayer = new ol.layer.Group( {
             layers: [ this.solidgroup ],
-            maxResolution: CLUSTER_MIN_RESOLUTION,
+            maxResolution: MAX_RESOLUTION,
             visible: false,
         } );
 
         this._titlelayer = new ol.layer.Group( {
             layers: [ this.titlegroup ],
-            maxResolution: CLUSTER_MIN_RESOLUTION,
+            maxResolution: MAX_RESOLUTION,
             visible: true,
         } );
 
         this._scenelayer = new ol.layer.Group( {
             layers: [ this.scenegroup ],
-            maxResolution: CLUSTER_MIN_RESOLUTION,
+            maxResolution: MAX_RESOLUTION,
             visible: false,
         } );
 
         this._childlayer = new ol.layer.Group( {
             layers: [ this.childgroup ],
-            maxResolution: CLUSTER_MIN_RESOLUTION,
+            maxResolution: MAX_RESOLUTION,
             visible: true,
         } );
 
@@ -563,6 +570,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         this._baselayers = {
             light: new ol.layer.Tile( {
                 visible: true,
+                maxResolution: BASEMAP_MAX_RESOLUTION * 1.6,
                 minResolution: BASEMAP_MIN_RESOLUTION,
                 source: new ol.source.XYZ( {
                     crossOrigin: 'anonymous',
@@ -592,7 +600,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             } ),
             label: new ol.layer.Tile( {
                 visible: true,
-                minResolution: BASEMAP_LABEL_MIN_RESOLUTION,
+                minResolution: BASEMAP_MAX_RESOLUTION / 1.6,
                 opacity: 0.6,
                 source: new ol.source.XYZ( {
                     crossOrigin: 'anonymous',
@@ -613,14 +621,10 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         } );
 
         this.view = new ol.View( {
-            center: location,
-            minResolution: v.minResolution,
-            maxResolution: v.maxResolution,
-            resolution: v.resolution,
+            center: defaultlocation,
+            resolution: defaultresolution,
+            maxResolution: 20000,
         } );
-
-        var span = document.createElement( 'SPAN' );
-        span.innerHTML = '<i class="fas fa-long-arrow-alt-up"></i>';
 
         this.map = new ol.Map( {
             target: options.target ? options.target : 'map',
@@ -629,10 +633,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                 new DimensionInteraction( this ),
             ] ),
             controls: [
-                new ol.control.Rotate( {
-                    className: 'rounded-circle ol-rotate',
-                    label: span,
-                } ),
+                new CompassControl(),
                 new LocatorControl(),
             ],
             layers: [ this._basegroup, this._clusterlayer, this._childlayer,
@@ -658,23 +659,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         this.map.addOverlay( createVisitorOverlay( 'visitor', 'images/marker.png' ) );
         this.map.addOverlay( createVisitorOverlay( 'anchor', 'images/camera.png' ) );
 
-        this.map.on( 'singleclick', function( evt ) {
-            var map = evt.map;
-            var selected = map.forEachFeatureAtPixel( evt.pixel, function ( feature, layer ) {
-                return [ feature, layer ];
-            } );
-
-            var feature, layer;
-            if ( selected !== undefined ) {
-                feature = selected[ 0 ];
-                layer = selected[ 1 ];
-            }
-
-            this.handleClickEvent( evt, feature, layer );
-
-            return true;
-
-        }.bind( this ) );
+        this.map.on( 'singleclick', this.handleSingleClick_, this );
 
     };
     ifuture.inherits( Map, ifuture.Component );
@@ -683,8 +668,33 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     };
 
     Map.prototype.revive = function () {
+        //
+        // 调试语句，初始化集簇数据
+        //
+        var scope = this;
+        var site = {
+            id: 'root',
+            title: '',
+        };
+        var features = [];
+        db.query( function ( items ) {
+            items.forEach( function ( item ) {
+                var feature = fmtwkt.readFeature( item.geometry );
+                if ( feature ) {
+                    feature.setId( item.id );
+                    feature.setProperties( {
+                        type: FeatureType.SITE,
+                        title: item.title,
+                        url: formatUrl( item.url, config.resourceBaseUrl ),
+                    }, true );
+                    features.push( feature );
+                }
+            } );
+            scope.setRootSite( site, features, {
+                extent: [ 8313981.75, 2137428.08, 15554097.07, 7244644.56 ],
+            } );
+        } );
     };
-
 
     /**
      * 设置底图的显示方式，支持水彩、地形和交通三种
@@ -753,12 +763,12 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
      */
     Map.prototype.toggleVisible = function ( name, visible ) {
         if ( name === 'title' ) {
-            this.labelGroup.setVisible( visible === undefined ? ! this.labelGroup.getVisible() : visible );
+            this._titlelayer.setVisible( visible === undefined ? ! this._titlelayer.getVisible() : visible );
         }
-        else if ( name === 'feature' ) {
-            this.featureGroup.setVisible( visible === undefined ? ! this.featureGroup.getVisible() : visible );
+        else if ( name === 'scene' ) {
+            this._scenelayer.setVisible( visible === undefined ? ! this._scenelayer.getVisible() : visible );
         }
-        else if ( name === 'visitor' || name === 'camera' ) {
+        else if ( name === 'visitor' || name === 'anchor' ) {
             var v = this.map.getOverlayById( name );
             var pos = v.getPosition();
             if ( ( pos === undefined && visible === undefined ) || visible === true ) {
@@ -773,25 +783,29 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     };
 
     /**
-     * 删除视图级别之下的所有图层
+     * 地图点击事件的处理函数
      *
-     * @param {int} level
-     * @public
+     * @param {ol.MapBrowserEvent} evt 地图浏览事件
+     * @private
      */
-    Map.prototype.removeViewLevel = function ( level ) {
-        if ( level === undefined || level < ViewLevel.ORGANIZATION )
-            return;
-        level -= ViewLevel.ORGANIZATION;
-        level --;
-        while ( this.layerLevel > level ) {
-            this.planGroup.getLayers().pop();
-            this.stereoGroup.getLayers().pop();
-            this.labelGroup.getLayers().pop();
-            this.featureGroup.getLayers().pop();
-            this.childrenGroup.getLayers().pop();
-            this.layerStack.pop();
-            this.layerLevel --;
+    Map.prototype.handleSingleClick_ = function ( evt ) {
+        var map = evt.map;
+        var selected = map.forEachFeatureAtPixel( evt.pixel, function ( feature, layer ) {
+            return [ feature, layer ];
+        } );
+
+        var feature, layer;
+        if ( selected !== undefined ) {
+            feature = selected[ 0 ];
+            layer = selected[ 1 ];
         }
+
+        return feature === undefined
+            ? this.handleClickMapEvent_( evt )
+            : this.handleClickFeatureEvent_( evt, feature, layer );
+
+        return true;
+
     };
 
     /**
@@ -829,40 +843,24 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
         if ( layer.getSource() instanceof ol.source.Cluster ) {
 
-            if ( this.viewLevel > ViewLevel.ORGANIZATION )
-                this.removeViewLevel( ViewLevel.ORGANIZATION );
+            this.popSiteStack_( this.sitelevel + 1 );
 
             var features = feature.get( 'features' );
             var size = features.length;
 
-            if ( this.viewLevel === ViewLevel.CLUSTER ) {
-                this.setViewLevel( ViewLevel.REGION );
-                // var extent = ol.extent.createEmpty();
-                // var j, jj;
-                // for ( j = 0, jj = features.length; j < jj; ++j ) {
-                //     ol.extent.extend( extent, features[ j ].getGeometry().getExtent());
-                // }
-                // this.view.setCenter( ol.extent.getCenter( extent ) );
-                var orgfeature = features[ 0 ];
-                var center = ol.extent.getCenter( orgfeature.getGeometry().getExtent() );
-                this.views_.forEach( function ( v ) {
-                    v.setCenter( center );
-                } );
+            if ( size > 1 ) {
 
-                // 发出新的视图层次创建消息
-                this.dispatchEvent( new ifuture.Event( 'cluster:open', features ) );
+                this.buildClusterView_( features );
+                this.selectSiteLevel_( this.sitestack.length - 1 );
+
+                this.dispatchEvent( new ifuture.Event( 'site:changed' ) );
             }
 
-            else if ( this.viewLevel === ViewLevel.REGION ) {
-                var orgfeature = features[ 0 ];
-                if ( size > 1 ) {
-                    this.view.setCenter( ol.extent.getCenter( orgfeature.getGeometry().getExtent() ) );
-                    this.view.setZoom( this.view.getZoom() + 1 );
-                }
+            else {
 
-                else {
-                    this.openOrganization_( orgfeature.get( 'url' ), orgfeature.get( 'origin' ) );
-                }
+                var orgfeature = features[ 0 ];
+                this.openSite_( orgfeature.get( 'url' ), orgfeature.get( 'origin' ) );
+
             }
 
         }
@@ -872,11 +870,11 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             var type = feature.get( 'type' );
 
             if ( type === FeatureType.SITE || type === FeatureType.CHILD ) {
-                this.openOrganization_( feature.get( 'url' ), feature.get( 'origin' ) );
+                this.openSite_( feature.get( 'url' ), feature.get( 'origin' ) );
             }
 
-            else if ( type === FeatureType.FEATURE ) {
-                this.dispatchEvent( new ifuture.Event( 'feature:click', feature ) );
+            else if ( type === FeatureType.SCENE ) {
+                this.dispatchEvent( new ifuture.Event( 'scene:click', feature ) );
             }
 
         }
@@ -885,9 +883,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     /**
      * 地图点击事件的处理，根据模式不同进行相应的操作
      *
-     *     browser: 什么也不做
-     *     viewer: 切换 visitor 的位置
      *     anchor: 切换 camera 的位置
+     *     visit: 切换 visitor 的位置
      *
      * @param {ol.MapBrowserEvent} evt 地图浏览事件
      *
@@ -895,50 +892,43 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
      */
     Map.prototype.handleClickMapEvent_ = function ( evt ) {
 
-        var mode = this.majorMode_;
+        var mode = this._majormode;
 
         if ( mode === 'anchor' ) {
-            this.setVisionHelper( 'camera', evt.coordinate );
+            this.setVisionHelper( 'anchor', evt.coordinate );
         }
 
-        else if ( mode === 'viewer' ) {
+        else if ( mode === 'visit' ) {
             this.setVisionHelper( 'visitor', evt.coordinate );
         }
-
-        else
-            console.assert ( mode === 'browser' );
 
     };
 
     /**
-     * 打开组织机构或者子结点
+     * 打开站点
      *
      * @param {string} url 指向组织机构的链接
      * @param {Array.<number>|undefined} origin 组织机构对应的原点
      * @private
      */
-    Map.prototype.openOrganization_ = function ( url, origin ) {
+    Map.prototype.openSite_ = function ( url, origin ) {
 
-        var level = this.layerLevel;
-
-        for ( var i = 0; i < this.layerStack.length; i ++ ) {
-            if ( this.layerStack[ i ].url === url ) {
-                this.selectLayerLevel_( i );
+        for ( var i = this.sitestack.length - 1; i > -1 ; i -- ) {
+            if ( this.sitestack[ i ].url === url ) {
+                this.selectSiteLevel_( i );
                 return;
             }
         }
 
+        var level = this.sitelevel;
         var request = new XMLHttpRequest();
-        // request.onerror = function ( event ) {
-        //     utils.warning( '读取特征数据 ' + url + '时出现了错误!' );
-        // };
+
         request.onloadend = function() {
             if (request.status != 200) {
                 utils.warning( '读取数据 ' + url + '失败，服务器返回代码：' + request.status );
                 return;
             }
-            var item = JSON.parse( request.responseText );
-            this.openItem_( url, item, level, origin );
+            this.openItem_( url, JSON.parse( request.responseText ), level, origin );
         }.bind( this );
 
         request.open( 'GET', url + '/config.json' );
@@ -951,6 +941,43 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         extent[ 1 ] += origin[ 1 ];
         extent[ 2 ] += origin[ 0 ];
         extent[ 3 ] += origin[ 1 ];
+    };
+
+    Map.prototype.buildClusterView_ = function ( features ) {
+
+        var extent = ol.extent.createEmpty();
+        var j, jj;
+        for ( j = 0, jj = features.length; j < jj; ++j ) {
+            ol.extent.extend( extent, features[ j ].getGeometry().getExtent() );
+        }
+
+        this.buildExtentView_( extent );
+
+        this.plangroup.getLayers().push( emptyLayer() );
+        this.solidgroup.getLayers().push( emptyLayer() );
+        this.titlegroup.getLayers().push( emptyLayer() );
+        this.scenegroup.getLayers().push( emptyLayer() );
+        this.childgroup.getLayers().push( emptyLayer() );
+
+    };
+
+    Map.prototype.buildExtentView_ = function ( extent ) {
+
+        var j, jj = this.sitestack.length;
+        for ( j = 0; j < jj; j ++ ) {
+            if ( ! ol.extent.containsExtent( this.sitestack[ j ].extent, extent ) )
+                break;
+        }
+        this.popSiteStack_( j );
+
+        var resolution = this.view.getResolutionForExtent( extent );
+        this.sitestack.push( {
+            extent: extent,
+            center: ol.extent.getCenter( extent ),
+            resolution: resolution * 1.1,
+        } );
+
+        return j;
     };
 
     /**
@@ -973,56 +1000,35 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     Map.prototype.openItem_ = function ( url, item, level, origin ) {
 
         level = level === undefined ? 0 : level + 1;
+        console.assert( level < this.sitestack.length + 1 );
 
-        // 对应条目已经打开
-        if ( this.layerStack.length > level && this.layerStack[ level ].url === url ) {
-            this.selectLayerLevel_( level );
-            return;
-        }
+        this.popSiteStack_( level );
 
-        console.assert( level < this.layerStack.length + 1 );
-        if ( level < this.layerStack.length ) {
-            this.removeViewLevel( level + ViewLevel.ORGANIZATION );
-        }
-
-        if ( ! origin ) {
+        if ( ! origin )
             origin = ! item.origin ? [ 0., 0. ] : item.origin;
-        }
 
-        var extent = item.extent;
-        if ( extent === undefined ) {
-            var view = this.map.getView();
-            view.setCenter( origin );
-            view.setResolution( 1 );
-            extent = view.calculateExtent();
-        }
+        var extent;
+        if ( item.extent === undefined )
+            extent = this.view.calculateExtent();
         else {
+            extent = item.extent;
             this.translateExtent( extent, origin );
         }
 
-        // 设置当前
-        this.layerStack.push( {
-            name: item.name,
-            title: item.title,
-            url: url,
-            extent: extent,
-            origin: origin,
-            elevations: item.elevations,
-        } );
+        level = this.buildExtentView_( extent );
+        this.sitestack[ level ].url = url;
+        this.sitestack[ level ].site = item;
 
-        // 创建图层
         var layers = this.createItemLayers_( item, url, extent, origin );
-        this.planGroup.getLayers().push( layers[ 0 ] );
-        this.stereoGroup.getLayers().push( layers[ 1 ] );
-        this.labelGroup.getLayers().push( layers[ 2 ] );
-        this.featureGroup.getLayers().push( layers[ 3 ] );
-        this.childrenGroup.getLayers().push( layers[ 4 ] );
+        this.plangroup.getLayers().push( layers[ 0 ] );
+        this.solidgroup.getLayers().push( layers[ 1 ] );
+        this.titlegroup.getLayers().push( layers[ 2 ] );
+        this.scenegroup.getLayers().push( layers[ 3 ] );
+        this.childgroup.getLayers().push( layers[ 4 ] );
 
-        // 设置当前 level
-        this.selectLayerLevel_( level );
+        this.selectSiteLevel_( level );
 
-        // 发出新的视图层次创建消息
-        this.dispatchEvent( new ifuture.Event( 'node:open', this.viewLevel ) );
+        this.dispatchEvent( new ifuture.Event( 'site:changed' ) );
 
     };
 
@@ -1030,29 +1036,23 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     //     plan, stereo, label, feature, child
     Map.prototype.createItemLayers_ = function ( item, baseurl, extent, origin ) {
 
-        function createEmptyLayer() {
-            return new ol.layer.Group( { visible: false } );
-        };
-
         // 对于多层，在 selectLayerLevel 的时候生成对应的图层
         if ( item.elevations !== undefined ) {
-            return [ createEmptyLayer(), createEmptyLayer(),
-                     createEmptyLayer(), createEmptyLayer(), createEmptyLayer() ];
+            return [ emptyLayer(), emptyLayer(), emptyLayer(), emptyLayer(), emptyLayer() ];
         }
 
         var features, source;
         var planlayer, stereolayer, labellayer, featurelayer, childlayer;
-        var fmt = new ol.format.WKT();
 
         if ( item.views === undefined ) {
-            planlayer = createEmptyLayer();
-            stereolayer = createEmptyLayer();
-            labellayer = createEmptyLayer();
+            planlayer = emptyLayer();
+            stereolayer = emptyLayer();
+            labellayer = emptyLayer();
         }
         else {
             var plan = item.views.plan;
             if ( plan === undefined ) {
-                planlayer = createEmptyLayer();
+                planlayer = emptyLayer();
             }
             else {
                 var imageExtent = plan.extent;
@@ -1072,7 +1072,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
             var stereo = item.views.stereo;
             if ( stereo === undefined ) {
-                stereolayer = createEmptyLayer();
+                stereolayer = emptyLayer();
             }
             else {
                 var imageExtent = stereo.extent;
@@ -1093,13 +1093,13 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
             var label = item.views.label;
             if ( label === undefined ) {
-                labellayer = createEmptyLayer();
+                labellayer = emptyLayer();
             }
             else {
                 features = [];
                 for ( var i = 0; i < label.length; i ++ ) {
                     var node = label[ i ];
-                    var feature = fmt.readFeature( node.geometry );
+                    var feature = fmtwkt.readFeature( node.geometry );
                     if ( feature ) {
                         feature.getGeometry().translate( origin[ 0 ], origin[ 1 ] );
                         feature.set( 'title', node.text, true );
@@ -1113,7 +1113,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                     source: source,
                     minResolution: MIN_RESOLUTION,
                     maxResolution: MAX_RESOLUTION,
-                    style: labelstyle,
+                    style: labelStyleFunction,
                 } );
             }
         }
@@ -1122,7 +1122,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         if ( item.children ) {
             for ( var i = 0; i < item.children.length; i ++ ) {
                 var node = item.children[ i ];
-                var feature = fmt.readFeature( node.geometry );
+                var feature = fmtwkt.readFeature( node.geometry );
                 if ( feature ) {
                     feature.getGeometry().translate( origin[ 0 ], origin[ 1 ] );
                     feature.setProperties( {
@@ -1148,7 +1148,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         if ( item.features ) {
             for ( var i = 0; i < item.features.length; i ++ ) {
                 var node = item.features[ i ];
-                var feature = fmt.readFeature( node.geometry );
+                var feature = fmtwkt.readFeature( node.geometry );
                 if ( feature ) {
                     feature.getGeometry().translate( origin[ 0 ], origin[ 1 ] );
                     feature.setProperties( {
@@ -1173,64 +1173,14 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         return [ planlayer, stereolayer, labellayer, featurelayer, childlayer ];
     };
 
-    Map.prototype.selectLayerLevel_ = function ( level ) {
-
-        var item = this.layerStack[ level ];
-        this.layerLevel = level;
-
-        // 当前和上级是否是多层
-        var i = level;
-        while ( i >= 0 ) {
-
-            // 显示设置楼层按钮
-            if ( this.layerStack[ i ].elevations !== undefined ) {
-
-                this.app_.request( 'modebar', 'setElevations', {
-                    data: this.layerStack[ i ].elevations,
-                    level: i,
-                    callback: function ( level, elevation ) {
-                        this.selectElevation_( level, elevation );
-                        this.fitView( this.layerStack[ level ].extent );
-                    }.bind( this ),
-                } );
-
-                this.dispatchEvent( new ifuture.Event( 'elevation:changed', {
-                    elevation:
-                    this.layerStack[ i ].currentElevation,
-                    level: i
-                } ) );
-
-                break;
-
-            }
-
-            i --;
-
-        }
-
-        // 隐藏楼层按钮
-        if ( i < 0 )
-            this.app_.request( 'modebar', 'setElevations', {} );
-
-        // 装载最顶层的图层
-        if ( item.elevations !== undefined && item.currentElevation === undefined ) {
-            this.selectElevation_( level, item.elevations.length - 1 );
-        }
-
-        this.setViewLevel( level + ViewLevel.ORGANIZATION );
-
-        // 显示选中的图层
-        this.fitView( item.extent );
-
-    };
 
     Map.prototype.createViewCarousel_ = function ( level ) {
 
-        level = level === undefined ? this.viewLevel : level;
+        level = level === undefined ? this.sitelevel : level;
 
         var items = [];
 
-        if ( level < ViewLevel.ORGANIZATION ) {
+        if ( level < 0 || level > this.sitestack.length - 1 ) {
 
             items.push( {
                 minetype: 'cover',
@@ -1241,10 +1191,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
         else {
 
-            level -= ViewLevel.ORGANIZATION;
-
-            var layer = this.featureGroup.getLayers().item( level );
-            var title = this.layerStack[ level ].title;
+            var layer = this.scenegroup.getLayers().item( level );
+            var title = this.sitestack[ level ].site === undefined ? '远景网' : this.sitestack[ level ].site.title;
 
             items.push( {
                 minetype: 'cover',
@@ -1267,20 +1215,21 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
         this.app_.request( 'explorer', 'setItems', [ items ] );
         this.toggleVisible( 'visitor', false );
+
     };
 
     Map.prototype.selectElevation_ = function ( level, elevation ) {
 
-        var item = this.layerStack[ level ];
-        if ( item.currentElevation === elevation )
+        if ( level < 0 || level >= this.sitestack.length )
             return;
 
-        // 选择不同的楼层，需要确保下级图层都被清除
-        // TODO: 需要通知 minimap 也删除下面的级别和层次
-        //       或者把 minimap 的信息也合并到 this.layerStack 中来
-        this.removeViewLevel( level + ViewLevel.ORGANIZATION + 1 );
+        var v = this.sitestack[ level ];
+        if ( v.elevation === elevation || v.site === undefined || v.site.elevations == undefined )
+            return;
 
-        var baseurl = item.url + '/floor' + elevation;
+        this.popSiteStack_( level + 1 );
+
+        var baseurl = v.url + '/floor' + elevation;
         var request = new XMLHttpRequest();
 
         request.onloadend = function() {
@@ -1290,13 +1239,14 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                 return;
             }
 
-            this.openElevation_( JSON.parse( request.responseText ), baseurl, item.extent );
-            item.currentElevation = elevation;
-            var vlevel = level + ViewLevel.ORGANIZATION;
-            if ( this.viewLevel === vlevel )
-                this.createViewCarousel_( vlevel );
+            this.openElevation_( JSON.parse( request.responseText ), baseurl, v.extent );
+            v.elevation = elevation;
+
+            if ( this.sitelevel === level )
+                this.createViewCarousel_( level );
             else
-                this.setViewLevel( vlevel );
+                this.selectSiteLevel_( level );
+
             this.dispatchEvent( new ifuture.Event( 'elevation:changed', { elevation: elevation, level: level } ) );
 
         }.bind( this );
@@ -1311,17 +1261,17 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         var origin = ! data.origin ? [ 0, 0 ] : data.origin;
         var layers = this.createItemLayers_( data, baseurl, extent, origin );
 
-        this.planGroup.getLayers().pop();
-        this.stereoGroup.getLayers().pop();
-        this.labelGroup.getLayers().pop();
-        this.featureGroup.getLayers().pop();
-        this.childrenGroup.getLayers().pop();
+        this.plangroup.getLayers().pop();
+        this.solidgroup.getLayers().pop();
+        this.titlegroup.getLayers().pop();
+        this.scenegroup.getLayers().pop();
+        this.childgroup.getLayers().pop();
 
-        this.planGroup.getLayers().push( layers[ 0 ] );
-        this.stereoGroup.getLayers().push( layers[ 1 ] );
-        this.labelGroup.getLayers().push( layers[ 2 ] );
-        this.featureGroup.getLayers().push( layers[ 3 ] );
-        this.childrenGroup.getLayers().push( layers[ 4 ] );
+        this.plangroup.getLayers().push( layers[ 0 ] );
+        this.solidgroup.getLayers().push( layers[ 1 ] );
+        this.titlegroup.getLayers().push( layers[ 2 ] );
+        this.scenegroup.getLayers().push( layers[ 3 ] );
+        this.childgroup.getLayers().push( layers[ 4 ] );
 
     };
 
@@ -1475,12 +1425,6 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                            { resolution: resolution, duration: 500 }
                          );
 
-        // 所有其他视图也要统一修改中心
-        this.views_.forEach( function ( v ) {
-            if ( this.view !== v )
-                v.setCenter( center );
-        }.bind( this ) );
-
     };
 
     /**
@@ -1497,7 +1441,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         if ( heading === undefined )
             return;
 
-        this.setVisionHelper( 'camera', null, heading );
+        this.setVisionHelper( 'anchor', null, heading );
 
         if ( this.isLiving_ ) {
             // Send message to peer
@@ -1523,7 +1467,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         }
 
         this.setMajorMode( 'anchor' );
-        this.isLiving_ = false;
+        this._isliving = false;
 
         this.app_.request( 'communicator', 'startBroadcast', roomName );
         this.app_.request( 'modebar', 'add', [ 'living', {
@@ -1617,13 +1561,11 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             this._solidview.render();
     };
 
-    return Map;
-
     /**
      *
      * 添加站点到堆栈。
      *
-     * @param {Object<name, title, url>} site
+     * @param {Object<id, title, url>} site
      * @private
      */
     Map.prototype.pushSiteStack_ = function ( site ) {
@@ -1641,23 +1583,104 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
      * @private
      */
     Map.prototype.popSiteStack_ = function ( level ) {
+
+        var n = this.sitestack.length;
+        var jj = Math.min( n, level === undefined ? 1 : n - level );
+
+        for ( var i = 0; i < jj; i ++ ) {
+            this.plangroup.getLayers().pop();
+            this.solidgroup.getLayers().pop();
+            this.titlegroup.getLayers().pop();
+            this.scenegroup.getLayers().pop();
+            this.childgroup.getLayers().pop();
+            this.sitestack.pop();
+        }
+
+    };
+
+
+    /**
+     *
+     * 设置当前级别站点的楼层数据。
+     *
+     * @param {int} level
+     * @private
+     */
+    Map.prototype.setSiteElevations_ = function ( level ) {
+
+        while ( level > -1 ) {
+
+            var v = this.sitestack[ level ];
+
+            if ( v.site && v.site.elevations !== undefined ) {
+
+                this.app_.request( 'modebar', 'setElevations', {
+                    data: v.site.elevations,
+                    level: level,
+                    callback: function ( level, elevation ) {
+                        this.selectElevation_( level, elevation );
+                        this.fitView( this.sitestack[ level ].extent );
+                    }.bind( this ),
+                } );
+
+                this.dispatchEvent( new ifuture.Event( 'elevation:changed', {
+                    elevation: v.elevation,
+                    level: level
+                } ) );
+
+                break;
+
+            }
+
+            level --;
+
+        }
+
+        if ( level < 0 )
+            this.app_.request( 'modebar', 'setElevations', {} );
+
     };
 
     /**
      *
-     * 切换站点到堆栈的某一个层。
+     * 切换站点到堆栈的某一个层，-1 表示倒数第一个。
      *
      * @param {int} level
      * @private
      */
     Map.prototype.selectSiteLevel_ = function ( level ) {
+
+        if ( this.sitelevel === level )
+            return;
+
+        var n = this.sitestack.length;
+        if ( n == 0 ) {
+            this.sitelevel = -1;
+            return;
+        }
+
+        var index = Math.max( 0, level < 0 ? n + level : level );
+        var v = this.sitestack[ index ];
+
+        this.sitelevel = index;
+
+        // 装载最顶层的图层
+        if ( v.site && v.site.elevations !== undefined && v.elevation === undefined )
+            this.selectElevation_( index, v.site.elevations.length - 1 );
+        else
+            this.setSiteElevations_( index );
+
+        this.createViewCarousel_( index );
+
+        this.fitView( v.extent );
+
     };
 
     /**
      *
      * 设置地图的根站点
      *
-     * @param {Object<name, title, url>} site
+     * @param {Object<id, title>} site
      * @param {Array<ol.Feature>} features
      * @param {Object<extent, resolution, distance>} options
      * @observable
@@ -1668,10 +1691,19 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
         this.popSiteStack_( 0 );
 
-        this._clusterlayer.getSource().clear( { fast: true } );
-        this._clusterlayer.getSource().addFeatures( features );
+        // this._clusterlayer.getSource().clear( { fast: true } );
+        // this._clusterlayer.getSource().addFeatures( features );
+        this._clusterlayer.setSource(
+            new ol.source.Cluster( {
+                distance: CLUSTER_DEFAULT_DISTANCE,
+                source: new ol.source.Vector( { features: features } ),
+            } )
+        );
 
-        this.pushSiteStack_( site );
+        ( options && options.extent ) ? this.buildExtentView_( options.extent ) : this.buildClusterView_( features );
+        this.sitestack[ 0 ].site = site;
+
+
         this.selectSiteLevel_( 0 );
 
         this.dispatchEvent( new ifuture.Event( 'site:changed' ) );
@@ -1688,9 +1720,6 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
      */
     Map.prototype.handleFutureEvent = function ( event ) {
 
-        //
-        //
-        //
         if ( event.type === 'helper:changed' ) {
             var arg = event.argument;
             this.setVisionHelper( arg.name, arg.position, arg.yaw );
@@ -1702,5 +1731,6 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
     };
 
+    return Map;
 
 } );
