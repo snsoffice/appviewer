@@ -145,6 +145,16 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     var formatUrl = utils.formatUrl;
     var fmtwkt = new ol.format.WKT();
 
+    // 默认坐标系 EPSG:3857
+
+    // 绿地世纪城东门位置
+    var defaultlocation = [ 12119628.52, 4055386.0 ];
+    var defaultresolution = 6000;
+
+    // 建筑物内部最大分辨率
+    var SITE_MAX_RESOLUTION = 3.8;
+    var SITE_MIN_RESOLUTION = 0.001;
+
     var CLUSTER_MIN_RESOLUTION = 1;
     var CLUSTER_DEFAULT_DISTANCE = 50;
 
@@ -319,20 +329,6 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         return new ol.layer.Group( { visible: false } );
     }
 
-    // 默认坐标系 EPSG:3857
-
-    // 绿地世纪城东门位置
-    var defaultlocation = [ 12119628.52, 4055386.0 ];
-    var defaultresolution = 6000;
-
-    // 底图分辨率
-    var maxresolution = 100;
-    var minresolution = 0.01;
-
-    // 建筑物内部最大分辨率
-    var MAX_RESOLUTION = 3.8;
-    var MIN_RESOLUTION = 0.001;
-
     // 地图显示级别
     //
     // 集簇级，大范围，国家和省份，集簇方式显示组织机构
@@ -438,14 +434,36 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         options.label = span;
 
         options.resetNorth = function () {
-            ol.control.Rotate.resetNorth_.call( this );
+            var map = this.getMap();
+            var view = map.getView();
+            if (!view) {
+                // the map does not have a view, so we can't act
+                // upon it
+                return;
+            }
+            if (view.getRotation() !== undefined) {
+                if (this.duration_ > 0) {
+                    view.animate({
+                        rotation: 0,
+                        duration: this.duration_,
+                        easing: ol.easing.easeOut
+                    });
+                } else {
+                    view.setRotation(0);
+                }
+            }
         }.bind( this );
 
         ol.control.Rotate.call( this, options );
 
-    };
-    ol.inherits( CompassControl, ol.control.Control );
+        /**
+         * @type {number}
+         * @private
+         */
+        this.duration_ = options.duration !== undefined ? options.duration : 250;
 
+    };
+    ol.inherits( CompassControl, ol.control.Rotate );
 
     var Map = function ( app, opt_options ) {
 
@@ -526,31 +544,31 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
         this._planlayer = new ol.layer.Group( {
             layers: [ this.plangroup ],
-            maxResolution: MAX_RESOLUTION,
+            maxResolution: SITE_MAX_RESOLUTION,
             visible: true,
         } );
 
         this._solidlayer = new ol.layer.Group( {
             layers: [ this.solidgroup ],
-            maxResolution: MAX_RESOLUTION,
+            maxResolution: SITE_MAX_RESOLUTION,
             visible: false,
         } );
 
         this._titlelayer = new ol.layer.Group( {
             layers: [ this.titlegroup ],
-            maxResolution: MAX_RESOLUTION,
+            maxResolution: SITE_MAX_RESOLUTION,
             visible: true,
         } );
 
         this._scenelayer = new ol.layer.Group( {
             layers: [ this.scenegroup ],
-            maxResolution: MAX_RESOLUTION,
+            maxResolution: SITE_MAX_RESOLUTION,
             visible: false,
         } );
 
         this._childlayer = new ol.layer.Group( {
             layers: [ this.childgroup ],
-            maxResolution: MAX_RESOLUTION,
+            maxResolution: SITE_MAX_RESOLUTION,
             visible: true,
         } );
 
@@ -951,6 +969,13 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             ol.extent.extend( extent, features[ j ].getGeometry().getExtent() );
         }
 
+        jj = this.sitestack.length;
+        for ( j = 0; j < jj; j ++ ) {
+            if ( ! ol.extent.containsExtent( this.sitestack[ j ].extent, extent ) )
+                break;
+        }
+        this.popSiteStack_( j );
+
         this.buildExtentView_( extent );
 
         this.plangroup.getLayers().push( emptyLayer() );
@@ -963,13 +988,6 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
     Map.prototype.buildExtentView_ = function ( extent ) {
 
-        var j, jj = this.sitestack.length;
-        for ( j = 0; j < jj; j ++ ) {
-            if ( ! ol.extent.containsExtent( this.sitestack[ j ].extent, extent ) )
-                break;
-        }
-        this.popSiteStack_( j );
-
         var resolution = this.view.getResolutionForExtent( extent );
         this.sitestack.push( {
             extent: extent,
@@ -977,7 +995,6 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             resolution: resolution * 1.1,
         } );
 
-        return j;
     };
 
     /**
@@ -1015,7 +1032,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             this.translateExtent( extent, origin );
         }
 
-        level = this.buildExtentView_( extent );
+        this.buildExtentView_( extent );
         this.sitestack[ level ].url = url;
         this.sitestack[ level ].site = item;
 
@@ -1059,8 +1076,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                 this.translateExtent( imageExtent, origin );
                 ol.extent.extend( extent, imageExtent );
                 planlayer = new ol.layer.Image( {
-                    minResolution: MIN_RESOLUTION,
-                    maxResolution: MAX_RESOLUTION,
+                    minResolution: SITE_MIN_RESOLUTION,
+                    maxResolution: SITE_MAX_RESOLUTION,
                     extent: extent,
                     source: new ol.source.ImageStatic( {
                         crossOrigin: 'anonymous',
@@ -1080,8 +1097,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                 ol.extent.extend( extent, imageExtent );
                 stereolayer = new ol.layer.Image( {
                     opacity: 0.8,
-                    minResolution: MIN_RESOLUTION,
-                    maxResolution: MAX_RESOLUTION,
+                    minResolution: SITE_MIN_RESOLUTION,
+                    maxResolution: SITE_MAX_RESOLUTION,
                     extent: extent,
                     source: new ol.source.ImageStatic( {
                         crossOrigin: 'anonymous',
@@ -1111,8 +1128,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
                 labellayer = new ol.layer.Vector( {
                     extent: extent,
                     source: source,
-                    minResolution: MIN_RESOLUTION,
-                    maxResolution: MAX_RESOLUTION,
+                    minResolution: SITE_MIN_RESOLUTION,
+                    maxResolution: SITE_MAX_RESOLUTION,
                     style: labelStyleFunction,
                 } );
             }
@@ -1139,8 +1156,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         var childlayer = new ol.layer.Vector( {
             extent: extent,
             source: source,
-            minResolution: MIN_RESOLUTION,
-            maxResolution: MAX_RESOLUTION,
+            minResolution: SITE_MIN_RESOLUTION,
+            maxResolution: SITE_MAX_RESOLUTION,
             style: childstyle,
         } );
 
@@ -1165,8 +1182,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         var featurelayer = new ol.layer.Vector( {
             extent: extent,
             source: source,
-            minResolution: MIN_RESOLUTION,
-            maxResolution: MAX_RESOLUTION,
+            minResolution: SITE_MIN_RESOLUTION,
+            maxResolution: SITE_MAX_RESOLUTION,
             style: featurestyle,
         } );
 
@@ -1667,8 +1684,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         // 装载最顶层的图层
         if ( v.site && v.site.elevations !== undefined && v.elevation === undefined )
             this.selectElevation_( index, v.site.elevations.length - 1 );
-        else
-            this.setSiteElevations_( index );
+
+        this.setSiteElevations_( index );
 
         this.createViewCarousel_( index );
 
@@ -1691,18 +1708,16 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
         this.popSiteStack_( 0 );
 
-        // this._clusterlayer.getSource().clear( { fast: true } );
-        // this._clusterlayer.getSource().addFeatures( features );
+        var distance = options.distance === undefined ? CLUSTER_DEFAULT_DISTANCE : options.distance;
         this._clusterlayer.setSource(
             new ol.source.Cluster( {
-                distance: CLUSTER_DEFAULT_DISTANCE,
+                distance: distance,
                 source: new ol.source.Vector( { features: features } ),
             } )
         );
 
         ( options && options.extent ) ? this.buildExtentView_( options.extent ) : this.buildClusterView_( features );
         this.sitestack[ 0 ].site = site;
-
 
         this.selectSiteLevel_( 0 );
 
