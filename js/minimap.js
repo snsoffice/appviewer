@@ -5,7 +5,7 @@
  * 概念和定义
  *
  *     _planlayer
- *     _stereolayer
+ *     _solidlayer
  *
  *     sitelevel
  *

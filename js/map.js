@@ -29,7 +29,7 @@
  *     _childlayer
  *     _scenelayer
  *
- *     _solidview
+ *     _threeview
  *
  *     _helper
  *         visitor
@@ -578,7 +578,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
          * @public
          * @type {Solid}
          */
-        this._solidview = null;
+        this._threeview = null;
 
         /**
          * 所有使用到的底图图层的定义，这些都是公共地图
@@ -750,24 +750,24 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         if ( type === 'plan' ) {
             this._planlayer.setVisible( true );
             this._solidlayer.setVisible( false );
-            if ( this._solidview )
-                this._solidview.setVisible( false );
+            if ( this._threeview )
+                this._threeview.setVisible( false );
         }
-        else if ( type === 'stereo' ) {
+        else if ( type === 'solid' ) {
             this._planlayer.setVisible( false );
             this._solidlayer.setVisible( true );
-            if ( this._solidview )
-                this._solidview.setVisible( false );
+            if ( this._threeview )
+                this._threeview.setVisible( false );
         }
-        else if ( type == 'solid' ) {
+        else if ( type == 'threed' ) {
             this._planlayer.setVisible( true );
             this._solidlayer.setVisible( false );
-            if ( this._solidview ) {
-                this._solidview.setVisible( true );
+            if ( this._threeview ) {
+                this._threeview.setVisible( true );
             }
             else {
                 requirejs( [ 'solid' ], function ( Solid ) {
-                    this._solidview = new Solid();
+                    this._threeview = new Solid();
                 }.bind( this ) );
             }
         }
@@ -869,6 +869,12 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             if ( size > 1 ) {
 
                 this.buildClusterView_( features );
+                this.plangroup.getLayers().push( emptyLayer() );
+                this.solidgroup.getLayers().push( emptyLayer() );
+                this.titlegroup.getLayers().push( emptyLayer() );
+                this.scenegroup.getLayers().push( emptyLayer() );
+                this.childgroup.getLayers().push( emptyLayer() );
+
                 this.selectSiteLevel_( this.sitestack.length - 1 );
 
                 this.dispatchEvent( new ifuture.Event( 'site:changed' ) );
@@ -978,12 +984,6 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
         this.buildExtentView_( extent );
 
-        this.plangroup.getLayers().push( emptyLayer() );
-        this.solidgroup.getLayers().push( emptyLayer() );
-        this.titlegroup.getLayers().push( emptyLayer() );
-        this.scenegroup.getLayers().push( emptyLayer() );
-        this.childgroup.getLayers().push( emptyLayer() );
-
     };
 
     Map.prototype.buildExtentView_ = function ( extent ) {
@@ -1043,7 +1043,11 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         this.scenegroup.getLayers().push( layers[ 3 ] );
         this.childgroup.getLayers().push( layers[ 4 ] );
 
-        this.selectSiteLevel_( level );
+        // 装载最顶层的图层
+        if ( item.elevations !== undefined )
+            this.selectElevation_( level, item.elevations.length - 1 );
+        else
+            this.selectSiteLevel_( level );
 
         this.dispatchEvent( new ifuture.Event( 'site:changed' ) );
 
@@ -1191,7 +1195,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     };
 
 
-    Map.prototype.createViewCarousel_ = function ( level ) {
+    Map.prototype.createSiteCarousel_ = function ( level ) {
 
         level = level === undefined ? this.sitelevel : level;
 
@@ -1260,7 +1264,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             v.elevation = elevation;
 
             if ( this.sitelevel === level )
-                this.createViewCarousel_( level );
+                this.createSiteCarousel_( level );
             else
                 this.selectSiteLevel_( level );
 
@@ -1289,30 +1293,6 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         this.titlegroup.getLayers().push( layers[ 2 ] );
         this.scenegroup.getLayers().push( layers[ 3 ] );
         this.childgroup.getLayers().push( layers[ 4 ] );
-
-    };
-
-    /**
-     *
-     * 设置地图的显示级别
-     *
-     * @param {int} level 级别
-     * @observable
-     * @api
-     */
-    Map.prototype.setViewLevel = function ( level ) {
-
-        if ( this.viewLevel !== level ) {
-            var view = this.views_[ level ];
-            this.map.setView( view );
-            this.map.render();
-
-            this.view = view;
-            this.viewLevel = level;
-            this.layerLevel = Math.max( -1, level - ViewLevel.ORGANIZATION );
-
-            this.createViewCarousel_( level );
-        }
 
     };
 
@@ -1574,8 +1554,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
      *
      */
     Map.prototype.onPostRender_ = function ( event ) {
-        if ( this._solidview && this._solidview.isVisible() )
-            this._solidview.render();
+        if ( this._threeview && this._threeview.isVisible() )
+            this._threeview.render();
     };
 
     /**
@@ -1681,13 +1661,9 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
         this.sitelevel = index;
 
-        // 装载最顶层的图层
-        if ( v.site && v.site.elevations !== undefined && v.elevation === undefined )
-            this.selectElevation_( index, v.site.elevations.length - 1 );
-
         this.setSiteElevations_( index );
 
-        this.createViewCarousel_( index );
+        this.createSiteCarousel_( index );
 
         this.fitView( v.extent );
 
@@ -1717,8 +1693,13 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         );
 
         ( options && options.extent ) ? this.buildExtentView_( options.extent ) : this.buildClusterView_( features );
-        this.sitestack[ 0 ].site = site;
+        this.plangroup.getLayers().push( emptyLayer() );
+        this.solidgroup.getLayers().push( emptyLayer() );
+        this.titlegroup.getLayers().push( emptyLayer() );
+        this.scenegroup.getLayers().push( emptyLayer() );
+        this.childgroup.getLayers().push( emptyLayer() );
 
+        this.sitestack[ 0 ].site = site;
         this.selectSiteLevel_( 0 );
 
         this.dispatchEvent( new ifuture.Event( 'site:changed' ) );
