@@ -56,7 +56,6 @@ import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.model.Wall;
 
 import com.eteks.sweethome3d.swing.PlanComponent;
-
 import com.eteks.sweethome3d.viewcontroller.PlanController;
 
 
