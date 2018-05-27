@@ -221,44 +221,42 @@ public class SimpleHouseExport {
         }
     }
 
-    public static void writeViewData(OutputStreamWriter writer, Home home, Rectangle2D itemBounds,
-                                     double resolution, double stereoResolution, double margin, String path)
-        throws IOException {
+    public static void writeViewData(OutputStreamWriter writer, Home home, Rectangle2D itemBounds) throws IOException {
 
         final String indent = "  ";
-        final String indent2 = indent.repeat(2);
-        final String indent3 = indent.repeat(3);
+        final String indent2 = "    ";
+        final String indent3 = "      ";
 
-        float x0 = itemBounds.getMinX() / 100,
+        double x0 = itemBounds.getMinX() / 100,
             y0 = -itemBounds.getMaxY() / 100,
             x1 = itemBounds.getMaxX() / 100,
             y1 = -itemBounds.getMinY() / 100;
 
         writer.write(String.format("%s\"views\":%n%s[%n", indent, indent));
 
-        writer.write(String.format("%s{%n%s\"type\": \"plan\"%n" +
+        writer.write(String.format("%s{%n%s\"type\": \"plan\",%n" +
                                    "%s\"extent\": [ %f, %f, %f, %f ],%n" +
                                    "%s\"source\": \"plan_house.png\"%n" +
                                    "%s},%n",
                                    indent2, indent3, indent3,
                                    x0, y0, x1, y1,
-                                   indent2));
+                                   indent3, indent2));
 
-        writer.write(String.format("%s{%n%s\"type\": \"solid\"%n" +
+        writer.write(String.format("%s{%n%s\"type\": \"solid\",%n" +
                                    "%s\"extent\": [ %f, %f, %f, %f ],%n" +
                                    "%s\"source\": \"solid_house.png\"%n" +
                                    "%s},%n",
                                    indent2, indent3, indent3,
                                    x0, y0, x1, y1,
-                                   indent2));
+                                   indent3, indent2));
 
-        writer.write(String.format("%s{%n%s\"type\": \"three\"%n" +
+        writer.write(String.format("%s{%n%s\"type\": \"three\",%n" +
                                    "%s\"extent\": [ %f, %f, %f, %f ],%n" +
                                    "%s\"source\": \"three_house.mtl\"%n" +
                                    "%s}%n",
                                    indent2, indent3, indent3,
                                    x0, y0, x1, y1,
-                                   indent2));
+                                   indent3, indent2));
 
         writer.write(String.format("%s]%n", indent));
     }
@@ -273,11 +271,10 @@ public class SimpleHouseExport {
             for(float[] p: room.getPoints()) {
                 pts.add(String.format("[%f, %f]", p[0] / 100, -p[1] / 100));
             }
-            results.add(String.format("[%s]", join2(pts, ", ")))
+            results.add(String.format("[%s]", join2(pts, ", ")));
         }
-        writer.write(String.format("  \"area\": %f,%n", area));
+        writer.write(String.format("  \"area\": %f,%n", area / 10000));
         writer.write(String.format("  \"points\": [%s],%n", join2(results, ", ")));
-        return result;
     }
 
     public static Rectangle2D export(Home home, UserPreferences preferences,
@@ -325,7 +322,7 @@ public class SimpleHouseExport {
         System.out.println("输出 JSON 文件 " + jsonFilename);
         writer.write(String.format("{%n  \"name\": \"%s\",%n", home.getName()));
         writeRoomData(writer, home);
-        writeViewData(writer, home, itemBounds, resolution, solidResolution, plan.getExtraMargin());
+        writeViewData(writer, home, itemBounds);
         writer.write(String.format("}%n"));
         writer.flush();
         out.close();
@@ -371,7 +368,6 @@ public class SimpleHouseExport {
         Home home = null;
         try {
             File homeFile = new File(filename);
-            String homeName = homeFile.getParentFile().getName();
 
             // If preferences are not null replace home content by the one in preferences when it's the same
             in = new DefaultHomeInputStream(homeFile, ContentRecording.INCLUDE_ALL_CONTENT, null, null, false);
@@ -380,7 +376,12 @@ public class SimpleHouseExport {
             UserPreferences preferences = new DefaultUserPreferences();
             preferences.setUnit(LengthUnit.METER);
 
-            export(home, preferences, resolution, solidResolution, homeName, viewPath, output);
+            export(home, preferences, resolution, solidResolution, viewPath, output);
+
+            System.out.println("正在生成压缩文件 " + "house.zip" + " ...");
+            zip(output, ".", "house.zip");
+
+            System.out.println("删除临时目录 tmp ...");
 
         } catch (FileNotFoundException ex) {
             System.out.println("读取输入文件 " + filename + " 失败: " + ex);
@@ -392,6 +393,7 @@ public class SimpleHouseExport {
             System.out.println("输出失败: " + ex);
         } catch (Exception ex) {
             System.out.println("未知错误: " + ex);
+            ex.printStackTrace();
         } finally {
             if (in != null) {
                 try {

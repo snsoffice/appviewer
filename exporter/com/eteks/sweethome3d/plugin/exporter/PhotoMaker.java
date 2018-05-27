@@ -202,8 +202,8 @@ public class PhotoMaker {
             }
             camera.setZ((float)(cz + ((n == 0 || n == 4) ? 0 : home.getWallHeight())));
             camera.setYaw((float)(-Math.PI  + rotation));
-            // String filename = path + File.separator + "stereo_house" + String.valueOf(n) + "." + imageType.toLowerCase();
-            String filename = path + File.separator + "stereo_house." + imageType.toLowerCase();
+            // String filename = path + File.separator + "solid_house" + String.valueOf(n) + "." + imageType.toLowerCase();
+            String filename = path + File.separator + "solid_house." + imageType.toLowerCase();
             System.out.printf("正在生成第 %d 个立体图文件(%dx%d) ...%n", n + 1, rotRect.width, rotRect.height);
             BufferedImage photo = new BufferedImage(rotRect.width, rotRect.height, itype);
             renderer.render(photo, camera, null);
