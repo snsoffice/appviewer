@@ -274,7 +274,7 @@ public class SimpleHouseExport {
             results.add(String.format("[%s]", join2(pts, ", ")));
         }
         writer.write(String.format("  \"area\": %f,%n", area / 10000));
-        writer.write(String.format("  \"points\": [%s],%n", join2(results, ", ")));
+        writer.write(String.format("  \"polygons\": [%s],%n", join2(results, ", ")));
     }
 
     public static Rectangle2D export(Home home, UserPreferences preferences,
