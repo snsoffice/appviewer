@@ -4,12 +4,12 @@
 
 ```
   mkdir -p com/eteks/sweethome3d/plugin/exportjson
-  
+
   cd com/eteks/sweethome3d/plugin/exportjson
-  
+
   # Create file:  ApplicationPlugin.properties
   # Create file:  ExportJSONPlugin.java
-  
+
 ```
 
 ## 编译成为 class
@@ -31,24 +31,24 @@
 
 ```
   cd com/eteks/sweethome3d/plugin/exportjson
-  
+
   # Create file: Exporter
-  # 
+  #
 
   # cd com 所在的目录
   javac -cp SweetHome3D-5.6.jar com/eteks/sweethome3d/plugin/exportjson/Exporter.java
-  
+
   # 压缩 com 目录为 exporter.jar
   zip -r exporter.jar com/
-  
+
   # 运行
   java -cp "SweetHome3D-5.6.jar;exporter.jar" com.eteks.sweethome3d.plugin.exportjson.Exporter
-  
+
   # 如果需要 3D 支持，例如离线输出照片，那么需要指定库所在的位置
   java -D"java.library.path=lib/windows/i386" \
        -cp "SweetHome3D-5.6.jar;lib/j3dcore.jar;lib/j3dutils.jar;lib/vecmath.jar;lib/sunflow-0.07.3i.jar;exporter.jar" \
        com/eteks/sweethome3d/plugin/exportjson/Exporter house.sh3d
-  
+
 ```
 
 ### 创建图片
@@ -60,7 +60,7 @@
   # Build
   javac -cp SweetHome3D-5.6.jar com/eteks/sweethome3d/plugin/exporter/PhotoMaker.java
   zip -r exporter.jar com/
-  
+
   # Run
   java -D"java.library.path=lib/windows/i386" \
        -cp "SweetHome3D-5.6.jar;lib/j3dcore.jar;lib/j3dutils.jar;lib/vecmath.jar;lib/sunflow-0.07.3i.jar;exporter.jar" \
@@ -87,7 +87,7 @@ OPTIONS
   # Build
   javac -cp SweetHome3D-5.6.jar com/eteks/sweethome3d/plugin/exporter/MapLayer.java
   zip -r exporter.jar com/
-  
+
   # Run
   java -cp "SweetHome3D-5.6.jar;exporter.jar" com/eteks/sweethome3d/plugin/exporter/MapLayer FILENAME.sh3d
 
@@ -102,3 +102,40 @@ http://www.sweethome3d.com/pluginDeveloperGuide.jsp
 * API
 
 http://www.sweethome3d.com/javadoc/index.html
+
+# SimpleHouseExporter 输出文件格式
+
+这是插件使用的导出方式，生成一个简化版的压缩文件，只包含单个房屋的视图资源
+
+* config.json
+* views/plan/plan_house.png
+* views/solid/solid_house.jpg
+* views/three/*
+
+## config.json
+
+```
+{
+  "name": "1701",  // 文件名称
+  "points": [[[29.510899, 10.033899], [29.510899, 4.112000], ..., [23.087099, 10.033899]]],
+  "area": 69.63,   // 所有房屋的面积求和得到，或者计算多边形的面积
+  "views": 
+  [
+    {
+      "type": "plan",
+      "points": [[[29.510899, 10.033899], [29.510899, 4.112000], ..., [23.087099, 10.033899]]],
+      "source": "plan_house.png"
+    },
+    {
+      "type": "three",
+      "points": [[[29.510899, 10.033899], [29.510899, 4.112000], ..., [23.087099, 10.033899]]],
+      "source": "house.mtl"
+    },
+    {
+      "type": "solid",
+      "points": [[[29.510899, 10.033899], [29.510899, 4.112000], ..., [23.087099, 10.033899]]],
+      "source": "solid_house.jpg"
+    }
+  ]
+}
+```
