@@ -24,44 +24,15 @@
  *
  * 消息和事件
  *
+ *    同步按钮，小地图切换到大地图所在图层
+ *
+ *    删除按钮，删除当前图层（包括其所有的子图层）
  *
  * 小地图迷你模式，当大地图处于显示状态的时候，小地图处于迷你模式
  *
  *     组织机构图层一直是平面图
  *     显示大地图的中心位置
  *
- * 小地图浏览模式（browser）
- *
- *    游客表示大地图的中心，视野表示当前特征的视野
- *
- *    左右滑动显示上一级和下一级图层
- *
- *    点击小地图，大地图切换到小地图所在的图层
- *
- *    同步按钮，小地图切换到大地图所在图层
- *
- *    删除按钮，删除当前图层（包括其所有的子图层）
- *
- * 主播模式（anchor)下的行为
- *
- *    游客表示观众位置，视野表示主播的视野
- *
- *    左右滑动显示上一级和下一级图层（一致）
- *
- *    点击小地图，切换主播位置
- *
- *    同步按钮和删除按钮，禁用
- *
- * 观看模式（viewer)和主播模式基本相同，除了
- *
- *    点击小地图，切换观众位置
- *
- * 每一个导航项包括
- *
- *    center
- *    resolution
- *    rotation
- *    layer, 可能为 undefined
  */
 define( [ 'ifuture', 'ol', 'config', 'db', 'utils' ],
 
@@ -107,16 +78,21 @@ function( ifuture, ol, config, db, utils ) {
      * @return {boolean} `true` to start the drag sequence.
      */
     DragAction.prototype.handleDownEvent = function( evt ) {
+
         this._coordinate = evt.coordinate;
         this._drag = false;
         return true;
+
     };
 
     DragAction.prototype.handleDragEvent = function( evt ) {
+
         this._drag = true;
+
     };
 
     DragAction.prototype.handleUpEvent = function( evt ) {
+
         var deltaX = evt.coordinate[ 0 ] - this._coordinate[ 0 ];
         if ( this._drag ) {
             if ( ( evt.coordinate[ 0 ] - this._coordinate[ 0 ] ) > 0 )
@@ -126,6 +102,7 @@ function( ifuture, ol, config, db, utils ) {
         }
         else
             this._minimap.touch( evt.coordinate );
+
         return false;
     }
 
@@ -185,7 +162,7 @@ function( ifuture, ol, config, db, utils ) {
             layers: [ this._dxmap.plangroup ],
         } );
 
-        this._solidlayer = new ol.layer.Group( { 
+        this._solidlayer = new ol.layer.Group( {
             layers: [ this._dxmap.solidgroup ],
             visible: false,
         } );
@@ -237,7 +214,7 @@ function( ifuture, ol, config, db, utils ) {
 
         element = document.createElement( 'DIV' );
         element.className = 'text-danger';
-        element.innerHTML = '<i class="fas fa-circle"></i>';
+        element.innerHTML = '<i class="fas fa-circle fa-xs" data-fa-transform="shrink-6"></i>';
         marker = new ol.Overlay( {
             id: 'center',
             positioning: 'center-center',
@@ -246,14 +223,7 @@ function( ifuture, ol, config, db, utils ) {
         } );
         this._ovmap.addOverlay( marker );
 
-        //
-        // 工具栏
-        //
         var toolbar = this._ovmap.getTargetElement().querySelector( '.dx-toolbar' );
-
-        //
-        // 事件绑定
-        //
 
         // 删除图层
         toolbar.querySelector( '#trash-maplayer' ).addEventListener( 'click', function ( e ) {
@@ -262,10 +232,9 @@ function( ifuture, ol, config, db, utils ) {
             if ( this._sitelevel < 1 )
                 return;
 
-            this._dxmap.popSiteStack_( this._sitelevel );
-
             this.setCurrentItem( this._sitelevel - 1 );
-            this._dxmap.selectSiteLevel_( this._sitelevel );
+            
+            this.dispatchEvent( new ifuture.Event( 'view:remove', this._sitelevel ) );
 
         }.bind( this ), false );
 
@@ -341,14 +310,21 @@ function( ifuture, ol, config, db, utils ) {
 
         var duration = 250;
         var extent = this._dxmap.sitestack[ index ].extent;
+        var center = ol.extent.getCenter( extent );
         var resolution = Math.min( MAX_RESOLUTION, this.view.getResolutionForExtent( extent ) * 1.1 );
         this.view.animate( {
-            center: ol.extent.getCenter( extent ), 
+            center: center,
             resolution: resolution,
             duration: duration,
         } );
 
         this._sitelevel = index;
+
+    };
+
+    Minimap.prototype.setCenter_ = function ( center ) {
+
+        this._ovmap.getOverlayById( 'center' ).setPosition( center );
 
     };
 
@@ -361,21 +337,25 @@ function( ifuture, ol, config, db, utils ) {
      * @api
      */
     Minimap.prototype.handleFutureEvent = function ( event ) {
-        
+
         if ( event.type === 'site:changed' ) {
 
-            this._clusterlayer.setSource( 
+            this._clusterlayer.setSource(
                 new ol.source.Cluster( {
                     distance: config.clusterDistance / 2,
                     source: this._dxmap.source,
                 } )
             );
             this.setCurrentItem( 0 );
+            this.setCenter_(  ol.extent.getCenter( this._dxmap.sitestack[ this._sitelevel ].extent ) );
 
         }
 
         else if ( event.type === 'view:opened' ) {
+
             this.setCurrentItem( this._dxmap.sitelevel );
+            this.setCenter_(  ol.extent.getCenter( this._dxmap.sitestack[ this._sitelevel ].extent ) );
+
         }
 
     };

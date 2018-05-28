@@ -1,28 +1,26 @@
 // 
 // 应用程序的状态:
 //
-//     当前组织机构/当前建筑物/当前楼层/当前房间
-//     当前图层视野
-//
-//     当前游客是否可见，当前游客位置，当前游客视角
-//     当前摄像机是否可见，当前摄像机位置，当前摄像机视角
-//
-//     正在直播、正在回放、正在浏览
+//     当前登录用户，
+//     当前正在访问的空间，个人空间、公众空间和我的空间（仅登录用户）
 //     
 // 应用程序启动参数:
 //
-//     直接打开房间，隐含打开相关的组织机构/建筑物/楼层
-//     直接进入直播
-//     直接加入直播
-//
-define( [ 'ifuture', 'map', 'minimap', 'explorer', 'manager', 'vision',
+//     直接打开房间 house=/path/to/room
+//     直接进入直播 living=/path/to/room
+//     个人空间     usrscope=USERID
+//     公众空间     没有 usrscope 或者 usrscope 为空
+//     
+define( [ 'ifuture', 'map', 'minimap', 'explorer', 'manager', 'vision', 'utils', 'config',
           'navbar', 'modebar', 'footbar', 'responsebar', 'dialog', 'communicator' ],
 
-function( ifuture, Map, Minimap, Explorer, Manager, Vision,
+function( ifuture, Map, Minimap, Explorer, Manager, Vision, utils, config,
           Navbar, Modebar, Footbar, Responsebar, Dialog, Communicator ) {
 
     Application = function ( opt_options ) {
         ifuture.Component.call( this );
+
+        this._startupOptions = {};
 
         this.navbar = new Navbar( this, opt_options );
         this.map = new Map( this, opt_options );
@@ -41,6 +39,8 @@ function( ifuture, Map, Minimap, Explorer, Manager, Vision,
         // 所有对象之间的事件绑定关系
         this.map.on( [ 'site:changed', 'view:opened' ], this.minimap.handleFutureEvent, this.minimap );
         this.map.on( [ 'elevation:changed' ], this.modebar.handleFutureEvent, this.modebar );
+
+        this.minimap.on( [ 'view:remove' ], this.map.handleFutureEvent, this.map );
 
         this.communicator.on( 'living:opened', this.map.handleFutureEvent, this.map );
 
@@ -67,6 +67,7 @@ function( ifuture, Map, Minimap, Explorer, Manager, Vision,
 
     };
 
+    // 参考安卓的进程状态
     Application.prototype.hiberate = function () {
         this.map.hiberate();
         this.communicator.stop();
@@ -111,6 +112,70 @@ function( ifuture, Map, Minimap, Explorer, Manager, Vision,
     Application.prototype._handleOffline = function ( e ) {
         this.communicator.stop();
     };
+
+    // 
+    // 当应用程序启动完成之后的行为，
+    //
+    //     * 第一次打开时候触发
+    //     * 在安卓上从后台切换到前台触发
+    // 
+    Application.prototype.onStartup = function () {
+        
+        // 如果是第一次启动，那么读取 url 里面传入的参数
+        //     usrscope
+        //     house
+        //     living
+        this._configFromURL();
+
+        // 如果是在安卓上从后台切换到前台，那么读取配置信息
+
+        // 打开指定的房子
+        if ( this._startupOptions[ 'house' ] ) {
+        }
+
+        // 观看直播
+        if ( this._startupOptions[ 'living' ] ) {
+        }
+
+    };
+
+    Application.prototype._configFromURL() {
+
+        var url;
+        if (window.location.hash.length > 0) {
+            // Prefered method since parameters aren't sent to server
+            url = [window.location.hash.slice(1)];
+        } else {
+            url = decodeURI(window.location.href).split('?');
+            url.shift();
+        }
+        if (url.length < 1) {
+            return;
+        }
+        url = url[0].split('&');
+
+        for (var i = 0; i < url.length; i++) {
+            var option = url[i].split('=')[0];
+            var value = url[i].split('=')[1];
+            if (value == '')
+                continue; // Skip options with empty values in URL config
+            switch(option) {                
+            case 'usrscope':
+                config.houseScope = decodeURIComponent(value);
+                break;
+            case 'house': case 'living': 
+                this._startupOptions[ option ] = decodeURIComponent(value);
+                break;
+            default:
+                // configFromURL[option] = decodeURIComponent(value);
+                // configFromURL[option] = Number(value);
+                // configFromURL[option] = JSON.parse(value);
+                config.log('An invalid configuration parameter was specified: ' + option);
+                return;
+            }
+        }
+
+    }
 
     return Application;
 

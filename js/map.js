@@ -166,6 +166,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         CLUSTER: 0,
         SITE: 1,
         FEATURE: 2,
+        BUILDING: 3,
         CHILD: 4,
     };
 
@@ -190,7 +191,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     } );
 
     //
-    // 集簇样式
+    // 基本集簇样式
     //
     function calculateClusterInfo( feature, resolution ) {
         var features = feature.get( 'features' );
@@ -257,6 +258,11 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         return style;
     }
 
+    // 相同位置不同高度的集簇样式
+
+    // 相同位置不同年代的集簇样式
+
+    // 标题样式
     function labelStyleFunction( feature, resolution ) {
         return new ol.style.Style( {
             image: new ol.style.Circle( {
@@ -290,11 +296,9 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         } ),
     } );
 
-
     //
     // 内部函数
     //
-
     function createVisitorOverlay( name, src ) {
 
         var element = document.createElement( 'DIV' );
@@ -769,7 +773,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             if ( this._threeview )
                 this._threeview.setVisible( false );
         }
-        else if ( type == 'threed' ) {
+        else if ( type == 'three' ) {
             this._planlayer.setVisible( true );
             this._solidlayer.setVisible( false );
             if ( this._threeview ) {
@@ -777,7 +781,9 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             }
             else {
                 requirejs( [ 'solid' ], function ( Solid ) {
-                    this._threeview = new Solid();
+                    this._threeview = new Solid( {
+                        target: this.map.getTargetElement(),
+                    } );
                 }.bind( this ) );
             }
         }
@@ -880,15 +886,17 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
                 this.buildClusterView_( features );
 
-                this.selectSiteLevel_( this.sitestack.length - 1 );
+                var geometry = features[ 0 ].getGeometry()
+                this.selectSiteLevel_( this.sitestack.length - 1,
+                                       geometry === undefined ? undefined : ol.extent.getCenter( geometry.getExtent() )
+                                     );
 
                 this.dispatchEvent( new ifuture.Event( 'view:opened' ) );
             }
 
             else {
 
-                var orgfeature = features[ 0 ];
-                this.openSite_( orgfeature.get( 'url' ), orgfeature.get( 'origin' ) );
+                this.openSite_( features[ 0 ].get( 'url' ), features[ 0 ].get( 'origin' ) );
 
             }
 
@@ -1411,16 +1419,17 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
      *
      * 适应视图大小，并且使用动画方式过渡。首先是中心，然后在切换分辨率
      *
-     * @param {ifuture.Event} event 事件对象
+     * @param {Array.<number>} extent 视图的区域
+     * @param {Array.<number>|undefined} center 中心坐标，如果没有指定，那么切换到区域中心
      * @observable
      * @api
      */
-    Map.prototype.fitView = function ( extent ) {
+    Map.prototype.fitView = function ( extent, center ) {
 
         if ( ol.extent.isEmpty( extent ) )
             return;
 
-        var center = ol.extent.getCenter( extent );
+        center = center === undefined ? ol.extent.getCenter( extent ) : center;
         var resolution = this.view.getResolutionForExtent( extent );
 
         // var pt1 = this.map.getPixelFromCoordinate( center );
@@ -1660,7 +1669,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
      * @param {int} level
      * @private
      */
-    Map.prototype.selectSiteLevel_ = function ( level ) {
+    Map.prototype.selectSiteLevel_ = function ( level, center ) {
 
         if ( this.sitelevel === level )
             return;
@@ -1680,7 +1689,12 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
         this.createSiteCarousel_( index );
 
-        this.fitView( v.extent );
+        this.fitView( v.extent, center );
+
+        // 如果是三维模式，那么需要装载三维对象
+        if ( this._threeview && this._threeview.isVisible() ) {
+
+        }
 
     };
 
@@ -1698,7 +1712,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     Map.prototype.setRootSite = function ( site, features, options ) {
 
         this.popSiteStack_( 0 );
-        
+
         this.source = new ol.source.Vector( { features: features } );
         var distance = options.distance === undefined ? CLUSTER_DEFAULT_DISTANCE : options.distance;
         this._clusterlayer.setSource(
@@ -1734,6 +1748,12 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
         else if ( event.type === 'living:opened' ) {
             this.setMajorMode( 'viewer' );
+        }
+
+        else if ( event.type === 'view:remove' ) {
+            var level = event.argument;
+            this.popSiteStack_( level + 1 );
+            this.selectSiteLevel_( level );
         }
 
     };

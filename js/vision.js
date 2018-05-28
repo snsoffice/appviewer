@@ -83,7 +83,7 @@ function( ifuture, $ ) {
             '        <img class="figure-img img-fluid rounded p-1" src="images/visions/stereo.jpg" alt="立体">' +
             '        <figcaption class="figure-caption text-center">立体图</figcaption>' +
             '      </figure>' +
-            '      <figure class="figure p-1 w-30" data-viewtype="threed">' +
+            '      <figure class="figure p-1 w-30" data-viewtype="three">' +
             '        <img class="figure-img img-fluid rounded p-1" src="images/visions/solid.jpg" alt="三维">' +
             '        <figcaption class="figure-caption text-center">三维图</figcaption>' +
             '      </figure>' +

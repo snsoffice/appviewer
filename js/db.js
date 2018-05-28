@@ -13,13 +13,9 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
     _db.version( 1 ).stores( {
 
         settings: '++id, &name, value, description',
-        organizations: '++id, title, category, geometry, geostyle, source',
+        organizations: '++id, title, type, geolocation, url, description',
 
-
-        features: 'id, &title, geometry, category, icon, url',
-        user_images: '++id, title, description, timestamp, data',
-        map_features: 'id, &title, geometry, category, mimetype, icon, url',
-        map_layers: 'id, &title, category, source, extent, opacity, minResolution, maxResolution, favorite',
+        favorites: '++id, type, title, url, description',
 
     } );
 

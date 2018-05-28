@@ -1,3 +1,13 @@
+/**
+ *
+ * 接受 Get 参数:
+ *
+ *     usrscope=USER_ID or GROUP_ID
+ *     house=PATH
+ *     living=ROOM:TOKEN
+ *
+ */
+
 define( [ 'application', 'config', 'ifuture', 'plugins' ],
 
 function( Application, config, ifuture, plugins ) {
@@ -10,7 +20,7 @@ function( Application, config, ifuture, plugins ) {
     // } );
     //
 
-    // Remove splash    
+    // Remove splash
     // window.setTimeout( function ( ) {
     //     document.querySelector( '.dx-splash' ).remove();
     // }, 3000 );
@@ -108,6 +118,10 @@ function( Application, config, ifuture, plugins ) {
 
     document.getElementById( 'join-living' ).addEventListener( 'click', function ( e ) {
         app.request( 'map', 'openLiving' );
+    }, false );
+
+    document.getElementById( 'login-button' ).addEventListener( 'click', function ( e ) {
+        app.login();
     }, false );
 
     app.run();

@@ -1,7 +1,8 @@
 define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc, config, utils ) {
 
-    var easyrtcServerUrl = 'http://snsoffice.com:9090';
-    var easyrtcAppkey = 'snsoffice.ifuture.sky';
+    var EASYRTC_SERVER = 'http://snsoffice.com:9090';
+    var EASYRTC_APPKEY = 'snsoffice.ifuture.sky';
+    var DEFAULT_ROOM_NAME = 'default';
 
     /**
      * @classdesc
@@ -29,12 +30,6 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
          * @type {string}
          */
         this.portrait_ = opt_options.portrait;
-
-        /**
-         * @private
-         * @type {string}
-         */
-        this.easyrtcAppKey_ = opt_options.appKey;
 
         /**
          * @private
@@ -75,7 +70,7 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
             utils.warning( errObj.errorText );
         } );
 
-        easyrtc.setSocketUrl( easyrtcServerUrl );
+        easyrtc.setSocketUrl( EASYRTC_SERVER );
         easyrtc.usernameRegExp = new RegExp( '[_a-zA-Z0-9\s\u4E00-\u9FA5\uF900-\uFA2D]+' );
         easyrtc.setUsername( this.userName_ );
         easyrtc.setPeerListener( this.peerListener_.bind( this ) );
@@ -85,7 +80,7 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
         easyrtc.setRoomOccupantListener( this.onRoomOccupants_.bind( this ) );
 
         easyrtc.connect(
-            this.easyrtcAppKey_,
+            EASYRTC_APPKEY,
             this.loginSuccess_.bind( this ),
             this.loginFailure_.bind( this )
         );
@@ -173,12 +168,10 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
 
             if ( config.userName === undefined ) {
                 config.userName = 'tester';
-                this.setUsername( 'tester' );
-            }
-
-            if( ! easyrtc.setUsername( userName ) ) {
-                utils.warning( '设置用户名称失败' );
-                return ;
+                if( ! easyrtc.setUsername( config.userName ) ) {
+                    utils.warning( '设置用户名称失败' );
+                    return ;
+                }
             }
 
             this.callAnchor_( roomName, anchor );
@@ -397,6 +390,22 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
     Communicator.prototype.stop = function () {
         easyrtc.hangupAll();
         easyrtc.disconnect();
+    };
+
+    Communicator.prototype.userNameToEasyrtcid_ = function ( userName ) {
+
+        var occupants = easyrtc.getRoomOccupantsAsMap( DEFAULT_ROOM_NAME );
+
+        for ( var easyrtcid in occupants ) {
+
+            if ( ! occupants.hasOwnProperty( easyrtcid ) )
+                continue;
+
+            if ( occupants[ easyrtcid ].userName === userName )
+                return easyrtcid;
+
+        }
+
     };
 
     return Communicator;
