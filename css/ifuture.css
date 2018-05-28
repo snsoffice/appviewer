@@ -124,6 +124,17 @@
     z-index: 1080;    
 }
 
+.dx-three {
+    display: none;
+    z-index: 1;    
+}
+
+.dx-login {
+    border: 1px;
+    display: none;
+    z-index: 1200;
+}
+
 /*
  *
  * Part 3.1: explorer
@@ -262,6 +273,7 @@
 .dx-video {
     object-fit: fill;
 }
+
 
 /*
  *
