@@ -4,11 +4,14 @@
  */
 package com.eteks.sweethome3d.plugin.exportmap;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,18 +24,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.io.InterruptedIOException;
-
-import java.io.BufferedInputStream;
-import java.util.Enumeration;
-import java.util.zip.CRC32;
-import java.util.zip.CheckedOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
-
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 
@@ -44,10 +42,12 @@ import org.freehep.graphicsio.svg.SVGGraphics2D;
 
 import com.eteks.sweethome3d.io.ContentRecording;
 import com.eteks.sweethome3d.io.DefaultHomeInputStream;
-import com.eteks.sweethome3d.io.DefaultUserPreferences;
 import com.eteks.sweethome3d.j3d.PhotoRenderer;
 import com.eteks.sweethome3d.model.Compass;
+import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.model.Camera;
+import com.eteks.sweethome3d.model.DimensionLine;
+import com.eteks.sweethome3d.model.Elevatable;
 import com.eteks.sweethome3d.model.Home;
 import com.eteks.sweethome3d.model.HomeApplication;
 import com.eteks.sweethome3d.model.HomeEnvironment;
@@ -55,17 +55,18 @@ import com.eteks.sweethome3d.model.HomeRecorder;
 import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.InterruptedRecorderException;
 import com.eteks.sweethome3d.model.Label;
-import com.eteks.sweethome3d.model.LengthUnit;
 import com.eteks.sweethome3d.model.Level;
+import com.eteks.sweethome3d.model.Polyline;
 import com.eteks.sweethome3d.model.RecorderException;
 import com.eteks.sweethome3d.model.Room;
 import com.eteks.sweethome3d.model.Selectable;
+import com.eteks.sweethome3d.model.Wall;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.swing.HomePane;
 import com.eteks.sweethome3d.swing.PlanComponent;
 import com.eteks.sweethome3d.swing.SwingViewFactory;
 import com.eteks.sweethome3d.tools.OperatingSystem;
-import com.eteks.sweethome3d.viewcontroller.HomeController;
+import com.eteks.sweethome3d.tools.URLContent;
 import com.eteks.sweethome3d.viewcontroller.PlanController;
 
 
@@ -73,29 +74,37 @@ import com.eteks.sweethome3d.viewcontroller.PlanController;
  * 根据模型生成远景网地图需要的资源文件
  */
 public class HomeMapOptionalExporter extends PlanComponent {
+
+    private static final float       WALL_STROKE_WIDTH = 1.5f;
+    private static final float       BORDER_STROKE_WIDTH = 1f;
+
     private String                            homeName;
     private String                            homeStructure;
     private int                               flags;
     private HashSet<Content>                  referencedContents;
+    private HashMap<String, Content>          exportedContents;
+
     private float                             resolution;
     private float                             solidResolution;
 
-    public HomeMapOptionalExporter(Home home, String homeName, String homeStructure, int flags) {
-        UserPreferences preferences = new DefaultUserPreferences();
-        preferences.setUnit(LengthUnit.METER);
-        super(home, preferences, null, (PlanController)null);
+    public HomeMapOptionalExporter(Home home, UserPreferences preferences, String homeName, String homeStructure, int flags) {
+        super(home, preferences, (PlanController)null);
 
         this.homeName = homeName;
         this.homeStructure = homeStructure;
         this.flags = flags;
-        this.referencedContents = new HashSet<Content>();
-
+        this.referencedContents = new HashSet<Content>();        
+        this.exportedContents = new HashMap<String, Content>();
         this.resolution = 0.02f;
         this.solidResolution = 0.02f;
     }
 
     public HashSet<Content> getReferencedContents() {
         return this.referencedContents;
+    }
+
+    public HashMap<String, Content> getExportedContents() {
+        return this.exportedContents;
     }
 
     /**
@@ -115,6 +124,22 @@ public class HomeMapOptionalExporter extends PlanComponent {
 
         String s = sb.toString();
         return s.substring(0, s.length() - splitter.length());
+    }
+
+    /**
+     * Adds the viewable items to the set of selectable viewable items.
+     */
+    private <T extends Selectable> void addViewableItems(Collection<T> items,
+                                                         List<Selectable> selectableViewableItems) {
+        for (T item : items) {
+            if (item instanceof Elevatable) {
+                Elevatable elevatableItem = (Elevatable)item;
+                if (elevatableItem.getLevel() == null
+                    || elevatableItem.getLevel().isViewable()) {
+                    selectableViewableItems.add(item);
+                }
+            }
+        }
     }
 
     /**
@@ -158,25 +183,129 @@ public class HomeMapOptionalExporter extends PlanComponent {
         return homeItems;
     }
 
-    public void writeHome(OutputStreamWriter writer, Home home) throws IOException {
-        Rectangle2D itemBounds = getItemsBounds(home, getGraphics(), getSelectableViewableItems());
+    /**
+     * Returns the margin that should be added around home items bounds to ensure their
+     * line stroke width is always fully visible.
+     */
+    private float getStrokeWidthExtraMargin(List<Selectable> items, PaintMode paintMode) {
+        float extraMargin = BORDER_STROKE_WIDTH;
+        if (Home.getFurnitureSubList(items).size() > 0) {
+            extraMargin = Math.max(extraMargin, getStrokeWidth(HomePieceOfFurniture.class, paintMode));
+        }
+        if (Home.getWallsSubList(items).size() > 0) {
+            extraMargin = Math.max(extraMargin, getStrokeWidth(Wall.class, paintMode));
+        }
+        if (Home.getRoomsSubList(items).size() > 0) {
+            extraMargin = Math.max(extraMargin, getStrokeWidth(Room.class, paintMode));
+        }
+        List<Polyline> polylines = Home.getPolylinesSubList(items);
+        if (polylines.size() > 0) {
+            for (Polyline polyline : polylines) {
+                extraMargin = Math.max(extraMargin, polyline.getStartArrowStyle() != null ||  polyline.getEndArrowStyle() != null
+                                       ? 1.5f * polyline.getThickness()
+                                       : polyline.getThickness());
+            }
+        }
+        if (Home.getDimensionLinesSubList(items).size() > 0) {
+            extraMargin = Math.max(extraMargin, getStrokeWidth(DimensionLine.class, paintMode));
+        }
+        return extraMargin / 2;
+    }
 
+    /**
+     * Returns the stroke width used to paint an item of the given class.
+     */
+    private float getStrokeWidth(Class<? extends Selectable> itemClass, PaintMode paintMode) {
+        float strokeWidth;
+        if (Wall.class.isAssignableFrom(itemClass)
+            || Room.class.isAssignableFrom(itemClass)) {
+            strokeWidth = WALL_STROKE_WIDTH;
+        } else {
+            strokeWidth = BORDER_STROKE_WIDTH;
+        }
+        if (paintMode == PaintMode.PRINT) {
+            strokeWidth *= 0.5;
+        }
+        return strokeWidth;
+    }
+
+    /**
+     * Sets rendering hints used to paint plan.
+     */
+    private void setRenderingHints(Graphics2D g2D) {
+        g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g2D.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+    }
+
+    /**
+     * Export plan to PNG
+     */
+    private BufferedImage getPlanImage(Home home, float clipboardScale, int imageType) {
+        // home.getSelectableViewableItems()
+        List<Selectable> selectedItems = getSelectableViewableItems(home);
+        Rectangle2D selectionBounds = getItemsBounds(getGraphics(), selectedItems);
+        if (selectionBounds == null)
+            return null;
+
+        home.setSelectedItems(selectedItems);
+        // Use a scale of .5
+        // float clipboardScale = .5f;
+        float extraMargin = getStrokeWidthExtraMargin(home.getSelectedItems(), PaintMode.CLIPBOARD);
+        BufferedImage image = new BufferedImage((int)Math.ceil(selectionBounds.getWidth() * clipboardScale + 2 * extraMargin),
+                                                (int)Math.ceil(selectionBounds.getHeight() * clipboardScale + 2 * extraMargin),
+                                                imageType);
+        Graphics2D g2D = (Graphics2D)image.getGraphics();
+        // Paint background in white
+        g2D.setColor(new Color(0, 0, 0, 0));
+        g2D.fillRect(0, 0, image.getWidth(), image.getHeight());
+        // Change component coordinates system to plan system
+        g2D.scale(clipboardScale, clipboardScale);
+        g2D.translate(-selectionBounds.getMinX() + extraMargin,
+                      -selectionBounds.getMinY() + extraMargin);
+        setRenderingHints(g2D);
+        Color backgroundColor = getBackgroundColor(PaintMode.CLIPBOARD);
+        Color foregroundColor = getForegroundColor(PaintMode.CLIPBOARD);
+        try {
+            // Paint component contents
+            paintHomeItems(g2D, clipboardScale, backgroundColor, foregroundColor, PaintMode.CLIPBOARD);
+        } catch (InterruptedIOException ex) {
+            // Ignore exception because it may happen only in EXPORT paint mode
+            return null;
+        } finally {
+            g2D.dispose();
+        }
+        return image;
+    }
+
+    private void exportToPNG(Home home, String filename, float scale, String imageType) throws IOException {
+        int itype = imageType.equals("PNG") ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
+        BufferedImage photo = getPlanImage(home, scale, itype);
+        ImageIO.write(photo, imageType, new File(filename));
+    }
+
+    public void writeHome(OutputStreamWriter writer, Home home) throws IOException {
+        Rectangle2D itemBounds = getItemsBounds(getGraphics(), getSelectableViewableItems(home));
+
+        File tempPlanFile = OperatingSystem.createTemporaryFile("plan_house", ".png"); 
         float planScale = 1 / this.resolution / 100;
         String planFilename = "views/plan/plan_house.png";
         String imageType = "PNG";
         System.out.printf("输出缩放比例为 %f 的平面图到 %s%n", planScale, planFilename);
-        plan.exportToPNG(planFilename, planScale, imageType);
+        exportToPNG(home, tempPlanFile.getAbsolutePath(), planScale, imageType);
+        this.exportedContents.put(planFilename, new URLContent(tempPlanFile.toURI().toURL()));
 
-        String solidPath = "views/solid/solid_house.jpg";        
-        System.out.printf("输出分辨率为 %f 的立体图到目录 %s%n", solidResolution, solidPath);
+        File tempSolidFile = OperatingSystem.createTemporaryFile("solid_house", ".jpg"); 
+        String solidFilename = "views/solid/solid_house.jpg";        
         imageType = "JPG";
-        PhotoMaker.makeStereoPhotos(home, itemBounds, solidResolution * 100, solidPath, imageType);
+        makePhoto(home, itemBounds, this.solidResolution * 100, tempSolidFile, imageType);
+        this.exportedContents.put(solidFilename, new URLContent(tempSolidFile.toURI().toURL()));
 
         writer.write(String.format("{%n  \"name\": \"%s\",%n", homeName == null ? "house" : homeName));
         writeRoomData(writer, home);
         writeViewData(writer, itemBounds);
         writer.write(String.format("}%n"));
-        writer.flush();
     }
 
     /**
@@ -234,5 +363,54 @@ public class HomeMapOptionalExporter extends PlanComponent {
                                    indent3, indent2));
 
         writer.write(String.format("%s]%n", indent));
+    }
+
+    /**
+     * 计算相机高度，使之正好能把整个房屋拍下。
+     * @author Jondy Zhao
+     */
+    private double calculateCameraElevation(Rectangle2D itemBounds, double fov) {
+        return Math.max(itemBounds.getWidth(), itemBounds.getHeight()) / 2 / Math.tan(fov / 2);
+    }
+
+    /**
+     * itemBounds 的单位为 米
+     *
+     * resolution 是每个像素的所代表的长度（米），例如 0.02 表示每个像
+     * 素代表 0.02 米，所以 1米需要 50 个像素
+     *
+     */
+    private  void makePhoto(Home home, Rectangle2D itemBounds, double resolution,
+                            File output, String imageType) throws IOException {
+        double pitch = Math.PI / 2;
+        double fov = Math.PI / 180 * 63;
+        int margin = (int)(home.getWallHeight() * Math.tan(fov / 2) / resolution );
+        int itype = imageType.equalsIgnoreCase("PNG") ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
+
+        double cx = itemBounds.getCenterX();
+        double cy = itemBounds.getCenterY();
+        double cz = calculateCameraElevation(itemBounds, fov);
+
+        Camera camera = home.getTopCamera();
+        camera.setX((float)cx);
+        camera.setY((float)cy);
+        camera.setZ((float)cz);
+        camera.setYaw((float)Math.PI); // 默认上方为北
+        camera.setPitch((float)pitch);
+        camera.setFieldOfView((float)fov);
+
+        // 根据 resolution 和 margin 转换为像素坐标
+        int x0 = (int)(itemBounds.getMinX() / resolution) - margin;
+        int y0 = (int)(itemBounds.getMinY() / resolution) - margin;
+        int x1 = (int)(itemBounds.getMaxX() / resolution) + margin;
+        int y1 = (int)(itemBounds.getMaxY() / resolution) + margin;
+        Rectangle itemRect = new Rectangle(x0, y0, x1 - x0, y1 - y0);
+        int width = itemRect.width;
+        int height = itemRect.height;
+
+        PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.HIGH);
+        BufferedImage photo = new BufferedImage(width, height, itype);
+        renderer.render(photo, camera, null);
+        ImageIO.write(photo, imageType, output);
     }
 }

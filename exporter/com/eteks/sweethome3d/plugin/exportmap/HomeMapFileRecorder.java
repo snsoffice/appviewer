@@ -20,7 +20,9 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -36,7 +38,7 @@ import javax.media.j3d.Node;
 import com.eteks.sweethome3d.io.ContentRecording;
 import com.eteks.sweethome3d.io.DefaultHomeInputStream;
 import com.eteks.sweethome3d.io.DefaultHomeOutputStream;
-import com.eteks.sweethome3d.io.XMLWriter;
+import com.eteks.sweethome3d.io.DefaultUserPreferences;
 import com.eteks.sweethome3d.j3d.Ground3D;
 import com.eteks.sweethome3d.j3d.OBJWriter;
 import com.eteks.sweethome3d.j3d.Object3DBranchFactory;
@@ -46,6 +48,7 @@ import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.HomeRecorder;
 import com.eteks.sweethome3d.model.HomeTexture;
 import com.eteks.sweethome3d.model.InterruptedRecorderException;
+import com.eteks.sweethome3d.model.LengthUnit;
 import com.eteks.sweethome3d.model.Level;
 import com.eteks.sweethome3d.model.RecorderException;
 import com.eteks.sweethome3d.model.Room;
@@ -128,7 +131,7 @@ public class HomeMapFileRecorder implements HomeRecorder {
       String homeStructure;
       if ((this.flags & INCLUDE_HOME_STRUCTURE) != 0) {
         // Export home structure in a zipped OBJ file
-        homeStructure = "view/three/three_home.obj";
+        homeStructure = "views/three/three_home.obj";
         homeStructureFile = exportHomeStructure(home, new Object3DBranchFactory(), 
             homeStructure.substring(homeStructure.lastIndexOf('/') + 1));
       } else {
@@ -144,13 +147,19 @@ public class HomeMapFileRecorder implements HomeRecorder {
       if (home.getName() != null) {
         homeName = new File(home.getName()).getName();
       }   
-      Set<Content> referencedContents = writeHomeToJSON(writer, home, homeName, homeStructure, this.flags);
+      Set<Content> referencedContents = new HashSet<Content>();
+      Map<String, Content> exportedContents = writeHomeToJSON(writer, home, homeName, homeStructure, this.flags);
       writer.flush();
       zipOut.closeEntry();
               
       if ((this.flags & INCLUDE_HOME_STRUCTURE) != 0) {
         // Save Home.obj structure and its dependencies in HomeStructure directory
         writeAllZipEntries(zipOut, homeStructure.substring(0, homeStructure.lastIndexOf('/')), homeStructureFile.toURI().toURL(), this.flags);
+        // Save exported resources
+        for (String entryName : exportedContents.keySet()) {
+            Content value = exportedContents.get(entryName);
+            writeZipEntry(zipOut, entryName, (URLContent)value, this.flags, this.imageMaxPreferredSize);
+        }
         // Save content referenced home XML entry
         List<String> homeFileEntries = new ArrayList<String>();
         for (Content content : referencedContents) {
@@ -195,11 +204,13 @@ public class HomeMapFileRecorder implements HomeRecorder {
   /**
    * Writes the given <code>home</code> in JSON and returns the content that is required by this home.
    */
-  protected Set<Content> writeHomeToJSON(OutputStreamWriter writer, Home home, String homeName, String homeStructure, int flags) throws IOException {
-      HomeMapOptionalExporter homeExporter = new HomeMapOptionalExporter(home, homeName, homeStructure, flags);
-      homeExporter.writeHome(writer);
-      return homeExporter.getReferencedContents();
-  }
+    protected Map<String, Content> writeHomeToJSON(OutputStreamWriter writer, Home home, String homeName, String homeStructure, int flags) throws IOException {
+      UserPreferences preferences = new DefaultUserPreferences();
+      preferences.setUnit(LengthUnit.METER);
+      HomeMapOptionalExporter homeExporter = new HomeMapOptionalExporter(home, preferences, homeName, homeStructure, flags);
+      homeExporter.writeHome(writer, home);
+      return homeExporter.getExportedContents();
+    }
 
   /**
    * Exports the structure of the given <code>home</code> at OBJ format 
