@@ -103,6 +103,26 @@ http://www.sweethome3d.com/pluginDeveloperGuide.jsp
 
 http://www.sweethome3d.com/javadoc/index.html
 
+* 汉化
+
+http://www.sweethome3d.com/translationGuide.jsp
+
+生成的 ApplicationPlugin_zh.properties 需要使用这里面的在线工具转换成为 Ascii 编码
+
+或者使用 JDK 工具 
+
+```
+    native2ascii.exe com/eteks/sweethome3d/plugin/exportmap/ApplicationPlugin_zh.properties
+```
+
+查询菜单中文名称
+
+```
+    grep -Rh "MENU.Name" /cygdrive/t/knowledge/tools/sweethome3d/SweetHome3D-5.6-src/SweetHome3D-5.6-src/src/ --include=package_zh_CN.properties
+```
+
+
+
 # SimpleHouseExporter 输出文件格式
 
 这是插件使用的导出方式，生成一个简化版的压缩文件，只包含单个房屋的视图资源
