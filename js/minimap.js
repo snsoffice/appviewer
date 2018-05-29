@@ -7,7 +7,7 @@
  *     _planlayer
  *     _solidlayer
  *
- *     sitelevel
+ *     houselevel
  *
  *     helper
  *         center
@@ -137,7 +137,7 @@ function( ifuture, ol, config, db, utils ) {
          * @private
          * @type {int}
          */
-        this._sitelevel = -1;
+        this._houselevel = -1;
 
         /**
          *
@@ -159,7 +159,7 @@ function( ifuture, ol, config, db, utils ) {
         } );
 
         this._planlayer = new ol.layer.Group( {
-            layers: [ this._dxmap.plangroup ],
+            layers: [ this._dxmap.planegroup ],
         } );
 
         this._solidlayer = new ol.layer.Group( {
@@ -229,12 +229,12 @@ function( ifuture, ol, config, db, utils ) {
         toolbar.querySelector( '#trash-maplayer' ).addEventListener( 'click', function ( e ) {
 
             e.preventDefault();
-            if ( this._sitelevel < 1 )
+            if ( this._houselevel < 1 )
                 return;
 
-            this.setCurrentItem( this._sitelevel - 1 );
+            this.setCurrentItem( this._houselevel - 1 );
             
-            this.dispatchEvent( new ifuture.Event( 'view:remove', this._sitelevel ) );
+            this.dispatchEvent( new ifuture.Event( 'view:remove', this._houselevel ) );
 
         }.bind( this ), false );
 
@@ -242,7 +242,7 @@ function( ifuture, ol, config, db, utils ) {
         toolbar.querySelector( '#syn-maplayer' ).addEventListener( 'click', function ( e ) {
 
             e.preventDefault();
-            this.setCurrentItem( this._dxmap.sitelevel );
+            this.setCurrentItem( this._dxmap.houselevel );
 
         }.bind( this ), false );
 
@@ -269,7 +269,7 @@ function( ifuture, ol, config, db, utils ) {
     Minimap.prototype.touch = function ( coordinate ) {
 
         var d = this._dxmap;
-        d.selectSiteLevel_( this._sitelevel );
+        d.selectSiteLevel_( this._houselevel );
 
         d.view.animate( {
             center: coordinate,
@@ -283,33 +283,33 @@ function( ifuture, ol, config, db, utils ) {
     };
 
     Minimap.prototype.prev = function () {
-        var index = this.prevItem( this._sitelevel );
+        var index = this.prevItem( this._houselevel );
         if ( index !== -1 )
             this.setCurrentItem( index );
     };
 
     Minimap.prototype.next = function () {
-        var index = this.nextItem( this._sitelevel );
+        var index = this.nextItem( this._houselevel );
         if ( index !== -1 )
             this.setCurrentItem( index );
     };
 
     Minimap.prototype.nextItem = function ( index ) {
         index ++;
-        return index >= this._dxmap.sitestack.length ? 0 : index;
+        return index >= this._dxmap.housestack.length ? 0 : index;
     };
 
     Minimap.prototype.prevItem = function ( index ) {
-        return index > 0 ? index - 1 : this._dxmap.sitestack.length - 1;
+        return index > 0 ? index - 1 : this._dxmap.housestack.length - 1;
     };
 
     Minimap.prototype.setCurrentItem = function ( index ) {
 
-        if ( index === this._sitelevel )
+        if ( index === this._houselevel )
             return;
 
         var duration = 250;
-        var extent = this._dxmap.sitestack[ index ].extent;
+        var extent = this._dxmap.housestack[ index ].extent;
         var center = ol.extent.getCenter( extent );
         var resolution = Math.min( MAX_RESOLUTION, this.view.getResolutionForExtent( extent ) * 1.1 );
         this.view.animate( {
@@ -318,7 +318,7 @@ function( ifuture, ol, config, db, utils ) {
             duration: duration,
         } );
 
-        this._sitelevel = index;
+        this._houselevel = index;
 
     };
 
@@ -347,14 +347,14 @@ function( ifuture, ol, config, db, utils ) {
                 } )
             );
             this.setCurrentItem( 0 );
-            this.setCenter_(  ol.extent.getCenter( this._dxmap.sitestack[ this._sitelevel ].extent ) );
+            this.setCenter_(  ol.extent.getCenter( this._dxmap.housestack[ this._houselevel ].extent ) );
 
         }
 
         else if ( event.type === 'view:opened' ) {
 
-            this.setCurrentItem( this._dxmap.sitelevel );
-            this.setCenter_(  ol.extent.getCenter( this._dxmap.sitestack[ this._sitelevel ].extent ) );
+            this.setCurrentItem( this._dxmap.houselevel );
+            this.setCenter_(  ol.extent.getCenter( this._dxmap.housestack[ this._houselevel ].extent ) );
 
         }
 

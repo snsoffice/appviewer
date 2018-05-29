@@ -213,7 +213,7 @@ function( ifuture, Carousel ) {
 
     Explorer.prototype.buildItem_ = function ( item ) {
         var html;
-        if ( item.minetype === 'cover' ) {
+        if ( item.type === 'cover' ) {
             html =
                 '<div data-name="html" class="text-info h-100 d-flex align-items-center justify-content-center">' +
                 '  <h3>' + item.title + '</h3>' +
@@ -221,8 +221,8 @@ function( ifuture, Carousel ) {
         }
         else {
             html =
-                '<div data-name="' + item.minetype + '" class="h-100 d-flex align-items-center justify-content-center">' +
-                '  <img class="owl-lazy" data-src="' + item.poster + '" alt="' + item.title + '">' +
+                '<div data-name="' + item.type + '" class="h-100 d-flex align-items-center justify-content-center">' +
+                '  <img class="owl-lazy" data-src="' + item.url + '" alt="' + item.title + '">' +
                 '</div>';
         }
         return html;
@@ -259,8 +259,10 @@ function( ifuture, Carousel ) {
     };
 
     Explorer.prototype.findView = function ( item ) {
+        if ( item.type ) 
+            return this.plugins[ item.type ];
 
-        var mimetype = item.mimetype;
+        var minetype = item.minetype;
         for ( var i = 0; i < this.mimetypes.length; i ++ ) {
             var m = this.mimetypes[ i ];
             if ( m[1].indexOf( mimetype ) > -1 )

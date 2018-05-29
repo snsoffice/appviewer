@@ -75,7 +75,7 @@ function( ifuture, $ ) {
             '  </div>' +
             '  <div class="carousel-item">' +
             '    <div class="d-flex flex-wrap justify-content-around p-3 mt-4">' +
-            '      <figure class="figure p-1 w-30" data-viewtype="plan">' +
+            '      <figure class="figure p-1 w-30" data-viewtype="plane">' +
             '        <img class="figure-img img-fluid rounded p-1 bg-info" src="images/visions/plan.jpg" alt="平面">' +
             '        <figcaption class="figure-caption text-center">平面图</figcaption>' +
             '      </figure>' +
