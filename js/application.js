@@ -6,10 +6,10 @@
 //     
 // 应用程序启动参数:
 //
-//     直接打开房间 house=/path/to/room
-//     直接进入直播 living=/path/to/room
-//     个人空间     usrscope=USERID
-//     公众空间     没有 usrscope 或者 usrscope 为空
+//     直接打开房间 houseURI=/path/to/room
+//     直接进入直播 livingToken=/path/to/room
+//     个人空间     houseScope=USERID
+//     公众空间     没有 houseScope 或者 houseScope 为空
 //     
 define( [ 'ifuture', 'map', 'minimap', 'explorer', 'manager', 'vision', 'utils', 'config',
           'navbar', 'modebar', 'footbar', 'responsebar', 'dialog', 'communicator' ],

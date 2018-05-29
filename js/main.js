@@ -1,13 +1,3 @@
-/**
- *
- * 接受 Get 参数:
- *
- *     usrscope=USER_ID or GROUP_ID
- *     house=PATH
- *     living=ROOM:TOKEN
- *
- */
-
 define( [ 'application', 'config', 'ifuture', 'plugins' ],
 
 function( Application, config, ifuture, plugins ) {

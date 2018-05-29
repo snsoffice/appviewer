@@ -143,6 +143,8 @@ define( [ 'ifuture', 'ol', 'db', 'utils', 'config',
 
 function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteraction ) {
 
+    var CONFIG_FILE = 'config.json?houseScope=' + config.houseScope;
+
     var formatUrl = utils.formatUrl;
     var fmtwkt = new ol.format.WKT();
 
@@ -167,7 +169,15 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         SITE: 1,
         FEATURE: 2,
         BUILDING: 3,
-        CHILD: 4,
+        HOUSE: 4,
+        CHILD: 5,
+    };
+
+    var PortalType = {
+        ORGANIZATION: 'Organization',
+        BUILDING: 'Building',
+        HOUSE: 'House',
+        FEATURE: 'HouseFeature',
     };
 
     //
@@ -259,6 +269,58 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
     }
 
     // 相同位置不同高度的集簇样式
+    function houseStyleFunction( features, resolution ) {
+
+        var style;
+        var size = feature.get( 'features' ).length;
+
+        if ( size == 1 ) {
+            var feature = features.get( 'features' )[ 0 ];
+            style = new ol.style.Style( {
+                geometry: feature.getGeometry(),
+                fill: new ol.style.Fill( {
+                    color: 'rgba(255, 255, 255, 0.3)',
+                } ),
+                stroke: new ol.style.Stroke( {
+                    color: 'rgba(0, 0, 255, 0.3)',
+                    width: 1,
+                } ),
+                text: new ol.style.Text( {
+                    text: feature.get( 'title' ),
+                    scale: 2.0,
+                    padding: [ 2, 2, 2, 2 ],
+                } )
+            } );
+        }
+        else {
+            var index = features.get( 'selected' );
+            var feature = features.get( 'features' )[ index === undefined ? 0 : index ] ;
+            style = new ol.style.Style( {
+                geometry: feature.getGeometry(),
+                stroke: new ol.style.Stroke( {
+                    color: 'rgba(0, 0, 255, 0.3)',
+                    lineDash: [ 5, 5 ],
+                    width: 1,
+                } ),
+                image: new ol.style.RegularShape({
+                    radius: 8,
+                    points: Math.max( 3, size ),
+                    fill: new ol.style.Fill( {
+                        color: [ 0, 103, 252, 0.6 ]
+                    } )
+                } ),
+                text: new ol.style.Text( {
+                    text: size.toString(),
+                    scale: 2.0,
+                    padding: [ 2, 2, 2, 2 ],
+                } )
+            } );
+
+        }
+
+        return style;
+
+    }
 
     // 相同位置不同年代的集簇样式
 
@@ -480,7 +542,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
          * @private
          * @type {ifuture.Application}
          */
-        this.app_ = app;
+        this._app = app;
 
         /**
          * @private
@@ -877,26 +939,59 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
         if ( layer.getSource() instanceof ol.source.Cluster ) {
 
-            this.popSiteStack_( this.sitelevel + 1 );
-
             var features = feature.get( 'features' );
             var size = features.length;
 
-            if ( size > 1 ) {
+            if ( features[ 0 ].get( 'type' ) === PortalType.HOUSE ) {
 
-                this.buildClusterView_( features );
+                if ( size === 1 ) {
+                    this.popSiteStack_( this.sitelevel + 1 );
+                    this.openHouse_( features[ 0 ].get( 'url' ) );
+                }
 
-                var geometry = features[ 0 ].getGeometry()
-                this.selectSiteLevel_( this.sitestack.length - 1,
-                                       geometry === undefined ? undefined : ol.extent.getCenter( geometry.getExtent() )
-                                     );
+                // 在同一个位置存在多个房屋，显示楼层选择对话框，选择一个楼层
+                else {
+                    var elevations = [];
+                    features.forEach( function ( item ) {
+                        elevations.push( {
+                            title: item.get('title'),
+                            floor: item.get('floor'),
+                            url: item.get('url'),
+                        } );
+                    } );
+                    this.showElevationDialog_( elevations, function ( selected ) {
+                        var level = this.sitelevel + 1;
+                        this.popSiteStack_( level );
+                        this.sitestack.push( {
+                            elevations: elevations,
+                        } );
+                        openHouseInElevation_( level, selected );
+                    }.bind( this ), -1 );
+                }
 
-                this.dispatchEvent( new ifuture.Event( 'view:opened' ) );
             }
 
             else {
 
-                this.openSite_( features[ 0 ].get( 'url' ), features[ 0 ].get( 'origin' ) );
+                this.popSiteStack_( this.sitelevel + 1 );
+
+                if ( size > 1 ) {
+
+                    this.buildClusterView_( features );
+
+                    var geometry = features[ 0 ].getGeometry()
+                    this.selectSiteLevel_( this.sitestack.length - 1,
+                                           geometry === undefined ? undefined : ol.extent.getCenter( geometry.getExtent() )
+                                         );
+
+                    this.dispatchEvent( new ifuture.Event( 'view:opened' ) );
+                }
+
+                else {
+
+                    this.openSite_( features[ 0 ].get( 'url' ), features[ 0 ].get( 'origin' ) );
+
+                }
 
             }
 
@@ -968,8 +1063,260 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             this.openItem_( url, JSON.parse( request.responseText ), level, origin );
         }.bind( this );
 
-        request.open( 'GET', url + '/config.json' );
+        request.open( 'GET', url + '/' + CONFIG_FILE );
         request.send();
+
+    };
+
+    /**
+     * 在地图上创建房子相关的图层
+     *
+     * @param {string} url 指向房屋的连接
+     * @private
+     */
+    Map.prototype.openHouse_ = function ( url ) {
+
+        for ( var i = this.sitestack.length - 1; i > -1 ; i -- ) {
+            if ( this.sitestack[ i ].url === url ) {
+                this.selectSiteLevel_( i );
+                return;
+            }
+        }
+
+        var level = this.sitelevel;
+        var xhr = new XMLHttpRequest();
+
+        xhr.onloadend = function() {
+            if ( xhr.status !== 200 ) {
+                console.log( '读取房屋数据返回错误(' + xhr.status + '): ' + e );
+                utils.warning( '读取房屋数据失败' );
+                return;
+            }
+            this.openHouseItem_( url, JSON.parse( xhr.responseText ), level );
+        }.bind( this );
+
+        xhr.open( 'GET', url + '/config.json?houseScope=' + config.houseScope, true );
+        xhr.send();
+
+    };
+
+    /**
+     * 在当前显示层次创建指定楼层的房子
+     *
+     * @param {int} level 打开的显示层次
+     * @param {int} elevation 楼层索引
+     * @private
+     */
+    Map.prototype.openHouseInElevation_ = function ( level, elevation ) {
+
+        if ( level < 0 || level >= this.sitestack.length )
+            return;
+
+        var v = this.sitestack[ level ];
+        if ( v.currentElevation === elevation || v.elevations == undefined )
+            return;
+
+        this.popSiteStack_( level + 1 );
+
+        var baseurl = v.url;
+        var url = v.url + '/' + CONFIG_FILE;
+        var xhr = new XMLHttpRequest();
+        xhr.onloadend = function() {
+
+            if (xhr.status != 200) {
+                console.log( '读取房屋 [' + url + '] 数据失败 (' + xhr.status + '): ' + e );
+                utils.warning( '读取房屋数据失败' );
+                return;
+            }
+
+            this.createHouseItem_( baseurl, JSON.parse( request.responseText ), level );
+            v.currentElevation = elevation;
+
+            this.selectSiteLevel_( level );
+            this.dispatchEvent( new ifuture.Event( 'view:opened' ) );
+            this.dispatchEvent( new ifuture.Event( 'elevation:changed', { elevation: elevation, level: level } ) );
+
+        }.bind( this );
+
+        xhr.open( 'GET', url, true );
+        xhr.send();
+
+    };
+
+    /**
+     * 创建一个房屋结构的结点
+     *     house 是配置文件
+     *     level 是显示层次
+     *
+     * @param {string} url 项目对应的 URL
+     * @param {Object} house 项目对应的配置文件
+     * @param {int} level 组织机构结点对应的图层级别
+     *
+     */
+    Map.prototype.createHouseItem_ = function ( url, house, level ) {
+
+        var geometry = fmtwkt.readGeometry( house.geometry );
+        var extent = geometry.getExtent();
+        var resolution = this.view.getResolutionForExtent( extent );
+
+        var item = this.sitestack[ level ];
+        item.extent = extent;
+        item.center = ol.extent.getCenter( extent );
+        item.resolution = resolution * 1.1;
+        item.url = url;
+        item.site = house;
+
+        var layers = this.createHouseLayers_( house, url );
+        this.plangroup.getLayers().push(  layers[ 0 ] === undefined ? emptyLayer() : layers[ 0 ] );
+        this.solidgroup.getLayers().push( layers[ 1 ] === undefined ? emptyLayer() : layers[ 1 ] );
+        this.titlegroup.getLayers().push( layers[ 2 ] === undefined ? emptyLayer() : layers[ 2 ] );
+        this.scenegroup.getLayers().push( layers[ 3 ] === undefined ? emptyLayer() : layers[ 3 ] );
+        this.childgroup.getLayers().push( layers[ 4 ] === undefined ? emptyLayer() : layers[ 4 ] );
+
+    };
+
+    /**
+     * 打开一个房屋结构的结点
+     *     item 是配置文件
+     *     level 是显示层次
+     *
+     * @param {string} url 项目对应的 URL
+     * @param {Object} house 项目对应的配置文件
+     * @param {int} level 组织机构结点对应的图层级别
+     *
+     */
+    Map.prototype.openHouseItem_ = function ( url, house, level ) {
+
+        level = level === undefined ? 0 : level + 1;
+        console.assert( level < this.sitestack.length + 1 );
+
+        this.popSiteStack_( level );
+
+        var geometry = fmtwkt.readGeometry( house.geometry );
+        var extent = geometry.getExtent();
+
+        this.pushExtentView_( extent );
+        this.sitestack[ level ].url = url;
+        this.sitestack[ level ].site = house;
+
+        var layers = this.createHouseLayers_( house, url );
+        this.plangroup.getLayers().push(  layers[ 0 ] === undefined ? emptyLayer() : layers[ 0 ] );
+        this.solidgroup.getLayers().push( layers[ 1 ] === undefined ? emptyLayer() : layers[ 1 ] );
+        this.titlegroup.getLayers().push( layers[ 2 ] === undefined ? emptyLayer() : layers[ 2 ] );
+        this.scenegroup.getLayers().push( layers[ 3 ] === undefined ? emptyLayer() : layers[ 3 ] );
+        this.childgroup.getLayers().push( layers[ 4 ] === undefined ? emptyLayer() : layers[ 4 ] );
+
+        this.selectSiteLevel_( level );
+        this.dispatchEvent( new ifuture.Event( 'view:opened' ) );
+
+    };
+
+    // 返回五个 layer, 如果没有对应的图层数据，也返回一个空的 layer
+    //     plan, stereo, label, feature, child
+    Map.prototype.createHouseLayers_ = function ( house, baseurl ) {
+
+        var planlayer, stereolayer, labellayer, featurelayer, childlayer;
+        var housetype = house.type;
+
+        house.views.forEach( function ( view ) {
+
+            var geometry = fmtwkt.readGeometry( view.geometry );
+            var imageExtent = geometry.getExtent();
+
+            if ( [ 'plan', 'solid' ].indexOf( view.type ) > -1 ) {
+                var layer = new ol.layer.Image( {
+                    minResolution: SITE_MIN_RESOLUTION,
+                    maxResolution: SITE_MAX_RESOLUTION,
+                    extent: imageExtent,
+                    source: new ol.source.ImageStatic( {
+                        crossOrigin: 'anonymous',
+                        imageExtent: imageExtent,
+                        url: view.url,
+                    } )
+                    if ( view.type === 'plan' )
+                        planlayer = layer;
+                    else ( view.type === 'solid' )
+                        stereolayer = layer;
+                } );
+            }
+            else if ( view.type === 'label' ) {
+                var source = new ol.source.Vector( {
+                    features: wktfmt.readFeatures( view.features );
+                } );
+
+                labellayer = new ol.layer.Vector( {
+                    extent: extent,
+                    source: source,
+                    minResolution: SITE_MIN_RESOLUTION,
+                    maxResolution: SITE_MAX_RESOLUTION,
+                    style: labelStyleFunction,
+                } );
+            }
+
+        } );
+
+
+        if ( house.children ) {
+
+            var features = [];
+            house.children.forEach( function ( child ) {
+                var feature = fmtwkt.readFeature( child.geometry );
+                feature.setProperties( {
+                    type: PortalType.FEATURE,
+                    phase_type: child.phase_type,
+                    title: child.title,
+                    url: formatUrl( child.name, baseurl ),
+                }, true );
+                if ( child.floor !== undefined )
+                    feature.set( 'floor', floor, true );
+                features.push( feature );
+            } );
+            var source = new ol.source.Vector( { features: features } );
+
+            if ( housetype === PortalType.BUILDING ) {
+                childlayer = new ol.layer.Vector( {
+                    minResolution: SITE_MIN_RESOLUTION,
+                    maxResolution: SITE_MAX_RESOLUTION,
+                    source: new ol.source.Cluster( {
+                        distance: CLUSTER_DEFAULT_DISTANCE,
+                        source: source,
+                    } ),
+                    style: houseStyleFunction,
+                } );
+            }
+            else
+                childlayer = new ol.layer.Vector( {
+                    source: source,
+                    minResolution: SITE_MIN_RESOLUTION,
+                    maxResolution: SITE_MAX_RESOLUTION,
+                    style: childstyle,
+                } );
+
+        }
+
+        if ( house.features ) {
+            var features = [];
+            house.features.forEach( function ( item ) {
+                var feature = fmtwkt.readFeature( 'POINT ((' + item.geolocation.split( ',' ).join( ' ' ) + ' ))' );
+                feature.setProperties( {
+                    type: item.type,
+                    title: item.title,
+                    angle: item.angle,
+                    url: item.url,
+                }, true );
+                features.push( feature );
+            } );
+            var source = new ol.source.Vector( { features: features } );
+
+            featurelayer = new ol.layer.Vector( {
+                source: source,
+                minResolution: SITE_MIN_RESOLUTION,
+                maxResolution: SITE_MAX_RESOLUTION,
+                style: featurestyle,
+            } );
+        }
+
+        return [ planlayer, stereolayer, labellayer, featurelayer, childlayer ];
 
     };
 
@@ -997,7 +1344,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         }
         this.popSiteStack_( j );
 
-        this.buildExtentView_( extent );
+        this.pushExtentView_( extent );
 
         this.plangroup.getLayers().push( emptyLayer() );
         this.solidgroup.getLayers().push( emptyLayer() );
@@ -1007,7 +1354,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
     };
 
-    Map.prototype.buildExtentView_ = function ( extent ) {
+    Map.prototype.pushExtentView_ = function ( extent ) {
 
         var resolution = this.view.getResolutionForExtent( extent );
         this.sitestack.push( {
@@ -1053,7 +1400,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             this.translateExtent( extent, origin );
         }
 
-        this.buildExtentView_( extent );
+        this.pushExtentView_( extent );
         this.sitestack[ level ].url = url;
         this.sitestack[ level ].site = item;
 
@@ -1076,7 +1423,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
 
     // 返回五个 layer, 如果没有对应的图层数据，也返回一个空的 layer
     //     plan, stereo, label, feature, child
-    Map.prototype.createItemLayers_ = function ( item, baseurl, extent, origin ) {
+    Map.prototype.createItemLayers_ = function ( item, baseurl, extent ) {
 
         // 对于多层，在 selectLayerLevel 的时候生成对应的图层
         if ( item.elevations !== undefined ) {
@@ -1255,7 +1602,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             }
         }
 
-        this.app_.request( 'explorer', 'setItems', [ items ] );
+        this._app.request( 'explorer', 'setItems', [ items ] );
         this.toggleVisible( 'visitor', false );
 
     };
@@ -1490,8 +1837,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         this.setMajorMode( 'anchor' );
         this._isliving = false;
 
-        this.app_.request( 'communicator', 'startBroadcast', roomName );
-        this.app_.request( 'modebar', 'add', [ 'living', {
+        this._app.request( 'communicator', 'startBroadcast', roomName );
+        this._app.request( 'modebar', 'add', [ 'living', {
             name: 'living',
             title: '直播',
             icon: 'fas fa-video',
@@ -1515,8 +1862,8 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         this.isLiving_ = false;
 
         this.setVisionHelper( 'camera' );
-        this.app_.request( 'communicator', 'stopBroadcast' );
-        this.app_.request( 'modebar', 'remove', 'living' );
+        this._app.request( 'communicator', 'stopBroadcast' );
+        this._app.request( 'modebar', 'remove', 'living' );
         document.getElementById( 'start-living' ).removeAttribute( 'disabled' );
 
     };
@@ -1550,7 +1897,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             return ;
         }
 
-        this.app_.request( 'communicator', 'openLiving', roomName );
+        this._app.request( 'communicator', 'openLiving', roomName );
 
     };
 
@@ -1566,7 +1913,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         this.setMajorMode( 'browser' );
 
         this.setVisionHelper( 'camera' );
-        this.app_.request( 'communicator', 'closeLiving' );
+        this._app.request( 'communicator', 'closeLiving' );
 
     };
 
@@ -1629,25 +1976,24 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
      */
     Map.prototype.setSiteElevations_ = function ( level ) {
 
+        var scope = this;
+
         while ( level > -1 ) {
 
             var v = this.sitestack[ level ];
 
-            if ( v.site && v.site.elevations !== undefined ) {
-
-                this.app_.request( 'modebar', 'setElevations', {
-                    data: v.site.elevations,
-                    level: level,
-                    callback: function ( level, elevation ) {
-                        this.selectElevation_( level, elevation );
-                        this.fitView( this.sitestack[ level ].extent );
-                    }.bind( this ),
+            if ( v.elevations !== undefined ) {
+                var index = v.currentElevation;
+                var elevations = v.elevations;
+                this._app.request( 'modebar', 'setElevations', {
+                    title: index === undefined ? '' : elevations[ index ].title,
+                    callback: function ( e ) {
+                        // 显示楼层选择对话框
+                        scope.showElevationDialog_( elevations, function ( selected ) {
+                            scope.openHouseInElevation_( level, selected );
+                        }, index );
+                    } ),
                 } );
-
-                this.dispatchEvent( new ifuture.Event( 'elevation:changed', {
-                    elevation: v.elevation,
-                    level: level
-                } ) );
 
                 break;
 
@@ -1658,7 +2004,7 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
         }
 
         if ( level < 0 )
-            this.app_.request( 'modebar', 'setElevations', {} );
+            this._app.request( 'modebar', 'setElevations' );
 
     };
 
@@ -1755,6 +2101,70 @@ function( ifuture, ol, db, utils, config, FeatureInteraction, DimensionInteracti
             this.popSiteStack_( level + 1 );
             this.selectSiteLevel_( level );
         }
+
+    };
+
+    /**
+     *
+     * 打开楼层选择对话框，选择一个楼层
+     *
+     * @private
+     */
+    Map.prototype.showElevationDialog_ = function ( elevations, callback, index ) {
+
+        Array.prototype.forEach.call( document.querySelectorAll( '.dx-modal-container' ), function ( dialog ) {
+            document.body.removeChild( dialog );
+        } );
+
+        var html = [
+            '<div class="modal fade dx-modal-container" tabindex="-1" role="dialog" aria-hidden="true">' +
+            '  <div class="modal-dialog modal-dialog-centered dx-modal-elevation" role="document">' +
+            '    <div class="modal-content">' +
+            '      <div class="modal-header">' +
+            '        <h5 class="modal-title">选择楼层</h5>' +
+            '        <button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+            '          <span aria-hidden="true">&times;</span>' +
+            '        </button>' +
+            '      </div>' +
+            '      <div class="modal-body">' +
+            '        <ul class="list-group list-group-flush text-center">'
+        ];
+
+        for( var i = 0; i < elevations.length; i ++ ) {
+            if ( i === index )
+                html.push( '<li class="list-group-item bg-info" data-elevation="' + i + '">' + elevations[ i ].title + '</li>' );
+            else
+                html.push( '<li class="list-group-item" data-elevation="' + i + '">' + elevations[ i ].title + '</li>' );
+        }
+
+        html.push(
+            '        </ul>' +
+            '      </div>' +
+            '    </div>' +
+            '  </div>' +
+            '</div>'
+        );
+
+        var dialog = document.createElement( 'DIV' );
+        dialog.innerHTML = html.join( '' );
+        document.body.appendChild( dialog.firstElementChild );
+
+        document.querySelector( '.dx-modal-elevation .modal-body > ul' ).addEventListener( 'click', function ( e ) {
+            var ul = e.currentTarget;
+            for (var i = 0; i < ul.children.length; i++) {
+                ul.children[i].className = 'list-group-item';
+            }
+            e.target.className = 'list-group-item bg-info';
+
+            var currentElevation = parseInt( e.target.getAttribute( 'data-elevation' ) );
+
+            if ( typeof callback === 'function' )
+                callback( currentElevation );
+
+            $( '.dx-modal-container' ).modal( 'hide' );
+            return true;
+
+        }, false );
 
     };
 

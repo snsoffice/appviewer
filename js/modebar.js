@@ -52,8 +52,7 @@ function( ifuture, $ ) {
         this.modeName = [];
         this.modeList = [];
 
-        this.elevations = {};
-        this.currentElevation = -1;
+        this.elevationEnabled = false;
 
         element.querySelector( '#modebar > a.btn' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
@@ -152,14 +151,27 @@ function( ifuture, $ ) {
     };
 
     Modebar.prototype.setElevations = function ( elevations ) {
-        this.elevations = elevations;
-        this.currentElevation = - 1;
-        this.resetContent_();
+        var enabled = elevations && typeof elevations.callback === 'function';                
+        if ( enabled ) {
+            var btn = document.createElement( 'BUTTON' );
+            btn.className = 'btn btn-outline-info btn-sm rounded-circle ml-3';
+            btn.name = 'show-elevation-dialog';
+            btn.textContent = elevations.title === undefined ? '' : elevations.title;
+            btn.addEventListener( 'click', elevations.callback, false );
+            this.element.appendChild( btn );
+        }
+        else {            
+            var btn = this.element.querySelector( 'button[name="show-elevation-dialog"]' );
+            if ( btn )
+                btn.remove();
+        }
+        this.elevationEnabled = enabled;
     };
 
-    Modebar.prototype.setCurrentElevation = function ( value ) {
-        this.currentElevation = value;
-        this.resetElevationDialog_();
+    Modebar.prototype.setCurrentElevation = function ( title ) {
+        var btn = this.element.querySelector( 'button[name="show-elevation-dialog"]' );
+        if ( btn )
+            btn.textContent = title === undefined ? '' : title;
     };
 
     Modebar.prototype.handleFutureEvent = function ( e ) {
@@ -175,7 +187,7 @@ function( ifuture, $ ) {
         var btn = bar.querySelector( '#modebar > a.btn' );
 
         // 0 个模式，不显示 modebar
-        bar.style.visibility = ( n > 0 || this.elevations.data ) ? 'visible' : 'hidden';
+        bar.style.visibility = ( n > 0 || this.elevationEnabled ) ? 'visible' : 'hidden';
 
         // 1 ~ 2 个模式，使用 btn-sm
         btn.className = 'btn btn-outline-dark' + ( n === 0 ? ' invisible' : n > 2 ? '' : ' btn-sm' );
@@ -225,9 +237,9 @@ function( ifuture, $ ) {
                 '</span>';
         }
 
-        this.resetElevationDialog_();
     };
 
+    // 不再使用，暂时保留代码
     Modebar.prototype.resetElevationDialog_ = function () {
 
         var elevations = this.elevations.data;

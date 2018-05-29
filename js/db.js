@@ -6,7 +6,7 @@
 //     远程数据同步
 //     本地数据查询
 //
-define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, utils ) {
+define( [ 'dexie', 'restapi', 'user', 'state', 'utils' ], function ( Dexie, restapi, user, state, utils ) {
 
     var _db = new Dexie( user.name === null ? 'anonymous' : user.getToken() );
 
@@ -15,7 +15,8 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
         settings: '++id, &name, value, description',
         organizations: '++id, title, type, geolocation, url, description',
 
-        favorites: '++id, type, title, url, description',
+        features: 'id, &title, geometry, category, icon, url',
+        favorites: '++id, type, title, url, parameters, description',
 
     } );
 
@@ -75,7 +76,24 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
 
     }
 
-    function requestRemoteData( item ) {
+    var MapOrganization = _db.organizations.defineClass( {
+
+        id: Number,
+        title: String,
+        type: String,
+        geolocation: String,
+        url: String,
+        description: String,
+
+    } );
+
+    MapOrganization.prototype.save = function () {
+
+        return db.organizations.put( this );
+
+    }
+
+    function requestRemoteFeatures( item ) {
 
         var id = item === undefined ? 0 : item.id;
         if ( ! id ) {
@@ -116,6 +134,31 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
         }
     }
 
+    function requestRemoteOrganizations( lastItem ) {
+
+        // 如果本地有数据暂时不更新，以后会只更新最近修改的
+        if ( lastItem !== undefined )
+            return;
+
+        var successCallback = function ( items ) {
+            items.forEach( function ( item ) {
+                 _db.organizations.add( {
+                    title: item['title'],
+                    geolocation: item['geolocation'],
+                    type: item['portal_type'],
+                    url: item['@id'],
+                } );
+            } );
+        };
+
+        var failCallback = function ( errMsg ) {
+            utils.warning( '同步数据失败: ' + errMsg );
+        };
+
+        restapi.queryVillages( successCallback, failCallback );
+
+    }
+
     //
     // 处理数据同步
     //
@@ -126,13 +169,13 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
             return;
         }
 
-        _db.transaction('rw', _db.features, function () {
-            _db.features.clear();
-            // 通过 ajax 请求服务器数据
-            //     user.name
-            //     user.token
-            //     maximum id
-            _db.features.orderBy( 'id' ).last( requestRemoteData );
+        _db.transaction('rw', _db.organizations, function () {
+            // _db.organizations.clear();
+            _db.organizations.orderBy( 'id' ).last( requestRemoteOrganizations );
+        } ).then( function ( result ) {
+            console.log( '数据同步成功' );
+        } ).catch( function ( err ) {
+            console.log( '数据同步失败: ' + err );
         } );
 
     }
@@ -147,6 +190,20 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
                 _db.features.toArray().then( callback );
             else
                 _db.features.where( 'title' ).startsWith( title ).toArray().then( callback );
+        } );
+
+    }
+
+    //
+    // 查询小区数据
+    //
+    function queryVillages( callback, title ) {
+
+        _db.transaction( 'r', _db.organizations, function () {
+            if ( title === undefined )
+                _db.organizations.toArray().then( callback );
+            else
+                _db.organizations.where( 'title' ).startsWith( title ).toArray().then( callback );
         } );
 
     }
@@ -202,6 +259,8 @@ define( [ 'dexie', 'user', 'state', 'utils' ], function ( Dexie, user, state, ut
         synchronize: synchronizeHandler,
 
         query: queryFeatures,
+
+        queryVillages: queryVillages,
 
         newSetting: newSetting,
 
