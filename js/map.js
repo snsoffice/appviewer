@@ -137,7 +137,9 @@ define( [ 'ifuture', 'ol', 'db', 'utils', 'config' ],
 
 function( ifuture, ol, db, utils, config ) {
 
-    var CONFIG_FILE = 'config.json?houseScope=' + config.houseScope;
+    var CONFIG_FILE = function ( url ) {
+        return  url + '/config.json?houseScope=' + (config.houseScope ? config.houseScope : '');
+    }
 
     var formatUrl = utils.formatUrl;
     var fmtwkt = new ol.format.WKT();
@@ -757,22 +759,20 @@ function( ifuture, ol, db, utils, config ) {
         // 调试语句，初始化集簇数据
         //
         var scope = this;
-        var site = {
-            id: 'root',
-            title: '远景网',
-        };
+        var title = '远景网';
+
         var features = [];
         db.queryVillages( function ( items ) {
             items.forEach( function ( item ) {
-                var feature = fmtwkt.readFeature( 'POINT (( ' + item.geometry.split( ',' ).join( ' ' ) + ' ))' );
+                var feature = fmtwkt.readFeature( 'POINT ( ' + item.geolocation.split( ',' ).join( ' ' ) + ' )' );
                 feature.setProperties( {
                     type: item.type,
                     title: item.title,
-                    url: url,
+                    url: item.url,
                 }, true );
                 features.push( feature );
             } );
-            scope.setRootSite( site, features, {
+            scope.setRootSite( title, features, {
                 extent: [ 8313981.75, 2137428.08, 15554097.07, 7244644.56 ],
             } );
         } );
@@ -947,7 +947,7 @@ function( ifuture, ol, db, utils, config ) {
                             url: item.get('url'),
                         } );
                     } );
-                    this.showElevationDialog_( elevations, function ( selected ) {
+                    this.selectElevationDialog_( elevations, function ( selected ) {
                         var level = this.houselevel + 1;
                         this.popHouseStack_( level );
                         this.housestack.push( {
@@ -1035,7 +1035,7 @@ function( ifuture, ol, db, utils, config ) {
         var level = this.houselevel;
         var xhr = new XMLHttpRequest();
 
-        xhr.onloadend = function() {
+        xhr.onloadend = function ( e ) {
             if ( xhr.status !== 200 ) {
                 console.log( '读取房屋数据返回错误(' + xhr.status + '): ' + e );
                 utils.warning( '读取房屋数据失败' );
@@ -1044,7 +1044,7 @@ function( ifuture, ol, db, utils, config ) {
             this.openHouseItem_( url, JSON.parse( xhr.responseText ), level );
         }.bind( this );
 
-        xhr.open( 'GET', url + '/config.json?houseScope=' + config.houseScope, true );
+        xhr.open( 'GET', CONFIG_FILE( url ), true );
         xhr.send();
 
     };
@@ -1068,7 +1068,7 @@ function( ifuture, ol, db, utils, config ) {
         this.popHouseStack_( level + 1 );
 
         var baseurl = v.url;
-        var url = v.url + '/' + CONFIG_FILE;
+        var url = CONFIG_FILE( v.url );
         var xhr = new XMLHttpRequest();
         xhr.onloadend = function() {
 
@@ -1172,7 +1172,7 @@ function( ifuture, ol, db, utils, config ) {
             var geometry = fmtwkt.readGeometry( view.geometry );
             var imageExtent = geometry.getExtent();
 
-            if ( [ 'plan', 'solid' ].indexOf( view.type ) > -1 ) {
+            if ( [ 'plane', 'solid' ].indexOf( view.type ) > -1 ) {
                 var layer = new ol.layer.Image( {
                     minResolution: SITE_MIN_RESOLUTION,
                     maxResolution: SITE_MAX_RESOLUTION,
@@ -1182,15 +1182,15 @@ function( ifuture, ol, db, utils, config ) {
                         imageExtent: imageExtent,
                         url: view.url,
                     } )
-                    if ( view.type === 'plan' )
-                        planelayer = layer;
-                    else ( view.type === 'solid' )
-                        stereolayer = layer;
                 } );
+                if ( view.type === 'plane' )
+                    planelayer = layer;
+                else ( view.type === 'solid' )
+                    stereolayer = layer;
             }
             else if ( view.type === 'label' ) {
                 var source = new ol.source.Vector( {
-                    features: wktfmt.readFeatures( view.features );
+                    features: wktfmt.readFeatures( view.features ),
                 } );
 
                 labellayer = new ol.layer.Vector( {
@@ -1246,7 +1246,7 @@ function( ifuture, ol, db, utils, config ) {
         if ( house.features ) {
             var features = [];
             house.features.forEach( function ( item ) {
-                var feature = fmtwkt.readFeature( 'POINT ((' + item.geolocation.split( ',' ).join( ' ' ) + ' ))' );
+                var feature = fmtwkt.readFeature( 'POINT (' + item.geolocation.split( ',' ).join( ' ' ) + ' )' );
                 feature.setProperties( {
                     type: item.type,
                     title: item.title,
@@ -1336,7 +1336,7 @@ function( ifuture, ol, db, utils, config ) {
                 layer.getSource().forEachFeature( function ( feature ) {
                     var url = feature.get( 'url' );
                     items.push( {
-                        title: feature.get( 'title' );
+                        title: feature.get( 'title' ),
                         type: feature.get( 'phase_type' ),
                         url: url,
                         position: feature.getGeometry().getFirstCoordinate(),
@@ -1664,10 +1664,10 @@ function( ifuture, ol, db, utils, config ) {
                     title: index === undefined ? '' : elevations[ index ].title,
                     callback: function ( e ) {
                         // 显示楼层选择对话框
-                        scope.showElevationDialog_( elevations, function ( selected ) {
+                        scope.selectElevationDialog_( elevations, function ( selected ) {
                             scope.openHouseInElevation_( level, selected );
                         }, index );
-                    } ),
+                    },
                 } );
 
                 break;
@@ -1785,7 +1785,7 @@ function( ifuture, ol, db, utils, config ) {
      *
      * @private
      */
-    Map.prototype.showElevationDialog_ = function ( elevations, callback, index ) {
+    Map.prototype.selectElevationDialog_ = function ( elevations, callback, index ) {
 
         Array.prototype.forEach.call( document.querySelectorAll( '.dx-modal-container' ), function ( dialog ) {
             document.body.removeChild( dialog );
@@ -1831,15 +1831,14 @@ function( ifuture, ol, db, utils, config ) {
             }
             e.target.className = 'list-group-item bg-info';
 
-            var currentElevation = parseInt( e.target.getAttribute( 'data-elevation' ) );
-
             if ( typeof callback === 'function' )
-                callback( currentElevation );
+                callback( parseInt( e.target.getAttribute( 'data-elevation' ) ) );
 
             $( '.dx-modal-container' ).modal( 'hide' );
             return true;
-
         }, false );
+
+        $( dialog.firstElementChild ).modal( 'show' );
 
     };
 

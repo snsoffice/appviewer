@@ -139,7 +139,7 @@ function( ifuture, Map, Minimap, Explorer, Manager, Vision, utils, config,
 
     };
 
-    Application.prototype._configFromURL() {
+    Application.prototype._configFromURL = function () {
 
         var url;
         if (window.location.hash.length > 0) {
@@ -175,7 +175,7 @@ function( ifuture, Map, Minimap, Explorer, Manager, Vision, utils, config,
             }
         }
 
-    }
+    };
 
     return Application;
 

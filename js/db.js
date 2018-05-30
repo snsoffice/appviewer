@@ -170,7 +170,7 @@ define( [ 'dexie', 'restapi', 'user', 'state', 'utils' ], function ( Dexie, rest
         }
 
         _db.transaction('rw', _db.organizations, function () {
-            // _db.organizations.clear();
+            _db.organizations.clear();
             _db.organizations.orderBy( 'id' ).last( requestRemoteOrganizations );
         } ).then( function ( result ) {
             console.log( '数据同步成功' );
