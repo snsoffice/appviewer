@@ -274,6 +274,20 @@
     object-fit: fill;
 }
 
+/*
+ *
+ * Part 6: Search
+ *
+ */
+
+#searchbox > input {
+    opacity: 0;
+}
+
+#searchbox > input:hover,
+#searchbox > input:focus {
+    opacity: 0.6;
+}
 
 /*
  *

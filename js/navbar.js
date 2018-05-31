@@ -8,15 +8,18 @@ function( ifuture, $ ) {
 
         var element = document.getElementById( 'navbar' );
         this.element = element;
-
+        
         var searchinput = element.querySelector( '#searchbox > input' );
         var searchresult = [];
 
         element.querySelector( '#future-search' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            searchinput.style.opacity = '0.6';
-            searchinput.focus();
+            // searchinput.style.opacity = '0.6';
+            // searchinput.focus();
+        }, false );
 
+        searchinput.addEventListener( 'blur', function ( e ) {
+            // searchinput.style.opacity = '0';
             if ( searchresult.length ) {
                 var html = [ '<ul class="list-group list-group-flush">' ];
                 for ( var i = 0 ; i < searchresult.length; i ++ ) {
@@ -46,8 +49,9 @@ function( ifuture, $ ) {
 
         }, false );
 
-        searchinput.addEventListener( 'blur', function ( e ) {
-            searchinput.style.opacity = '0';
+        element.querySelector( '#future-domain' ).addEventListener( 'click', function ( e ) {
+            e.preventDefault();
+            app.request( 'dialog', 'selectDomain');
         }, false );
 
         // element.querySelector( '#future-refresh' ).addEventListener( 'click', function ( e ) {

@@ -114,6 +114,10 @@ function( Application, config, ifuture, plugins ) {
         app.login();
     }, false );
 
+    document.getElementById( 'signup-button' ).addEventListener( 'click', function ( e ) {
+        app.signup();
+    }, false );
+
     app.run();
 
 } );

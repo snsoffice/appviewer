@@ -1,4 +1,4 @@
-define( [ 'jquery' ], function ( $ ) {
+define( [ 'jquery', 'db' ], function ( $, db ) {
 
     Dialog = function ( app, opt_options ) {
         this.element = null;
@@ -54,6 +54,206 @@ define( [ 'jquery' ], function ( $ ) {
             scope.element.remove();
         } );
 
+    };
+
+    Dialog.prototype.login = function ( callback ) {
+        var html =
+            '<div class="modal fade dx-modal-container" tabindex="-1" role="dialog" aria-hidden="true">' +
+            '  <div class="modal-dialog modal-dialog-centered" role="document">' +
+            '    <div class="modal-content">' +
+            '      <div class="modal-header">' +
+            '        <h3 class="modal-title">登录</h3>' +
+            '        <button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+            '          <span aria-hidden="true">&times;</span>' +
+            '        </button>' +
+            '      </div>' +
+            '      <form class="modal-body">' +
+            '        <div class="form-group">' +
+            '          <label for="inputEmail" class="sr-only">Email address</label>' +
+            '          <input type="text" id="inputEmail" class="form-control" placeholder="用户名称" required autofocus>' +
+            '        </div>' +
+            '        <div class="form-group">' +
+            '          <label for="inputPassword" class="sr-only">Password</label>' +
+            '          <input type="password" id="inputPassword" class="form-control" placeholder="密码" required>' +
+            '        </div>' +
+            '        <div class="form-group">' +
+            '          <div class="checkbox mb-3">' +
+            '            <label>' +
+            '              <input type="checkbox" value="remember-me"> 记住本次登录用户' +
+            '            </label>' +
+            '          </div>' +
+            '        </div>' +
+            '        <div class="form-group">' +
+            '          <button class="btn btn-lg btn-primary btn-block" type="button"> 登 录 </button>' +
+            '          <p class="mt-5 mb-3 text-muted text-center">远景网 &copy; 2018</p>' +
+            '        </div>' +
+            '      </form>' +
+            '    </div>' +
+            '  </div>' +
+            '</div>';
+
+        Array.prototype.forEach.call( document.querySelectorAll( '.dx-modal-container' ), function ( dialog ) {
+            document.body.removeChild( dialog );
+        } );
+
+        var element = document.createElement( 'DIV' );
+        element.innerHTML = html;
+        var dialog = element.firstElementChild;
+        document.body.appendChild( dialog );
+
+        dialog.querySelector( 'button.btn-primary' ).addEventListener( 'click', function ( e ) {
+            var form = dialog.querySelector( 'form.modal-body' );
+            if ( form.checkValidity() ) {
+                $( dialog ).modal( 'hide' );
+                callback( dialog.querySelector( '#inputEmail' ).value, dialog.querySelector( '#inputPassword' ).value );
+            }
+        }, false );
+
+        $( dialog ).modal( 'show' );
+    };
+
+    Dialog.prototype.signup = function ( callback ) {
+        var html =
+            '<div class="modal fade dx-modal-container" tabindex="-1" role="dialog" aria-hidden="true">' +
+            '  <div class="modal-dialog modal-dialog-centered" role="document">' +
+            '    <div class="modal-content">' +
+            '      <div class="modal-header">' +
+            '        <h3 class="modal-title"> 新用户注册 </h3>' +
+            '        <button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+            '          <span aria-hidden="true">&times;</span>' +
+            '        </button>' +
+            '      </div>' +
+            '      <form class="modal-body">' +
+            '        <div class="form-group">' +
+            '          <label for="inputLogin" class="sr-only">User login name</label>' +
+            '          <input type="text" id="inputLogin" class="form-control" placeholder="登录名称" required autofocus>' +
+            '        </div>' +
+            '        <div class="form-group">' +
+            '          <label for="inputEmail" class="sr-only">Email address</label>' +
+            '          <input type="email" id="inputEmail" class="form-control" placeholder="电子邮件" required>' +
+            '        </div>' +
+            '        <div class="form-group">' +
+            '          <label for="inputUsername" class="sr-only">User fullname</label>' +
+            '          <input type="text" id="inputUsername" class="form-control" placeholder="用户名称" required>' +
+            '        </div>' +
+            '        <div class="form-group">' +
+            '          <label for="inputPassword" class="sr-only">Password</label>' +
+            '          <input type="password" id="inputPassword" class="form-control" placeholder="密码" required>' +
+            '        </div>' +
+            '        <div class="form-group">' +
+            '          <button class="btn btn-lg btn-primary btn-block" type="button"> 注册 </button>' +
+            '          <p class="mt-5 mb-3 text-muted text-center">远景网 &copy; 2018</p>' +
+            '        </div>' +
+            '      </form>' +
+            '    </div>' +
+            '  </div>' +
+            '</div>';
+
+        Array.prototype.forEach.call( document.querySelectorAll( '.dx-modal-container' ), function ( dialog ) {
+            document.body.removeChild( dialog );
+        } );
+
+        var element = document.createElement( 'DIV' );
+        element.innerHTML = html;
+        var dialog = element.firstElementChild;
+        document.body.appendChild( dialog );
+
+        dialog.querySelector( 'button.btn-primary' ).addEventListener( 'click', function ( e ) {
+            var form = dialog.querySelector( 'form.modal-body' );
+            if ( form.checkValidity() ) {
+                $( dialog ).modal( 'hide' );
+            }
+        }, false );
+
+        $( dialog ).modal( 'show' );
+    };
+
+    Dialog.prototype.selectDomain = function ( callback ) {
+        var html = [
+            '<div class="modal fade dx-modal-container" tabindex="-1" role="dialog" aria-hidden="true">' +
+            '  <div class="modal-dialog" role="document">' +
+            '    <div class="modal-content">' +
+            '      <div class="modal-header">' +
+            '        <h5 class="modal-title">选择空间</h5>' +
+            '        <button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+            '          <span aria-hidden="true">&times;</span>' +
+            '        </button>' +
+            '      </div>' +
+            '      <div class="modal-body">' +
+            '        <ul class="list-group list-group-flush text-center">'
+        ];
+
+        var domains = [
+            {
+                userid: 'zhaojunde',
+                title: '赵俊德的空间'
+            },
+            {
+                userid: 'liuyuxuan',
+                title: '刘宇轩的空间'
+            }
+        ];
+        var selected = 0;
+        for( var i = 0; i < domains.length; i ++ ) {
+            if (i === selected)
+                html.push( '<li class="list-group-item bg-info" data-domain="' + domains[ i ].userid + '">' + domains[ i ].title +
+                           ' <span class="float-right text-secondary" data-favorite="true"><i class="fas fa-heart"></i></span>' +
+                           '</li>' );
+            else
+                html.push( '<li class="list-group-item" data-favorite="true" data-domain="' + domains[ i ].userid + '">' + domains[ i ].title +
+                           ' <span class="float-right text-secondary" data-favorite="true"><i class="fas fa-heart"></i></span>' +
+                           '</li>' );
+        }
+
+        html.push(
+            '      </div>' +
+            '    </div>' +
+            '  </div>' +
+            '</div>'
+        );
+
+        Array.prototype.forEach.call( document.querySelectorAll( '.dx-modal-container' ), function ( dialog ) {
+            document.body.removeChild( dialog );
+        } );
+
+        var element = document.createElement( 'DIV' );
+        element.innerHTML = html.join( '' );
+        var dialog = element.firstElementChild;
+        document.body.appendChild( dialog );
+
+        dialog.querySelector( '.modal-body > ul' ).addEventListener( 'click', function ( e ) {
+            var ul = e.currentTarget;
+            if ( e.target.tagName === 'LI' ) {
+                for (var i = 0; i < ul.children.length; i++) {
+                    ul.children[i].className = 'list-group-item';
+                }
+                e.target.className = 'list-group-item bg-info';
+
+                if ( typeof callback === 'function' )
+                    callback( e.target.getAttribute( 'data-doamin' ) );
+
+                $( dialog ).modal( 'hide' );
+            }
+
+            else {
+                var span = e.target.parentElement;
+                if ( span.tagName !== 'SPAN' )
+                    span = span.parentElement;
+                var flag = span.getAttribute( 'data-favorite' );
+                if ( flag === 'true' ) {
+                    span.setAttribute( 'data-favorite', 'false' );
+                    span.innerHTML = '<i class="far fa-heart"></i>';
+                }
+                else if ( flag === 'false' ) {
+                    span.setAttribute( 'data-favorite', 'true' );
+                    span.innerHTML = '<i class="fas fa-heart"></i>';
+                }
+            }
+
+            return true;
+        }, false );
+
+        $( dialog ).modal( 'show' );
     };
 
     return Dialog;

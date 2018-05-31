@@ -177,6 +177,17 @@ function( ifuture, Map, Minimap, Explorer, Manager, Vision, utils, config,
 
     };
 
+    Application.prototype.login = function () {
+        this.dialog.login( function ( username, password ) {
+            console.log( 'User: ' + username + ', password: you guess' );
+        } );
+    }
+
+    Application.prototype.signup = function () {
+        this.dialog.signup( function () {
+        } );
+    }
+
     return Application;
 
 } );
