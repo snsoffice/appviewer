@@ -54,10 +54,8 @@ function( ifuture ) {
             this.element.querySelector( '.dx-taskbar' ).style.visibility = 'hidden';
             if (  this.currentTask !== name && !! this.currentTask  )
                 this.closePlugin();
-            if ( this.openPlugin( name ) ) {
+            if ( this.openPlugin( name ) )
                 this.currentTask = name;
-                this.toggle( true );
-            }
         }
         else {
             this.element.querySelector( '.dx-taskbar' ).style.visibility = 'visible';
@@ -71,12 +69,15 @@ function( ifuture ) {
 
     Manager.prototype.openPlugin = function ( name ) {
 
-        if ( this.currentTask === name )
+        if ( this.currentTask === name ) {
+            this.toggle( true );
             return;
+        }
 
         var plugin = this.getPlugin( name );
         if ( !! plugin ) {
             plugin.create( this.element );
+            this.toggle( true );
             return true;
         }
 
