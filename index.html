@@ -180,7 +180,21 @@
       <div id="titlebar" class="dx-titlebar">
         <nav class="navbar navbar-expand-sm navbar-light bg-light">
           <span class="navbar-brand mr-auto">Title</span>
-          <button class="bg-light border-0" type="button"><i class="fas fa-times"></i></button>
+          <div class="collapse navbar-collapse justify-content-center">
+            <div class="navbar-nav nav-tabs">
+              <a class="nav-item nav-link px-2 active" href="#">个人信息</a>
+              <a class="nav-item nav-link px-2" href="#">地图设置</a>
+              <a class="nav-item nav-link px-2 disabled" href="#">实名认证</a>
+            </div>
+          </div>
+          <div class="d-block d-sm-none w-50" style="overflow-x: auto;">
+            <div class="navbar-nav flex-row">
+              <a class="nav-item nav-link text-nowrap px-2 active" href="#">个人信息</a>
+              <a class="nav-item nav-link text-nowrap px-2" href="#">地图设置</a>
+              <a class="nav-item nav-link text-nowrap px-2 disabled" href="#">实名认证</a>
+            </div>
+          </div>
+          <button class="bg-light text-secondary border-0 mx-2" type="button"><i class="fas fa-times"></i></button>
         </nav>
       </div>
       <!-- plugins class="dx-toolcase" -->

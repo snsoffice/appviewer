@@ -8,13 +8,6 @@ function( ifuture ) {
 
         this.element = document.querySelector( '#manager' );
         this.element.querySelector( '.dx-taskbar' ).style.visibility = 'hidden';
-        this.element.querySelector( '.dx-titlebar' ).style.visibility = 'hidden';
-
-        this.element.querySelector( '.dx-titlebar' ).addEventListener( 'click', function ( e ) {
-            e.preventDefault();
-            this.toggle( false );
-        }.bind( this ), false );
-
         this.element.querySelector( '.dx-taskbar' ).addEventListener( 'click', Manager.prototype.handleClickTaskbar.bind( this ), false );
 
         this.currentTask = null;
@@ -32,6 +25,9 @@ function( ifuture ) {
             li.setAttribute( 'data-plugin', plugin.name );
             li.innerHTML = '<a href="#">' + title + '</a>';
             scope.element.querySelector( '.dx-taskbar > ul' ).appendChild( li );
+            component.on( [ 'task:close' ], function () {
+                scope.toggle( false );
+            } );
         } );
     };
 
@@ -56,7 +52,6 @@ function( ifuture ) {
     Manager.prototype.show = function ( name ) {
         if ( !! name ) {
             this.element.querySelector( '.dx-taskbar' ).style.visibility = 'hidden';
-            this.element.querySelector( '.dx-titlebar' ).style.visibility = 'visible';
             if (  this.currentTask !== name && !! this.currentTask  )
                 this.closePlugin();
             if ( this.openPlugin( name ) )
@@ -64,7 +59,6 @@ function( ifuture ) {
         }
         else {
             this.element.querySelector( '.dx-taskbar' ).style.visibility = 'visible';
-            this.element.querySelector( '.dx-titlebar' ).style.visibility = 'hidden';
             if ( !! this.currentTask )
                 this.setTaskbar( this.currentTask );
             else
@@ -80,26 +74,18 @@ function( ifuture ) {
 
         var plugin = this.getPlugin( name );
         if ( !! plugin ) {
-            var div = plugin.create();
-            if ( !! div ) {
-                if ( div.className && div.className.indexOf( 'dx-toolcase' ) === -1 )
-                    div.className += ' dx-toolcase';
-                else
-                    div.className = 'dx-toolcase';
-                this.element.appendChild( div );
-            }
-            this.element.querySelector( '.dx-titlebar .navbar-brand' ).innerHTML = plugin.title;
+            plugin.create( this.element );
             return true;
         }
 
     };
 
     Manager.prototype.closePlugin = function ( name ) {
+        Array.prototype.forEach.call( this.element.querySelectorAll( '.dx-toolcase' ), function ( task ) {
+            task.remove();
+        } );
         name = name ? name : this.currentTask;
         if ( !! name ) {
-            var toolcase = this.element.querySelector( '.dx-toolcase' );
-            if ( toolcase )
-                toolcase.remove();
             var plugin = this.getPlugin( name );
             if ( plugin ) {
                 plugin.close();

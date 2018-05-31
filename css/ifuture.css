@@ -175,7 +175,7 @@
     left: 0;
     top: 0;
     right: 0;
-    height: 50px;
+    bottom: 0px;
     overflow: auto;
 }
 
@@ -191,7 +191,7 @@
     position: absolute;
     left: 0;
     right: 0;
-    top: 50px;
+    top: 0;
     bottom: 0;
 }
 

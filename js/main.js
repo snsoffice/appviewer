@@ -118,6 +118,10 @@ function( Application, config, ifuture, plugins ) {
         app.signup();
     }, false );
 
+    document.getElementById( 'setting-button' ).addEventListener( 'click', function ( e ) {
+        app.request( 'manager', 'show', 'profile' );
+    }, false );
+
     app.run();
 
 } );

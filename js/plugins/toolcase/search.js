@@ -34,9 +34,15 @@ function( ifuture, Toolcase ) {
     }
     ifuture.inherits( SearchTool, Toolcase );
 
-    SearchTool.prototype.create = function () {
+    SearchTool.prototype.create = function ( container ) {
         var element = document.createElement( 'DIV' );
+        element.className = 'dx-toolcase';
+
         var html = [
+            '<nav class="navbar navbar-expand-sm navbar-light bg-light">' +
+            '  <span class="navbar-brand mr-auto"> 发现 </span>' +
+            '  <button class="bg-light text-secondary border-0 mx-2" type="button"><i class="fas fa-times"></i></button>' +
+            '</nav>' +
             '<form class="m-5">' +
             '  <div class="form-group row">' +
             '    <label for="inputVillage" class="col-sm-2 col-form-label">小区</label>' +
@@ -95,6 +101,10 @@ function( ifuture, Toolcase ) {
 
         element.innerHTML = html.join( '' );
 
+        element.querySelector( 'nav.navbar > button' ).addEventListener( 'click', function ( e ) {
+            this.dispatchEvent( new ifuture.Event( 'task:close' ) );
+        }.bind( this ), false );
+
         element.querySelector( 'form > button.btn-primary' ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
             // doSearch
@@ -127,7 +137,7 @@ function( ifuture, Toolcase ) {
             element.querySelector( '.search-results' ).style.display = 'none';
         }
 
-        return element;
+        container.appendChild( element );
     };
 
     return SearchTool;

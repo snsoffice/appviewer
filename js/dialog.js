@@ -256,6 +256,56 @@ define( [ 'jquery', 'db' ], function ( $, db ) {
         $( dialog ).modal( 'show' );
     };
 
+    Dialog.prototype.settings = function ( callback ) {
+        var html = [
+            '<div class="modal fade dx-modal-container" tabindex="-1" role="dialog" aria-hidden="true">' +
+            '  <div class="modal-dialog" role="document">' +
+            '    <div class="modal-content">' +
+            '      <div class="modal-header">' +
+            '        <nav class="navbar navbar-light bg-light">' +
+            '          <span class="navbar-brand mb-0 h1">设置</span>' +
+            '          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" ' +
+            '                  aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">' +
+            '            <span class="navbar-toggler-icon"></span>' +
+            '          </button>' +
+            '          <div class="collapse navbar-collapse" id="navbarNavAltMarkup">' +
+            '            <div class="navbar-nav">' +
+            '              <a class="nav-item nav-link active" href="#">个人信息 <span class="sr-only">(current)</span></a>' +
+            '              <a class="nav-item nav-link" href="#">地图显示</a>' +
+            '              <a class="nav-item nav-link" href="#">其他设置</a>' +
+            '              <a class="nav-item nav-link disabled" href="#">实名认证</a>' +
+            '            </div>' +
+            '          </div>' +
+            '        </nav>' +
+            '        <button type="button" class="close" data-dismiss="modal" aria-label="Close">' +
+            '          <span aria-hidden="true">&times;</span>' +
+            '        </button>' +
+            '      </div>' +
+            '      <div class="modal-body">'
+        ];
+
+        html.push(
+            '      </div>' +
+            '    </div>' +
+            '  </div>' +
+            '</div>'
+        );
+
+        Array.prototype.forEach.call( document.querySelectorAll( '.dx-modal-container' ), function ( dialog ) {
+            document.body.removeChild( dialog );
+        } );
+
+        var element = document.createElement( 'DIV' );
+        element.innerHTML = html.join( '' );
+        var dialog = element.firstElementChild;
+        document.body.appendChild( dialog );
+
+        dialog.querySelector( '.modal-body' ).addEventListener( 'click', function ( e ) {
+        }, false );
+
+        $( dialog ).modal( 'show' );
+    };
+
     return Dialog;
 
 } );

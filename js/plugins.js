@@ -7,6 +7,11 @@ define({
             options: {}
         },
         {
+            name: 'profile',
+            source: 'plugins/toolcase/profile',
+            options: {}
+        },
+        {
             name: 'toolbox',
             source: 'plugins/toolcase/toolbox',
             options: {}
