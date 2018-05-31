@@ -54,8 +54,10 @@ function( ifuture ) {
             this.element.querySelector( '.dx-taskbar' ).style.visibility = 'hidden';
             if (  this.currentTask !== name && !! this.currentTask  )
                 this.closePlugin();
-            if ( this.openPlugin( name ) )
+            if ( this.openPlugin( name ) ) {
                 this.currentTask = name;
+                this.toggle( true );
+            }
         }
         else {
             this.element.querySelector( '.dx-taskbar' ).style.visibility = 'visible';
@@ -63,8 +65,8 @@ function( ifuture ) {
                 this.setTaskbar( this.currentTask );
             else
                 this.setCurrentTask( this.element.querySelector( '.dx-taskbar > ul > li' ).getAttribute( 'data-plugin' ) );
+            this.toggle( true );
         }
-        this.toggle( true );
     }
 
     Manager.prototype.openPlugin = function ( name ) {
