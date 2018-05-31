@@ -84,16 +84,16 @@
           <i class="fas fa-bars fa-lg"></i>
         </button>
         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="future-dropdown-menu">
-          <button class="dropdown-item" type="button">刷新 <i class="fas fa-sync-alt"></i></button>
-          <div class="dropdown-divider"></div>
+          <!-- <button class="dropdown-item" type="button">刷新 <i class="fas fa-sync-alt"></i></button> -->
+          <!-- <div class="dropdown-divider"></div> -->
           <button id="login-button" class="dropdown-item" type="button">登录 <i class="fas fa-sign-in-alt"></i></button>
           <button id="signup-button" class="dropdown-item" type="button">注册</i></button>
-          <button class="dropdown-item d-none" type="button">注销 <i class="fas fa-sign-out-alt"></i></button>
+          <button id="logout-button" class="dropdown-item d-none" type="button">注销 <i class="fas fa-sign-out-alt"></i></button>
           <div class="dropdown-divider"></div>
-          <button class="dropdown-item" type="button">消息 <i class="fas fa-comment"></i></button>
+          <!-- <button class="dropdown-item" type="button">消息 <i class="fas fa-comment"></i></button> -->
           <button id="start-living" class="dropdown-item" type="button">直播 <i class="fas fa-video"></i></button>
-          <button id="start-living" class="dropdown-item" type="button">编辑 <i class="fas fa-edit"></i></button>
-          <button class="dropdown-item" type="button">设置 <i class="fas fa-cog"></i></button>
+          <button id="start-editor" class="dropdown-item" type="button">编辑 <i class="fas fa-edit"></i></button>
+          <button id="setting-button" class="dropdown-item" type="button">设置 <i class="fas fa-cog"></i></button>
         </div>
       </div>
       <div id="searchbox" class="input-group input-group-sm float-right w-50 mr-3">
@@ -174,12 +174,14 @@
     </div>
 
     <div id="manager" class="dx-manager dx-page">
-      <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
       <div id="taskbar" class="dx-taskbar">
         <ul class="nav nav-tabs"></ul>
       </div>
       <div id="titlebar" class="dx-titlebar">
-        <label>Title</label>
+        <nav class="navbar navbar-expand-sm navbar-light bg-light">
+          <span class="navbar-brand mr-auto">Title</span>
+          <button class="bg-light border-0" type="button"><i class="fas fa-times"></i></button>
+        </nav>
       </div>
       <!-- plugins class="dx-toolcase" -->
     </div>

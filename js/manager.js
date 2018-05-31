@@ -59,8 +59,8 @@ function( ifuture ) {
             this.element.querySelector( '.dx-titlebar' ).style.visibility = 'visible';
             if (  this.currentTask !== name && !! this.currentTask  )
                 this.closePlugin();
-            this.openPlugin( name );
-            this.currentTask = name;
+            if ( this.openPlugin( name ) )
+                this.currentTask = name;
         }
         else {
             this.element.querySelector( '.dx-taskbar' ).style.visibility = 'visible';
@@ -74,6 +74,10 @@ function( ifuture ) {
     }
 
     Manager.prototype.openPlugin = function ( name ) {
+
+        if ( this.currentTask === name )
+            return;
+
         var plugin = this.getPlugin( name );
         if ( !! plugin ) {
             var div = plugin.create();
@@ -84,8 +88,10 @@ function( ifuture ) {
                     div.className = 'dx-toolcase';
                 this.element.appendChild( div );
             }
-            this.element.querySelector( '.dx-titlebar > label' ).textContent = plugin.title;
+            this.element.querySelector( '.dx-titlebar .navbar-brand' ).innerHTML = plugin.title;
+            return true;
         }
+
     };
 
     Manager.prototype.closePlugin = function ( name ) {
@@ -109,9 +115,10 @@ function( ifuture ) {
     };
 
     Manager.prototype.setCurrentTask = function ( name ) {
-        this.openPlugin( name );
-        this.currentTask = name;
-        this.setTaskbar( name );
+        if ( this.openPlugin( name ) ) {
+            this.currentTask = name;
+            this.setTaskbar( name );
+        }
     };
 
     Manager.prototype.handleClickTaskbar = function ( e ) {

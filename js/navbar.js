@@ -16,6 +16,7 @@ function( ifuture, $ ) {
             e.preventDefault();
             // searchinput.style.opacity = '0.6';
             // searchinput.focus();
+            app.request( 'manager', 'show', 'search' );
         }, false );
 
         searchinput.addEventListener( 'blur', function ( e ) {
