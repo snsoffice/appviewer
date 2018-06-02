@@ -11,16 +11,19 @@
 //     个人空间     houseScope=USERID
 //     公众空间     没有 houseScope 或者 houseScope 为空
 //     
-define( [ 'ifuture', 'map', 'minimap', 'explorer', 'manager', 'vision', 'utils', 'config',
-          'navbar', 'modebar', 'footbar', 'responsebar', 'dialog', 'communicator' ],
+define( [ 'ifuture', 'utils', 'config', 'user', 'map', 'minimap', 
+          'explorer', 'manager', 'vision', 'navbar', 'modebar', 'footbar', 'responsebar', 'dialog', 
+          'communicator' ],
 
-function( ifuture, Map, Minimap, Explorer, Manager, Vision, utils, config,
-          Navbar, Modebar, Footbar, Responsebar, Dialog, Communicator ) {
+function( ifuture, utils, config, User, Map, Minimap,
+          Explorer, Manager, Vision, Navbar, Modebar, Footbar, Responsebar, Dialog, 
+          Communicator ) {
 
     Application = function ( opt_options ) {
         ifuture.Component.call( this );
 
         this._startupOptions = {};
+        this.user = new User( this, opt_options );
 
         this.navbar = new Navbar( this, opt_options );
         this.map = new Map( this, opt_options );
@@ -37,6 +40,10 @@ function( ifuture, Map, Minimap, Explorer, Manager, Vision, utils, config,
         this.responsebar = new Responsebar( this, opt_options );
 
         // 所有对象之间的事件绑定关系
+        this.on( [ 'helper:changed' ], this.map.handleFutureEvent, this.map );
+        this.on( [ 'carousel:changed' ], this.explorer.handleFutureEvent, this.explorer );
+        this.on( [ 'user:login', 'user:logout', 'living:start', 'living:end' ], this.navbar.handleFutureEvent, this.navbar );
+
         this.map.on( [ 'site:changed', 'view:opened' ], this.minimap.handleFutureEvent, this.minimap );
         this.map.on( [ 'elevation:changed' ], this.modebar.handleFutureEvent, this.modebar );
 
@@ -44,8 +51,6 @@ function( ifuture, Map, Minimap, Explorer, Manager, Vision, utils, config,
 
         this.communicator.on( 'living:opened', this.map.handleFutureEvent, this.map );
 
-        this.on( 'helper:changed', this.map.handleFutureEvent, this.map );
-        this.on( 'carousel:changed', this.explorer.handleFutureEvent, this.explorer );
     };
     ifuture.inherits( Application, ifuture.Component );
 
@@ -181,6 +186,9 @@ function( ifuture, Map, Minimap, Explorer, Manager, Vision, utils, config,
         this.dialog.login( function ( username, password ) {
             console.log( 'User: ' + username + ', password: you guess' );
         } );
+    }
+
+    Application.prototype.logout = function () {
     }
 
     Application.prototype.signup = function () {

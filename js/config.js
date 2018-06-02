@@ -1,5 +1,7 @@
 define( function () {
 
+    var _settings = {};
+
     function get( name ) {
         return window.localStorage.getItem( name );
     }
@@ -15,6 +17,12 @@ define( function () {
             value: [ 0, 1, 0 ]
         },
 
+        settings: {
+            configurable: false,
+            writable: false,
+            value: _settings
+        },
+
         userId: {
             configurable: false,
             get: function () { return get( 'userId' ); },
@@ -27,16 +35,16 @@ define( function () {
             set: function ( value ) { set( 'userName', value ); }
         },
 
-        houseScope: {
-            configurable: false,
-            get: function () { return get( 'houseScope' ); },
-            set: function ( value ) { set( 'houseScope', value ); }
-        },
-
         loginToken: {
             configurable: false,
             get: function () { return get( 'loginToken' ); },
             set: function ( value ) { set( 'loginToken', value ); }
+        },
+
+        houseScope: {
+            configurable: false,
+            get: function () { return get( 'houseScope' ); },
+            set: function ( value ) { set( 'houseScope', value ); }
         },
 
         mapCenter: {
@@ -62,9 +70,19 @@ define( function () {
             value: 20
         },
 
+        portalBaseUrl: {
+            configurable: false,
+            value: 'http://snsoffice.com:9098'
+        },
+
+        portalSiteName: {
+            configurable: false,
+            value: 'future'
+        },
+
         resourceBaseUrl: {
             configurable: false,
-            value: "http://owtayt1td.bkt.clouddn.com"
+            value: 'http://owtayt1td.bkt.clouddn.com'
         },
 
     } );

@@ -388,6 +388,20 @@ function( ifuture, ol, db, utils, config ) {
 
     }
 
+    function createAngleOverlay( name ) {
+
+        var element = document.createElement( 'DIV' );
+        element.innerHTML = '<input type="range" min="0" max="360" step="1" value="0">';
+        element.style.width = '120px';
+
+        return new ol.Overlay({
+            id: name,
+            element: element,
+        });
+
+        return visitor;
+    }
+
     function emptyLayer() {
         return new ol.layer.Group( { visible: false } );
     }
@@ -745,6 +759,7 @@ function( ifuture, ol, db, utils, config ) {
 
         this.map.addOverlay( createVisitorOverlay( 'visitor', 'images/marker.png' ) );
         this.map.addOverlay( createVisitorOverlay( 'anchor', 'images/camera.png' ) );
+        // this.map.addOverlay( createAngleOverlay( 'arrow' ) );
 
         this.map.on( 'singleclick', this.handleSingleClick_, this );
 
@@ -762,7 +777,7 @@ function( ifuture, ol, db, utils, config ) {
         var title = '远景网';
 
         var features = [];
-        db.queryVillages( function ( items ) {
+        db.queryVillages().then( function ( items ) {
             items.forEach( function ( item ) {
                 var feature = fmtwkt.readFeature( 'POINT ( ' + item.geolocation.split( ',' ).join( ' ' ) + ' )' );
                 feature.setProperties( {

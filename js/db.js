@@ -6,21 +6,32 @@
 //     远程数据同步
 //     本地数据查询
 //
-define( [ 'dexie', 'restapi', 'user', 'state', 'utils' ], function ( Dexie, restapi, user, state, utils ) {
+define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, config, utils ) {
 
-    var _db = new Dexie( user.name === null ? 'anonymous' : user.getToken() );
+    // DEBUG:
+    Dexie.delete('ifuture');
+    Dexie.delete('anonymous');
+
+    var _db = new Dexie( 'ifuture' );
 
     _db.version( 1 ).stores( {
 
-        settings: '++id, &name, value, description',
         organizations: '++id, title, type, geolocation, url, description',
 
+    } );
+
+
+    var _usrdb = new Dexie( config.userId === null ? 'anonymous' : config.userId );
+
+    _usrdb.version( 2 ).stores( {
+
+        settings: '++id, &name, value, description',
         features: 'id, &title, geometry, category, icon, url',
         favorites: '++id, type, title, url, parameters, description',
 
     } );
 
-    var SettingItem = _db.settings.defineClass( {
+    var SettingItem = _usrdb.settings.defineClass( {
         id: Number,
         name: String,
         value: String,
@@ -30,50 +41,33 @@ define( [ 'dexie', 'restapi', 'user', 'state', 'utils' ], function ( Dexie, rest
 
     SettingItem.prototype.save = function () {
 
-        return db.settings.put( this );
+        return _usrdb.settings.put( this );
 
     }
 
     function querySettings() {
-        _db.transaction( 'r', _db.settings, function () {
-            var settings = state.settings;
-            _db.settings.each( function ( item ) {
+        _usrdb.transaction( 'r', _usrdb.settings, function () {
+            var settings = config.settings;
+            _usrdb.settings.each( function ( item ) {
                 settings[item.name] = item.value;
             } );
         } );
     }
 
     function saveSettings() {
-        _db.transaction( 'rw', _db.settings, function () {
-            var settings = state.settings;
-            _db.settings.modify( function( item ) {
+        _usrdb.transaction( 'rw', _usrdb.settings, function () {
+            var settings = config.settings;
+            _usrdb.settings.modify( function( item ) {
                 item.value = settings[ item.name ];
             } );
         } );
     }
 
     function newSetting( name, value ) {
-        _db.settings.add( {
+        _usrdb.settings.add( {
             name: name,
             value: valude,
         } );
-    }
-
-    var MapFeature = _db.features.defineClass( {
-
-        id: Number,
-        title: String,
-        geometry: String,
-        category: String,
-        icon: String,
-        url: String,
-
-    } );
-
-    MapFeature.prototype.save = function () {
-
-        return db.features.put( this );
-
     }
 
     var MapOrganization = _db.organizations.defineClass( {
@@ -89,74 +83,98 @@ define( [ 'dexie', 'restapi', 'user', 'state', 'utils' ], function ( Dexie, rest
 
     MapOrganization.prototype.save = function () {
 
-        return db.organizations.put( this );
+        return _db.organizations.put( this );
 
     }
 
-    function requestRemoteFeatures( item ) {
+    // var MapFeature = _usrdb.features.defineClass( {
 
-        var id = item === undefined ? 0 : item.id;
-        if ( ! id ) {
-            _db.transaction( 'rw', _db.features, function () {
-                _db.features.add( {
-                    id: 1,
-                    title: '绿地世纪城',
-                    geometry: 'POINT (12119428.31 4055374.30)',
-                    category: 'organization',
-                    url: 'organizations/greenland',
-                } )
-                _db.features.add( {
-                    id: 2,
-                    title: '西北大学长安校区',
-                    geometry: 'POINT (12119354.46 4048989.50)',
-                    category: 'organization',
-                    url: 'organizations/northwestuniversity',
-                } );
-                _db.features.add( {
-                    id: 3,
-                    title: '华清池御汤酒店',
-                    geometry: 'POINT (12156763.90 4077916.87)',
-                    category: 'organization',
-                    url: 'organizations/huaqingchi',
-                } );
-                _db.features.add( {
-                    id: 4,
-                    title: '咸阳国际机场',
-                    geometry: 'POINT (12107045.45 4088525.52)',
-                    category: 'organization',
-                    url: 'organizations/xianyangairport',
-                } );
-                return 4;
+    //     id: Number,
+    //     title: String,
+    //     geometry: String,
+    //     category: String,
+    //     icon: String,
+    //     url: String,
 
-            } ).then( function ( n ) {
-                console.log( '更新 ' + n + ' 条数据');
-            } );
-        }
-    }
+    // } );
 
-    function requestRemoteOrganizations( lastItem ) {
+    // MapFeature.prototype.save = function () {
 
-        // 如果本地有数据暂时不更新，以后会只更新最近修改的
-        if ( lastItem !== undefined )
-            return;
+    //     return _usrdb.features.put( this );
 
-        var successCallback = function ( items ) {
-            items.forEach( function ( item ) {
-                 _db.organizations.add( {
-                    title: item['title'],
-                    geolocation: item['geolocation'],
-                    type: item['portal_type'],
-                    url: item['@id'],
-                } );
-            } );
-        };
+    // }
 
-        var failCallback = function ( errMsg ) {
-            utils.warning( '同步数据失败: ' + errMsg );
-        };
+    // function requestRemoteFeatures( item ) {
+    //     var id = item === undefined ? 0 : item.id;
+    //     if ( ! id ) {
+    //         _db.transaction( 'rw', _db.features, function () {
+    //             _db.features.add( {
+    //                 id: 1,
+    //                 title: '绿地世纪城',
+    //                 geometry: 'POINT (12119428.31 4055374.30)',
+    //                 category: 'organization',
+    //                 url: 'organizations/greenland',
+    //             } )
+    //             _db.features.add( {
+    //                 id: 2,
+    //                 title: '西北大学长安校区',
+    //                 geometry: 'POINT (12119354.46 4048989.50)',
+    //                 category: 'organization',
+    //                 url: 'organizations/northwestuniversity',
+    //             } );
+    //             _db.features.add( {
+    //                 id: 3,
+    //                 title: '华清池御汤酒店',
+    //                 geometry: 'POINT (12156763.90 4077916.87)',
+    //                 category: 'organization',
+    //                 url: 'organizations/huaqingchi',
+    //             } );
+    //             _db.features.add( {
+    //                 id: 4,
+    //                 title: '咸阳国际机场',
+    //                 geometry: 'POINT (12107045.45 4088525.52)',
+    //                 category: 'organization',
+    //                 url: 'organizations/xianyangairport',
+    //             } );
+    //             return 4;
 
-        restapi.queryVillages( successCallback, failCallback );
+    //         } ).then( function ( n ) {
+    //             console.log( '更新 ' + n + ' 条数据');
+    //         } );
+    //     }
+    // }
 
+    function testOrganizations() {
+        return [ 
+            {
+                id: 1,
+                title: '绿地世纪城',
+                geolocation: '12119428.31 4055374.30',
+                '@type': 'Organization',
+                '@id': 'organizations/greenland',
+            },
+            {
+                id: 2,
+                title: '西北大学长安校区',
+                geolocation: '12119354.46 4048989.50',
+                '@type': 'Organization',
+                '@id': 'organizations/northwestuniversity',
+            },
+            {
+                id: 3,
+                title: '华清池御汤酒店',
+                geolocation: '12156763.90 4077916.87',
+                '@type': 'Organization',
+                '@id': 'organizations/huaqingchi',
+            },
+            {
+                id: 4,
+                title: '咸阳国际机场',
+                geolocation: '12107045.45 4088525.52',
+                '@type': 'Organization',
+                '@id': 'organizations/xianyangairport',
+            }
+        ];
     }
 
     //
@@ -169,41 +187,50 @@ define( [ 'dexie', 'restapi', 'user', 'state', 'utils' ], function ( Dexie, rest
             return;
         }
 
-        _db.transaction('rw', _db.organizations, function () {
-            _db.organizations.clear();
-            _db.organizations.orderBy( 'id' ).last( requestRemoteOrganizations );
-        } ).then( function ( result ) {
-            console.log( '数据同步成功' );
+        _db.organizations.orderBy( 'id' ).last().then( function ( lastItem ) {
+
+            // 如果有本地数据，那么只更新最后一次更新之后服务器修改过的数据
+            if ( lastItem !== undefined )
+                return [];
+
+            // DEBUG:
+            return testOrganizations();
+            // return restapi.queryVillages();
+
+        } ).then( function ( items ) {
+
+            _db.transaction('rw', _db.organizations, function () {
+
+                items.forEach( function ( item ) {
+                    _db.organizations.add( {
+                        title: item['title'],
+                        geolocation: item['geolocation'],
+                        type: item['@type'],
+                        url: item['@id'],
+                    } );
+                } );
+
+            } );
+
+            return items.length;
+
         } ).catch( function ( err ) {
-            console.log( '数据同步失败: ' + err );
+
+            utils.warning( '同步数据失败' );
+
         } );
 
     }
 
     //
-    // 查询本地数据
+    // 查询本地小区数据
     //
-    function queryFeatures( callback, title ) {
+    function queryVillages( title ) {
 
-        _db.transaction( 'r', _db.features, function () {
-            if ( title === undefined )
-                _db.features.toArray().then( callback );
-            else
-                _db.features.where( 'title' ).startsWith( title ).toArray().then( callback );
-        } );
-
-    }
-
-    //
-    // 查询小区数据
-    //
-    function queryVillages( callback, title ) {
-
-        _db.transaction( 'r', _db.organizations, function () {
-            if ( title === undefined )
-                _db.organizations.toArray().then( callback );
-            else
-                _db.organizations.where( 'title' ).startsWith( title ).toArray().then( callback );
+        return _db.transaction( 'r', _db.organizations, function () {
+            return title === undefined
+                ? _db.organizations.toArray()
+                : _db.organizations.where( 'title' ).startsWith( title ).toArray();
         } );
 
     }
@@ -211,27 +238,27 @@ define( [ 'dexie', 'restapi', 'user', 'state', 'utils' ], function ( Dexie, rest
     //
     // 查询服务器数据
     //
-    function queryRemoteOrganizations( perPage, page, callback ) {
-        var request = new XMLHttpRequest();
-        var url = 'http://snsoffice.com:9098/future/ajax-house-search';
-        var params = 'portal_type=Organization&path=/future/organizations';
+    // function queryRemoteOrganizations( perPage, page, callback ) {
+    //     var request = new XMLHttpRequest();
+    //     var url = 'http://snsoffice.com:9098/future/ajax-house-search';
+    //     var params = 'portal_type=Organization&path=/future/organizations';
 
-        request.onerror = function ( event ) {
-            utils.warning( '查询组织机构 ' + url + '时出现了错误!' );
-        };
+    //     request.onerror = function ( event ) {
+    //         utils.warning( '查询组织机构 ' + url + '时出现了错误!' );
+    //     };
 
-        request.onloadend = function() {
+    //     request.onloadend = function() {
 
-            if (request.status != 200) {
-                utils.warning( '查询组织机构 ' + url + '失败，服务器返回代码：' + request.status );
-                return;
-            }
-            callback( JSON.parse( request.responseText ) );
-        };
-        request.open('GET', url + '?' + params + '&perPage=' + perPage + '&page=' + page, true);
-        request.send();
+    //         if (request.status != 200) {
+    //             utils.warning( '查询组织机构 ' + url + '失败，服务器返回代码：' + request.status );
+    //             return;
+    //         }
+    //         callback( JSON.parse( request.responseText ) );
+    //     };
+    //     request.open('GET', url + '?' + params + '&perPage=' + perPage + '&page=' + page, true);
+    //     request.send();
 
-    }
+    // }
 
     //
     // 数据同步的触发条件
@@ -241,24 +268,22 @@ define( [ 'dexie', 'restapi', 'user', 'state', 'utils' ], function ( Dexie, rest
     window.addEventListener( 'online', synchronizeHandler, false );
 
     // 登录成功之后进行数据同步操作
-    document.addEventListener( 'login', synchronizeHandler, false );
+    // document.addEventListener( 'login', synchronizeHandler, false );
 
     // App 后台切换到前台时候进行数据同步操作
-    document.addEventListener( 'resume', synchronizeHandler, false );
+    // document.addEventListener( 'resume', synchronizeHandler, false );
 
     // App 启动进行数据同步操作
     synchronizeHandler();
 
     //
-    // 初始化 state.settings
+    // 初始化 config.settings
     //
     querySettings();
 
     return {
 
         synchronize: synchronizeHandler,
-
-        query: queryFeatures,
 
         queryVillages: queryVillages,
 

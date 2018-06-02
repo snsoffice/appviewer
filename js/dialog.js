@@ -185,13 +185,9 @@ define( [ 'jquery', 'db' ], function ( $, db ) {
 
         var domains = [
             {
-                userid: 'zhaojunde',
-                title: '赵俊德的空间'
+                userid: '',
+                title: '公众空间'
             },
-            {
-                userid: 'liuyuxuan',
-                title: '刘宇轩的空间'
-            }
         ];
         var selected = 0;
         for( var i = 0; i < domains.length; i ++ ) {

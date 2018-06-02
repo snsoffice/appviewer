@@ -100,28 +100,6 @@ function( Application, config, ifuture, plugins ) {
         app.manager.addPlugin( app, toolcase );
     } );
 
-    // Bind menu event
-    document.getElementById( 'start-living' ).addEventListener( 'click', function ( e ) {
-        app.request( 'map', 'startBroadcast' );
-        e.currentTarget.setAttribute( 'disabled', true );
-    }, false );
-
-    document.getElementById( 'join-living' ).addEventListener( 'click', function ( e ) {
-        app.request( 'map', 'openLiving' );
-    }, false );
-
-    document.getElementById( 'login-button' ).addEventListener( 'click', function ( e ) {
-        app.login();
-    }, false );
-
-    document.getElementById( 'signup-button' ).addEventListener( 'click', function ( e ) {
-        app.signup();
-    }, false );
-
-    document.getElementById( 'setting-button' ).addEventListener( 'click', function ( e ) {
-        app.request( 'manager', 'show', 'profile' );
-    }, false );
-
     app.run();
 
 } );

@@ -1,77 +1,161 @@
-define( [ 'ifuture', 'jquery' ],
+define( [ 'ifuture', 'config', 'db', 'jquery' ],
 
-function( ifuture, $ ) {
+function( ifuture, config, db, $ ) {
+
+    var _ID = 'navbar';
+    var _BRAND_BUTTON = '#future-domain';
+    var _LOGIN_BUTTON = '#login-button';
+    var _LOGOUT_BUTTON = '#logout-button';
+    var _SIGNUP_BUTTON = '#signup-button';
+    var _LIVING_BUTTON = '#living-button';
+    var _EDITOR_BUTTON = '#editor-button';
+    var _SEARCH_BUTTON = '#searchbox > div > button';
+    var _SEARCH_INPUT = '#searchbox > input';
+    var _PROFILE_BUTTON = '#profile-button';
 
     Navbar = function ( app, opt_options ) {
 
-        ifuture.Component.call( this );
+        ifuture.Component.call( this, app );
 
-        var element = document.getElementById( 'navbar' );
-        this.element = element;
-        
-        var searchinput = element.querySelector( '#searchbox > input' );
-        var searchresult = [];
+        var element = document.getElementById( _ID );
+        this._element = element;
 
-        element.querySelector( '#future-search' ).addEventListener( 'click', function ( e ) {
-            e.preventDefault();
-            // searchinput.style.opacity = '0.6';
-            // searchinput.focus();
+        element.querySelector( _SEARCH_INPUT ).addEventListener( 'input', Navbar.prototype.quickSearch_.bind( this ), false );
+
+        element.querySelector( _SEARCH_BUTTON ).addEventListener( 'click', function ( e ) {
             app.request( 'manager', 'show', 'search' );
         }, false );
 
-        searchinput.addEventListener( 'blur', function ( e ) {
-            // searchinput.style.opacity = '0';
-            if ( searchresult.length ) {
-                var html = [ '<ul class="list-group list-group-flush">' ];
-                for ( var i = 0 ; i < searchresult.length; i ++ ) {
-                    html.push( '<li class="list-group-item" index="' + i + '">' + searchresult[ i ] + '</li>' );
-                }                
-                html.push( '</ul>' );
-
-                var popover = document.createElement( 'DIV' );
-                popover.innerHTML = html.join('');
-
-                popover.addEventListener( 'click', function ( e ) {
-
-                    var target = e.target;
-                    while ( target && target.tagName.toUpper() !== 'LI' ) {
-                        target = target.parentElement;
-                    }
-
-                }, false );
-
-                $( searchinput ).popover( {
-                    content: popover,
-                    html: true,
-                    trigger: 'focus',
-                    placement: 'auto',
-                } ).popover( 'show' );
-            }
-
-        }, false );
-
-        element.querySelector( '#future-domain' ).addEventListener( 'click', function ( e ) {
-            e.preventDefault();
+        element.querySelector( _BRAND_BUTTON ).addEventListener( 'click', function ( e ) {
             app.request( 'dialog', 'selectDomain');
         }, false );
 
-        // element.querySelector( '#future-refresh' ).addEventListener( 'click', function ( e ) {
-        //     e.preventDefault();
-        //     app.request( 'manager', 'show', 'toolbox' );
-        // }, false );
+        element.querySelector( _LOGOUT_BUTTON ).addEventListener( 'click', function ( e ) {
+            app.login();
+        }, false );
 
-        // element.querySelector( '#future-menu' ).addEventListener( 'click', function ( e ) {
-        //     e.preventDefault();
-        //     app.request( 'manager', 'show', 'talk' );
-        // }, false );
+        element.querySelector( _SIGNUP_BUTTON ).addEventListener( 'click', function ( e ) {
+            app.signup();
+        }, false );
 
-        // element.querySelector( '#show-manager' ).addEventListener( 'click', function ( e ) {
-        //     e.preventDefault();
-        //     app.request( 'manager', 'show' );
-        // }, false );
+        element.querySelector( _LOGOUT_BUTTON ).addEventListener( 'click', function ( e ) {
+            app.logout();
+        }, false );
+
+        element.querySelector( _LIVING_BUTTON ).addEventListener( 'click', function ( e ) {
+            app.request( 'map', 'startBroadcast' );
+        }, false );
+
+        element.querySelector( _PROFILE_BUTTON ).addEventListener( 'click', function ( e ) {
+            app.request( 'manager', 'show', 'profile' );
+        }, false );
+
+        Navbar.prototype.resetActionState_.call( this );
 
     }
     ifuture.inherits( Navbar, ifuture.Component );
+
+    /**
+     *
+     * 事件处理程序，相对于对外部的所有接口，可以响应的外部事件
+     *
+     * @param {ifuture.Event} event 事件对象
+     * @observable
+     * @api
+     */
+    Navbar.prototype.handleFutureEvent = function ( event ) {
+
+        if ( event.type.startsWith( 'user:' ) ) {
+            this.resetActionState_();
+        }
+
+        else if ( event.type === 'living:start' ) {
+            this._element.querySelector( _LIVING_BUTTON ).setAttribute( 'disabled', 'true' );
+        }
+
+        else if ( event.type === 'living:end' ) {
+            this._element.querySelector( _LIVING_BUTTON ).removeAttribute( 'disabled' );
+        }
+
+    };
+
+    /**
+     *
+     * 快速搜索小区，如果搜索结果只有一个，在地图上显示选中的小区； 如
+     * 果有多个小区，弹出选择框，选择一个小区。
+     *
+     * @private
+     */
+    Navbar.prototype.quickSearch_ = function () {
+
+        var searchinput = this._element.querySelector( _SEARCH_INPUT );
+        $( searchinput ).popover('dispose');
+
+        // if ( ! searchinput.value )
+        //     return;
+
+        db.queryVillages( searchinput.value ).then( function ( results ) {
+            
+            if ( results.length )
+                showSearchResults( results );
+            
+        } ).catch( function ( err ) {
+            console.log( '快速搜索小区出错: ' + err );
+        } );
+      
+        var scope = this;
+        var showSearchResults = function ( results ) {
+
+            var html = [ '<ul class="list-group list-group-flush">' ];
+            html.push( '<li class="list-group-item bg-primary" data-url="' + results[ 0 ].url + '">' + results[ 0 ].title + '</li>' );
+            results.splice( 1 ).forEach( function ( item ) {
+                html.push( '<li class="list-group-item" data-url="' + item.url + '">' + item.title + '</li>' );
+            } );
+            html.push( '</ul>' );
+
+            var popover = document.createElement( 'DIV' );
+            popover.innerHTML = html.join('');
+            
+            popover.addEventListener( 'click', function ( e ) {
+
+                var url = e.target.getAttribute( 'data-url' );
+                if ( url ) {
+                    popover.querySelector( 'ul > li.bg-primary' ).className = 'list-group-item';
+                    e.target.className = 'list-group-item bg-primary';
+                    scope.dispatchEvent( new ifuture.Event( 'select:village', url ) );
+                }
+
+            }, false );
+
+            $( searchinput ).popover( {
+                content: popover,
+                html: true,
+                trigger: 'focus',
+                placement: 'auto',
+            } ).popover( 'show' );
+
+        };
+
+    }
+
+    /**
+     *
+     * 设置导航栏所有动作的状态，根据当前用户状态隐藏或者显示菜单和按钮
+     *
+     * @private
+     */
+    Navbar.prototype.resetActionState_ = function () {
+
+        var element = this._element;
+        var logon = !! config.userId;
+
+        element.querySelector( '#login-button' ).style.display = logon ? 'none' : '';
+        element.querySelector( '#signup-button' ).style.display = logon ? 'none' : '';
+        element.querySelector( '#logout-button' ).style.display = logon ? '' : 'none';
+        element.querySelector( '#living-button' ).style.display = logon ? '' : 'none';
+        element.querySelector( '#editor-button' ).style.display = logon ? '' : 'none';
+
+    };
 
     return Navbar;
 

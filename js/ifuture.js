@@ -91,10 +91,15 @@ define( [ 'ol' ], function ( ol ) {
      *
      *    ifuture.inherits( ChildClass, ifuture.Component );
      */
-    function Component() {
+    function Component( app ) {
         ol.Object.call( this );
+        this.app = app;
     }
     ol.inherits( Component, ol.Object );
+
+    Component.prototype.dispatchEvent = function ( e ) {
+        ol.Object.prototype.dispatchEvent.call( this.app === undefined ? this : this.app, e );
+    };
 
     return {
         Event: Event,

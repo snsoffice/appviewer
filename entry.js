@@ -1,6 +1,14 @@
-// 
+//
+// 浏览器要求
+//
+//  HTML5:                  https://html.spec.whatwg.org/multipage/
+//  ECMAScript 5:           http://www.ecma-international.org/ecma-262/5.1/
+//  CSS3:
+//  ECMAScript 6 - promise: https://www.ecma-international.org/ecma-262/6.0/#sec-promise-objects
+//
 // Polyfills
-// 
+//
+// es6 promise: https://www.udacity.com/course/javascript-promises--ud898
 
 // polyfill the remove() method in Internet Explorer 9 and iOS Safari
 // from:https://github.com/jserz/js_piece/blob/master/DOM/ChildNode/remove()/remove().md
@@ -21,12 +29,14 @@
   });
 })([Element.prototype, CharacterData.prototype, DocumentType.prototype]);
 
+// polyfill String.startsWith()
 if (!String.prototype.startsWith) {
 	String.prototype.startsWith = function(search, pos) {
 		return this.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
 	};
 }
 
+// polyfill Object.create used in config.js
 if (typeof Object.create !== "function") {
     Object.create = function (proto, propertiesObject) {
         if (!(proto === null || typeof proto === "object" || typeof proto === "function")) {
@@ -39,7 +49,6 @@ if (typeof Object.create !== "function") {
         return temp;
     };
 }
-
 
 require.config( {
 
@@ -69,7 +78,7 @@ require.config( {
 requirejs.onError = function ( err ) {
     console.log( err.requireType );
     if ( err.requireType === 'timeout' ) {
-        console.log( 'modules: ' + err.requireModules );
+        console.log( 'Timeout when loading modules: ' + err.requireModules );
     }
     throw err;
 };
