@@ -269,7 +269,7 @@ function( ifuture, ol, config, db, utils ) {
     Minimap.prototype.touch = function ( coordinate ) {
 
         var d = this._dxmap;
-        d.selectSiteLevel_( this._houselevel );
+        d.selectHouseLevel_( this._houselevel );
 
         d.view.animate( {
             center: coordinate,

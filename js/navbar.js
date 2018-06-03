@@ -1,6 +1,6 @@
-define( [ 'ifuture', 'config', 'db', 'jquery' ],
+define( [ 'ifuture', 'config', 'db', 'restapi', 'jquery' ],
 
-function( ifuture, config, db, $ ) {
+function( ifuture, config, db, restapi, $ ) {
 
     var _ID = 'navbar';
     var _BRAND_BUTTON = '#future-domain';
@@ -26,11 +26,14 @@ function( ifuture, config, db, $ ) {
             app.request( 'manager', 'show', 'search' );
         }, false );
 
-        element.querySelector( _BRAND_BUTTON ).addEventListener( 'click', function ( e ) {
-            app.request( 'dialog', 'selectDomain');
+        element.querySelector( _BRAND_BUTTON ).addEventListener( 'click', function ( e ) {            
+            app.request( 'dialog', 'selectDomain', {
+                id: e.currentTarget.getAttribute( 'data-domain' ),
+                title: e.currentTarget.getAttribute( 'data-title' ),
+            } );
         }, false );
 
-        element.querySelector( _LOGOUT_BUTTON ).addEventListener( 'click', function ( e ) {
+        element.querySelector( _LOGIN_BUTTON ).addEventListener( 'click', function ( e ) {
             app.login();
         }, false );
 
@@ -51,6 +54,7 @@ function( ifuture, config, db, $ ) {
         }, false );
 
         Navbar.prototype.resetActionState_.call( this );
+        Navbar.prototype.resetBrand_.call( this, config.houseDomain );
 
     }
     ifuture.inherits( Navbar, ifuture.Component );
@@ -95,14 +99,14 @@ function( ifuture, config, db, $ ) {
         //     return;
 
         db.queryVillages( searchinput.value ).then( function ( results ) {
-            
+
             if ( results.length )
                 showSearchResults( results );
-            
+
         } ).catch( function ( err ) {
             console.log( '快速搜索小区出错: ' + err );
         } );
-      
+
         var scope = this;
         var showSearchResults = function ( results ) {
 
@@ -115,7 +119,7 @@ function( ifuture, config, db, $ ) {
 
             var popover = document.createElement( 'DIV' );
             popover.innerHTML = html.join('');
-            
+
             popover.addEventListener( 'click', function ( e ) {
 
                 var url = e.target.getAttribute( 'data-url' );
@@ -154,6 +158,47 @@ function( ifuture, config, db, $ ) {
         element.querySelector( '#logout-button' ).style.display = logon ? '' : 'none';
         element.querySelector( '#living-button' ).style.display = logon ? '' : 'none';
         element.querySelector( '#editor-button' ).style.display = logon ? '' : 'none';
+
+    };
+
+    /**
+     *
+     * 设置导航栏所有动作的状态，根据当前用户状态隐藏或者显示菜单和按钮
+     *
+     * @private
+     */
+    Navbar.prototype.resetBrand_ = function ( userid, username ) {
+
+        var scope = this;
+        var setBrand = function ( userid, username ) {
+            var button = scope._element.querySelector( _BRAND_BUTTON );
+            var title =  ! userid ? '公众空间' : username + '的空间';
+            button.innerHTML = '<i class="fas fa-globe fa-lg"></i> 远景网 - ' + title;
+            button.setAttribute( 'data-domain', ! userid ? '' : userid );
+            button.setAttribute( 'data-title', title );
+        };
+
+        if ( !! username ) {
+            setBrand( userid, username );
+        }
+
+        else if ( !! userid ) {
+
+            restapi.queryUserFullname( userid ).then( function ( user ) {
+
+                setBrand( userid, user.fullname );
+
+            } ).catch( function ( e ) {
+
+                console.log( 'Query user fullname failed: ' + e );
+                setBrand( userid, userid );
+
+            } );
+        }
+
+        else {
+            setBrand();
+        }
 
     };
 

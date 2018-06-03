@@ -41,10 +41,10 @@ define( function () {
             set: function ( value ) { set( 'loginToken', value ); }
         },
 
-        houseScope: {
+        houseDomain: {
             configurable: false,
-            get: function () { return get( 'houseScope' ); },
-            set: function ( value ) { set( 'houseScope', value ); }
+            get: function () { return get( 'houseDomain' ); },
+            set: function ( value ) { set( 'houseDomain', value ); }
         },
 
         mapCenter: {

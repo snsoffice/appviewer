@@ -138,7 +138,7 @@ define( [ 'ifuture', 'ol', 'db', 'utils', 'config' ],
 function( ifuture, ol, db, utils, config ) {
 
     var CONFIG_FILE = function ( url ) {
-        return  url + '/config.json?houseScope=' + (config.houseScope ? config.houseScope : '');
+        return  url + '/config.json?houseDomain=' + (config.houseDomain ? config.houseDomain : '');
     }
 
     var formatUrl = utils.formatUrl;
@@ -770,9 +770,7 @@ function( ifuture, ol, db, utils, config ) {
     };
 
     Map.prototype.revive = function () {
-        //
-        // 调试语句，初始化集簇数据
-        //
+
         var scope = this;
         var title = '远景网';
 
@@ -791,6 +789,7 @@ function( ifuture, ol, db, utils, config ) {
                 extent: [ 8313981.75, 2137428.08, 15554097.07, 7244644.56 ],
             } );
         } );
+
     };
 
     /**

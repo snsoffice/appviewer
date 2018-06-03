@@ -280,6 +280,10 @@
  *
  */
 
+#searchbox {
+    max-width: 33%;
+}
+
 #searchbox > input {
     opacity: 0;
 }

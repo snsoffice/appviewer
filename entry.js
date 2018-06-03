@@ -13,27 +13,27 @@
 // polyfill the remove() method in Internet Explorer 9 and iOS Safari
 // from:https://github.com/jserz/js_piece/blob/master/DOM/ChildNode/remove()/remove().md
 (function (arr) {
-  arr.forEach(function (item) {
-    if (item.hasOwnProperty('remove')) {
-      return;
-    }
-    Object.defineProperty(item, 'remove', {
-      configurable: true,
-      enumerable: true,
-      writable: true,
-      value: function remove() {
-        if (this.parentNode !== null)
-          this.parentNode.removeChild(this);
-      }
+    arr.forEach(function (item) {
+        if (item.hasOwnProperty('remove')) {
+            return;
+        }
+        Object.defineProperty(item, 'remove', {
+            configurable: true,
+            enumerable: true,
+            writable: true,
+            value: function remove() {
+                if (this.parentNode !== null)
+                    this.parentNode.removeChild(this);
+            }
+        });
     });
-  });
 })([Element.prototype, CharacterData.prototype, DocumentType.prototype]);
 
 // polyfill String.startsWith()
 if (!String.prototype.startsWith) {
-	String.prototype.startsWith = function(search, pos) {
-		return this.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
-	};
+    String.prototype.startsWith = function(search, pos) {
+	return this.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
+    };
 }
 
 // polyfill Object.create used in config.js
