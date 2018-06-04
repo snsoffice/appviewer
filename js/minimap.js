@@ -203,7 +203,7 @@ function( ifuture, ol, config, db, utils ) {
 
 
         var element = document.createElement( 'DIV' );
-        element.innerHTML = '<img src="images/geolocation_marker_heading.png" />';
+        element.innerHTML = '<img src="images/location_marker_heading.png" />';
         var marker = new ol.Overlay( {
             id: 'marker',
             positioning: 'center-center',

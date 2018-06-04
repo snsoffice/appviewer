@@ -16,7 +16,7 @@ define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, co
 
     _db.version( 1 ).stores( {
 
-        organizations: '++id, title, type, geolocation, url, description',
+        organizations: '++id, title, type, coordinate, url, description',
 
     } );
 
@@ -75,7 +75,7 @@ define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, co
         id: Number,
         title: String,
         type: String,
-        geolocation: String,
+        coordinate: String,
         url: String,
         description: String,
 
@@ -149,28 +149,28 @@ define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, co
             {
                 id: 1,
                 title: '绿地世纪城',
-                geolocation: '12119428.31 4055374.30',
+                coordinate: '12119428.31 4055374.30',
                 '@type': 'Organization',
                 '@id': 'organizations/greenland',
             },
             {
                 id: 2,
                 title: '西北大学长安校区',
-                geolocation: '12119354.46 4048989.50',
+                coordinate: '12119354.46 4048989.50',
                 '@type': 'Organization',
                 '@id': 'organizations/northwestuniversity',
             },
             {
                 id: 3,
                 title: '华清池御汤酒店',
-                geolocation: '12156763.90 4077916.87',
+                coordinate: '12156763.90 4077916.87',
                 '@type': 'Organization',
                 '@id': 'organizations/huaqingchi',
             },
             {
                 id: 4,
                 title: '咸阳国际机场',
-                geolocation: '12107045.45 4088525.52',
+                coordinate: '12107045.45 4088525.52',
                 '@type': 'Organization',
                 '@id': 'organizations/xianyangairport',
             }
@@ -204,7 +204,7 @@ define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, co
                 items.forEach( function ( item ) {
                     _db.organizations.add( {
                         title: item['title'],
-                        geolocation: item['geolocation'],
+                        coordinate: item['coordinate'],
                         type: item['@type'],
                         url: item['@id'],
                     } );

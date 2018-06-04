@@ -218,6 +218,13 @@ function( ifuture, Carousel ) {
                 '<div data-name="html" class="text-info h-100 d-flex align-items-center justify-content-center">' +
                 '  <h3>' + item.title + '</h3>' +
                 '</div>';
+            html = 
+                '<div class="card mt-3 bg-dark text-white text-center">' +
+                '  <div class="card-body">' +
+                '    <h5 class="card-title">' + item.title + '</h5>' +
+                '    <p class="card-text mt-3 text-muted">' + item.description + '</p>' +
+                '  </div>' +
+                '</div>';
         }
         else {
             html =

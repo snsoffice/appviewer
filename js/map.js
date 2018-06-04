@@ -55,8 +55,13 @@
  *
  * Site {
  *
- *     id
- *     title
+ *     id               house domain, member field: userid
+ *     title            domain name, member field: fullname
+ *     description      member field
+ *     location         member field
+ *
+ *     ? portrait       member field
+ *     ? home_page      member field
  *
  * }
  *
@@ -64,7 +69,16 @@
  *
  *     title
  *     url
+ *     type          portal_type
+ *     description
  *
+ *     metadata, 根据类型不同，包含的数据不同，
+ *         house_area
+ *         house_type
+ *         house_location
+ *
+ *     collapsed boolean true 表示是下一级别的孩子结点是直接打开的，其他孩子结点都没有打开
+ *                       undefined 或者 false 表示全部孩子结点都已经打开了
  *     extent
  *     center
  *     resolution
@@ -141,6 +155,27 @@ function( ifuture, ol, db, utils, config ) {
         return  url + '/config.json?houseDomain=' + (config.houseDomain ? config.houseDomain : '');
     }
 
+    var ROOT_SITE_RESOLUTION = 5000;
+    var FUTURE_ROOT_SITE = {
+        id: '',
+        title: '远景网',
+        description: '直播看房，远程观景，世界就在你眼中',
+
+        // 地址
+        locations: [ '中国', '陕西省', '西安市', '绿地中心A座6009' ],
+
+        // home_page, portrait,
+    };
+
+    var queryCoordinate = function ( address ) {
+        return new Promise( function ( resolve, reject ) {
+            // DEBUG:
+            //   暂时返回一个固定地址，绿地世纪城东门
+            var result = [ 12119628.52, 4055386.0 ];
+            resolve( result );
+        } );
+    };
+
     var formatUrl = utils.formatUrl;
     var fmtwkt = new ol.format.WKT();
 
@@ -170,6 +205,8 @@ function( ifuture, ol, db, utils, config ) {
     };
 
     var PortalType = {
+        SITE: 'Site',
+        CLUSTER: 'Cluster',
         ORGANIZATION: 'Organization',
         BUILDING: 'Building',
         HOUSE: 'House',
@@ -777,7 +814,7 @@ function( ifuture, ol, db, utils, config ) {
         var features = [];
         db.queryVillages().then( function ( items ) {
             items.forEach( function ( item ) {
-                var feature = fmtwkt.readFeature( 'POINT ( ' + item.geolocation.split( ',' ).join( ' ' ) + ' )' );
+                var feature = fmtwkt.readFeature( 'POINT ( ' + item.coordinate.split( ',' ).join( ' ' ) + ' )' );
                 feature.setProperties( {
                     type: item.type,
                     title: item.title,
@@ -785,9 +822,7 @@ function( ifuture, ol, db, utils, config ) {
                 }, true );
                 features.push( feature );
             } );
-            scope.setRootSite( title, features, {
-                extent: [ 8313981.75, 2137428.08, 15554097.07, 7244644.56 ],
-            } );
+            scope.setRootSite( FUTURE_ROOT_SITE, features );
         } );
 
     };
@@ -977,7 +1012,15 @@ function( ifuture, ol, db, utils, config ) {
                 this.popHouseStack_( this.houselevel + 1 );
 
                 if ( size > 1 ) {
-                    this.pushClusterView_( features );
+                    var item = this.pushClusterView_( features );
+                    var site = FUTURE_ROOT_SITE;
+                    item.type = PortalType.CLUSTER;
+                    item.url = site.id;
+                    item.title = site.title;
+                    item.description = site.description;
+                    item.metadata = {
+                        locations: site.locations,
+                    };
 
                     var geometry = features[ 0 ].getGeometry()
                     this.selectHouseLevel_( this.housestack.length - 1,
@@ -1260,7 +1303,7 @@ function( ifuture, ol, db, utils, config ) {
         if ( house.features ) {
             var features = [];
             house.features.forEach( function ( item ) {
-                var feature = fmtwkt.readFeature( 'POINT (' + item.geolocation.split( ',' ).join( ' ' ) + ' )' );
+                var feature = fmtwkt.readFeature( 'POINT (' + item.coordinate.split( ',' ).join( ' ' ) + ' )' );
                 feature.setProperties( {
                     type: item.type,
                     title: item.title,
@@ -1300,24 +1343,26 @@ function( ifuture, ol, db, utils, config ) {
         }
         this.popHouseStack_( j );
 
-        this.pushExtentView_( extent );
-
         this.planegroup.getLayers().push( emptyLayer() );
         this.solidgroup.getLayers().push( emptyLayer() );
         this.titlegroup.getLayers().push( emptyLayer() );
         this.scenegroup.getLayers().push( emptyLayer() );
         this.childgroup.getLayers().push( emptyLayer() );
 
+        return this.pushExtentView_( extent );
+
     };
 
     Map.prototype.pushExtentView_ = function ( extent ) {
 
         var resolution = this.view.getResolutionForExtent( extent );
-        this.housestack.push( {
+        var item = {
             extent: extent,
             center: ol.extent.getCenter( extent ),
             resolution: resolution * 1.1,
-        } );
+        };
+        this.housestack.push( item );
+        return item;
 
     };
 
@@ -1331,7 +1376,8 @@ function( ifuture, ol, db, utils, config ) {
 
             items.push( {
                 type: 'cover',
-                title: '远景网',
+                title: FUTURE_ROOT_SITE.title,
+                description: FUTURE_ROOT_SITE.description,
             } );
 
         }
@@ -1340,18 +1386,21 @@ function( ifuture, ol, db, utils, config ) {
 
             var layer = this.scenegroup.getLayers().item( level );
             var title = this.housestack[ level ].title;
+            var description = this.housestack[ level ].description;
 
             items.push( {
                 type: 'cover',
-                title: title === undefined ? '远景网' : title,
+                title: title,
+                description: description,
             } );
 
             if ( layer instanceof ol.layer.Vector ) {
                 layer.getSource().forEachFeature( function ( feature ) {
                     var url = feature.get( 'url' );
                     items.push( {
-                        title: feature.get( 'title' ),
                         type: feature.get( 'phase_type' ),
+                        title: feature.get( 'title' ),
+                        description: description,
                         url: url,
                         position: feature.getGeometry().getFirstCoordinate(),
                         angle: feature.get( 'angle' ),
@@ -1744,12 +1793,12 @@ function( ifuture, ol, db, utils, config ) {
      * @api
      */
 
-    Map.prototype.setRootSite = function ( title, features, options ) {
+    Map.prototype.setRootSite = function ( site, features ) {
 
         this.popHouseStack_( 0 );
 
         this.source = new ol.source.Vector( { features: features } );
-        var distance = options.distance === undefined ? CLUSTER_DEFAULT_DISTANCE : options.distance;
+        var distance = CLUSTER_DEFAULT_DISTANCE;
         this._rootlayer.setSource(
             new ol.source.Cluster( {
                 distance: distance,
@@ -1757,12 +1806,26 @@ function( ifuture, ol, db, utils, config ) {
             } )
         );
 
-        this.pushClusterView_( features, options && options.extent );
+        // DEBUG:
+        //   extent [ 8313981.75, 2137428.08, 15554097.07, 7244644.56 ],
+        var scope = this;
 
-        this.housestack[ 0 ].title = title;
-        this.selectHouseLevel_( 0 );
+        queryCoordinate( site.location ).then( function ( coordinate ) {
+            scope.view.setCenter( coordinate );
+            scope.view.setResolution( ROOT_SITE_RESOLUTION );
+            scope.pushClusterView_( features, scope.view.calculateExtent() );
 
-        this.dispatchEvent( new ifuture.Event( 'site:changed' ) );
+            scope.housestack[ 0 ].type = PortalType.SITE;
+            scope.housestack[ 0 ].url = site.id;
+            scope.housestack[ 0 ].title = site.title;
+            scope.housestack[ 0 ].description = site.description;
+            scope.housestack[ 0 ].metadata = {
+                locations: site.locations,
+            };
+            scope.selectHouseLevel_( 0 );
+            scope.dispatchEvent( new ifuture.Event( 'site:changed' ) );
+        } );
+
     };
 
 
