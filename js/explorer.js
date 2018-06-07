@@ -133,12 +133,6 @@ function( ifuture, Carousel ) {
         this.items = [];
         this.mimetypes = [];
 
-        this.items.push( {
-            type: 'cover',
-            title: '远景网',
-            mimetype: 'html',
-        } );
-
     }
     ifuture.inherits( Explorer, ifuture.Component );
 
@@ -190,16 +184,16 @@ function( ifuture, Carousel ) {
     }
 
     Explorer.prototype.open = function ( item ) {
-        var name = this.findView( item );
-        if ( ! name )
+        var plugin = this.findView( item );
+        if ( ! plugin )
             return;
 
         var container = document.createElement( 'DIV' );
         container.className = 'dx-showcase';
         this.element.appendChild( container );
 
-        this.getPlugin( name ).open( container, item );
-        this.viewname = name;
+        plugin.open( container, item );
+        this.viewname = item.type;
     };
 
     Explorer.prototype.close = function ( item ) {
@@ -214,11 +208,11 @@ function( ifuture, Carousel ) {
     Explorer.prototype.buildItem_ = function ( item ) {
         var html;
         if ( item.type === 'cover' ) {
+            // html =
+            //     '<div data-name="html" class="text-info h-100 d-flex align-items-center justify-content-center">' +
+            //     '  <h3>' + item.title + '</h3>' +
+            //     '</div>';
             html =
-                '<div data-name="html" class="text-info h-100 d-flex align-items-center justify-content-center">' +
-                '  <h3>' + item.title + '</h3>' +
-                '</div>';
-            html = 
                 '<div class="card mt-3 bg-dark text-white text-center">' +
                 '  <div class="card-body">' +
                 '    <h5 class="card-title">' + item.title + '</h5>' +
@@ -266,14 +260,16 @@ function( ifuture, Carousel ) {
     };
 
     Explorer.prototype.findView = function ( item ) {
-        if ( item.type ) 
+        if ( item.type )
             return this.plugins[ item.type ];
 
         var minetype = item.minetype;
-        for ( var i = 0; i < this.mimetypes.length; i ++ ) {
-            var m = this.mimetypes[ i ];
-            if ( m[1].indexOf( mimetype ) > -1 )
-                return m[ 0 ];
+        if ( item.mimetype ) {
+            for ( var i = 0; i < this.mimetypes.length; i ++ ) {
+                var m = this.mimetypes[ i ];
+                if ( m[ 1 ].indexOf( mimetype ) > -1 )
+                    return m[ 0 ];
+            }
         }
 
     };

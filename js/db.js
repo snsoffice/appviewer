@@ -9,8 +9,8 @@
 define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, config, utils ) {
 
     // DEBUG:
-    Dexie.delete('ifuture');
-    Dexie.delete('anonymous');
+    // Dexie.delete('ifuture');
+    // Dexie.delete('anonymous');
 
     var _db = new Dexie( 'ifuture' );
 
@@ -151,28 +151,28 @@ define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, co
                 title: '绿地世纪城',
                 coordinate: '12119428.31 4055374.30',
                 '@type': 'Organization',
-                '@id': 'organizations/greenland',
+                '@id': '/data/villages/greenland',
             },
             {
                 id: 2,
                 title: '西北大学长安校区',
                 coordinate: '12119354.46 4048989.50',
                 '@type': 'Organization',
-                '@id': 'organizations/northwestuniversity',
+                '@id': '/data/villages/northwestuniversity',
             },
             {
                 id: 3,
                 title: '华清池御汤酒店',
                 coordinate: '12156763.90 4077916.87',
                 '@type': 'Organization',
-                '@id': 'organizations/huaqingchi',
+                '@id': '/data/villages/huaqingchi',
             },
             {
                 id: 4,
                 title: '咸阳国际机场',
                 coordinate: '12107045.45 4088525.52',
                 '@type': 'Organization',
-                '@id': 'organizations/xianyangairport',
+                '@id': '/data/villages/xianyangairport',
             }
         ];
     }

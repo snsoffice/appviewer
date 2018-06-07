@@ -775,7 +775,8 @@ function( ifuture, ol, db, utils, config ) {
                 new LocatorControl(),
             ],
             layers: [ this._basegroup, this._rootlayer, this._childlayer,
-                      this._planelayer, this._solidlayer, this._titlelayer, this._scenelayer,
+                      this._planelayer, this._solidlayer, this._titlelayer,
+                      this._scenelayer,
                     ],
             view: this.view,
         } );
@@ -1039,11 +1040,11 @@ function( ifuture, ol, db, utils, config ) {
 
             var type = feature.get( 'type' );
 
-            if ( type === FeatureType.SITE || type === FeatureType.CHILD ) {
+            if ( type === PortalType.BUILDING || type === PortalType.HOUSE ) {
                 this.openHouse_( feature.get( 'url' ) );
             }
 
-            else if ( type === FeatureType.SCENE ) {
+            else {
                 this.dispatchEvent( new ifuture.Event( 'scene:click', feature ) );
             }
 
@@ -1173,7 +1174,7 @@ function( ifuture, ol, db, utils, config ) {
         item.title = house.title;
 
         var layers = this.createHouseLayers_( house, url );
-        this.planegroup.getLayers().push(  layers[ 0 ] === undefined ? emptyLayer() : layers[ 0 ] );
+        this.planegroup.getLayers().push( layers[ 0 ] === undefined ? emptyLayer() : layers[ 0 ] );
         this.solidgroup.getLayers().push( layers[ 1 ] === undefined ? emptyLayer() : layers[ 1 ] );
         this.titlegroup.getLayers().push( layers[ 2 ] === undefined ? emptyLayer() : layers[ 2 ] );
         this.scenegroup.getLayers().push( layers[ 3 ] === undefined ? emptyLayer() : layers[ 3 ] );
@@ -1201,9 +1202,12 @@ function( ifuture, ol, db, utils, config ) {
         var geometry = fmtwkt.readGeometry( house.geometry );
         var extent = geometry.getExtent();
 
-        this.pushExtentView_( extent );
-        this.housestack[ level ].url = url;
-        this.housestack[ level ].title = house.title;
+        var item = this.pushExtentView_( extent );
+        item.type = PortalType.HOUSE;
+        item.url = url;
+        item.title = house.title;
+        item.description = '';
+        item.creator = house.creator;
 
         var layers = this.createHouseLayers_( house, url );
         this.planegroup.getLayers().push( layers[ 0 ] === undefined ? emptyLayer() : layers[ 0 ] );
@@ -1268,18 +1272,17 @@ function( ifuture, ol, db, utils, config ) {
             house.children.forEach( function ( child ) {
                 var feature = fmtwkt.readFeature( child.geometry );
                 feature.setProperties( {
-                    type: PortalType.FEATURE,
-                    phase_type: child.phase_type,
+                    type: child.type,
                     title: child.title,
                     url: formatUrl( child.name, baseurl ),
                 }, true );
                 if ( child.floor !== undefined )
-                    feature.set( 'floor', floor, true );
+                    feature.set( 'floor', child.floor, true );
                 features.push( feature );
             } );
             var source = new ol.source.Vector( { features: features } );
 
-            if ( housetype === PortalType.BUILDING ) {
+            if ( 0 && housetype === PortalType.BUILDING ) {
                 childlayer = new ol.layer.Vector( {
                     minResolution: SITE_MIN_RESOLUTION,
                     maxResolution: SITE_MAX_RESOLUTION,
@@ -1305,7 +1308,7 @@ function( ifuture, ol, db, utils, config ) {
             house.features.forEach( function ( item ) {
                 var feature = fmtwkt.readFeature( 'POINT (' + item.coordinate.split( ',' ).join( ' ' ) + ' )' );
                 feature.setProperties( {
-                    type: item.type,
+                    type: item.phase_type,
                     title: item.title,
                     angle: item.angle,
                     url: item.url,
@@ -1385,8 +1388,9 @@ function( ifuture, ol, db, utils, config ) {
         else {
 
             var layer = this.scenegroup.getLayers().item( level );
-            var title = this.housestack[ level ].title;
-            var description = this.housestack[ level ].description;
+            var vitem = this.housestack[ level ];
+            var title = vitem.title;
+            var description = vitem.description;
 
             items.push( {
                 type: 'cover',
@@ -1398,11 +1402,10 @@ function( ifuture, ol, db, utils, config ) {
                 layer.getSource().forEachFeature( function ( feature ) {
                     var url = feature.get( 'url' );
                     items.push( {
-                        type: feature.get( 'phase_type' ),
+                        type: feature.get( 'type' ),
                         title: feature.get( 'title' ),
-                        description: description,
                         url: url,
-                        position: feature.getGeometry().getFirstCoordinate(),
+                        coordinate: feature.getGeometry().getFirstCoordinate(),
                         angle: feature.get( 'angle' ),
                     } );
                 } );
