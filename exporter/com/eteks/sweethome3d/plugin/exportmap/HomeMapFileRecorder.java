@@ -1,5 +1,5 @@
 /*
- * HomeMapFileRecorder.java 
+ * HomeMapFileRecorder.java
  *
  */
 package com.eteks.sweethome3d.plugin.exportmap;
@@ -63,17 +63,17 @@ public class HomeMapFileRecorder implements HomeRecorder {
   public static final int INCLUDE_VIEWER_DATA          = 0x0001;
   public static final int INCLUDE_HOME_STRUCTURE       = 0x0002;
   public static final int INCLUDE_ICONS                = 0x0004;
-  public static final int CONVERT_MODELS_TO_OBJ_FORMAT = 0x0008;  
+  public static final int CONVERT_MODELS_TO_OBJ_FORMAT = 0x0008;
   public static final int REDUCE_IMAGES                = 0x0010;
 
-  private int compressionLevel;  
+  private int compressionLevel;
   private int flags;
   private int imageMaxPreferredSize;
-  
+
   public HomeMapFileRecorder(int compressionLevel, int flags) {
     this(compressionLevel, flags, 256);
   }
-  
+
   public HomeMapFileRecorder(int compressionLevel, int flags, int imageMaxPreferredSize) {
     this.compressionLevel = compressionLevel;
     this.flags = flags;
@@ -83,12 +83,12 @@ public class HomeMapFileRecorder implements HomeRecorder {
   public void writeHome(Home home, String exportedFileName) throws RecorderException {
     File homeFile = null;
     try {
-      // Save home in a temporary file to ensure all items are gathered  
+      // Save home in a temporary file to ensure all items are gathered
       homeFile = OperatingSystem.createTemporaryFile("Home", ".sh3d");
       DefaultHomeOutputStream out = new DefaultHomeOutputStream(new FileOutputStream(homeFile), 0, false);
       out.writeHome(home);
       out.close();
-      
+
       exportHome(homeFile, new File(exportedFileName), null);
     } catch (InterruptedIOException ex) {
       throw new InterruptedRecorderException("Save home to MAP");
@@ -100,13 +100,13 @@ public class HomeMapFileRecorder implements HomeRecorder {
       }
     }
   }
-    
+
   public void exportHome(File homeFile, File exportedFile, UserPreferences preferences) throws RecorderException {
     DefaultHomeInputStream in = null;
     Home home;
     try {
       // If preferences are not null replace home content by the one in preferences when it's the same
-      in = new DefaultHomeInputStream(homeFile, 
+      in = new DefaultHomeInputStream(homeFile,
           ContentRecording.INCLUDE_ALL_CONTENT, null, preferences, preferences != null);
       home = in.readHome();
     } catch (InterruptedIOException ex) {
@@ -133,12 +133,12 @@ public class HomeMapFileRecorder implements HomeRecorder {
       if ((this.flags & INCLUDE_HOME_STRUCTURE) != 0) {
         // Export home structure in a zipped OBJ file
         homeStructure = "views/three/three_house.obj";
-        homeStructureFile = exportHomeStructure(home, new Object3DBranchFactory(), 
+        homeStructureFile = exportHomeStructure(home, new Object3DBranchFactory(),
             homeStructure.substring(homeStructure.lastIndexOf('/') + 1));
       } else {
         homeStructure = null;
       }
-      
+
       zipOut = new ZipOutputStream(new FileOutputStream(exportedFile));
       zipOut.setLevel(this.compressionLevel);
       // Export home configure to config.json
@@ -147,12 +147,12 @@ public class HomeMapFileRecorder implements HomeRecorder {
       String homeName = null;
       if (home.getName() != null) {
         homeName = new File(home.getName()).getName();
-      }   
+      }
       Set<Content> referencedContents = new HashSet<Content>();
       Map<String, Content> exportedContents = writeHomeToJSON(writer, home, homeName, homeStructure, this.flags);
       writer.flush();
       zipOut.closeEntry();
-              
+
       if ((this.flags & INCLUDE_HOME_STRUCTURE) != 0) {
         // Save Home.obj structure and its dependencies in HomeStructure directory
         writeAllZipEntries(zipOut, homeStructure.substring(0, homeStructure.lastIndexOf('/')), homeStructureFile.toURI().toURL(), this.flags);
@@ -171,7 +171,7 @@ public class HomeMapFileRecorder implements HomeRecorder {
           } else if (content instanceof URLContent) {
             HomeTexture skyTexture = home.getEnvironment().getSkyTexture();
             if (skyTexture != null && skyTexture.getImage().equals(content)) {
-              // Reduce less sky texture image 
+              // Reduce less sky texture image
               writeContentZipEntries(zipOut, (URLContent)content, homeFileEntries, this.flags, this.imageMaxPreferredSize * 4);
             } else {
               writeContentZipEntries(zipOut, (URLContent)content, homeFileEntries, this.flags, this.imageMaxPreferredSize);
@@ -191,7 +191,7 @@ public class HomeMapFileRecorder implements HomeRecorder {
       if (homeStructureFile != null) {
         homeStructureFile.delete();
       }
-      
+
       if (zipOut != null) {
         try {
           zipOut.close();
@@ -200,7 +200,7 @@ public class HomeMapFileRecorder implements HomeRecorder {
         }
       }
     }
-  }  
+  }
 
   /**
    * Writes the given <code>home</code> in JSON and returns the content that is required by this home.
@@ -214,10 +214,10 @@ public class HomeMapFileRecorder implements HomeRecorder {
     }
 
   /**
-   * Exports the structure of the given <code>home</code> at OBJ format 
-   * and returns the temporary zip file where it's stored. 
+   * Exports the structure of the given <code>home</code> at OBJ format
+   * and returns the temporary zip file where it's stored.
    */
-  private File exportHomeStructure(Home home, Object3DFactory objectFactory, 
+  private File exportHomeStructure(Home home, Object3DFactory objectFactory,
                                    String homeStructureObjName) throws IOException {
     // Clone home to be able to handle it independently
     home = home.clone();
@@ -227,12 +227,13 @@ public class HomeMapFileRecorder implements HomeRecorder {
         levels.get(i).setVisible(true);
       }
     }
-    
+
     BranchGroup root = new BranchGroup();
     // Add 3D ground, walls, rooms and labels
     // root.addChild(new Ground3D(home, -0.5E5f, -0.5E5f, 1E5f, 1E5f, true));
     for (Selectable item : home.getSelectableViewableItems()) {
-      if (!(item instanceof HomePieceOfFurniture) || (item instanceof HomeDoorOrWindow)) {
+      // if (!(item instanceof HomePieceOfFurniture) || (item instanceof HomeDoorOrWindow)) {
+      if (!(item instanceof HomePieceOfFurniture)) {
         root.addChild((Node)objectFactory.createObject3D(home, item, true));
       }
     }
@@ -245,7 +246,7 @@ public class HomeMapFileRecorder implements HomeRecorder {
    * Writes in <code>zipOut</code> stream one or more entries matching the content
    * <code>content</code> coming from a home file.
    */
-  private void writeContentZipEntries(ZipOutputStream zipOut, URLContent urlContent, 
+  private void writeContentZipEntries(ZipOutputStream zipOut, URLContent urlContent,
                                       List<String> homeFileEntries, int exportFlags, final int imageMaxSize) throws IOException {
     String entryName = urlContent.getJAREntryName();
     int slashIndex = entryName.indexOf('/');
@@ -253,10 +254,10 @@ public class HomeMapFileRecorder implements HomeRecorder {
     if (slashIndex > 0) {
       URL zipUrl = urlContent.getJAREntryURL();
       String entryDirectory = entryName.substring(0, slashIndex + 1);
-      // Write in home stream each zipped stream entry that is stored in the same directory  
+      // Write in home stream each zipped stream entry that is stored in the same directory
       for (String zipEntryName : getZipUrlEntries(zipUrl, homeFileEntries)) {
         if (zipEntryName.startsWith(entryDirectory)) {
-          URLContent siblingContent = new URLContent(new URL("jar:" + zipUrl + "!/" 
+          URLContent siblingContent = new URLContent(new URL("jar:" + zipUrl + "!/"
               + URLEncoder.encode(zipEntryName, "UTF-8").replace("+", "%20")));
           writeZipEntry(zipOut, entryDirectory + zipEntryName.substring(slashIndex + 1), siblingContent, exportFlags, imageMaxSize);
         }
@@ -269,17 +270,17 @@ public class HomeMapFileRecorder implements HomeRecorder {
   /**
    * Writes in <code>zipOut</code> stream all the entries of the zipped <code>urlContent</code>.
    */
-  private void writeAllZipEntries(ZipOutputStream zipOut, 
+  private void writeAllZipEntries(ZipOutputStream zipOut,
                                   String directory,
                                   URL url, int exportFlags) throws IOException {
     ZipInputStream zipIn = null;
     try {
       // Open zipped stream that contains urlContent
       zipIn = new ZipInputStream(url.openStream());
-      // Write each zipped stream entry in zip stream 
+      // Write each zipped stream entry in zip stream
       for (ZipEntry entry; (entry = zipIn.getNextEntry()) != null; ) {
         String zipEntryName = entry.getName();
-        URLContent siblingContent = new URLContent(new URL("jar:" + url + "!/" 
+        URLContent siblingContent = new URLContent(new URL("jar:" + url + "!/"
             + URLEncoder.encode(zipEntryName, "UTF-8").replace("+", "%20")));
         writeZipEntry(zipOut, directory + "/" + zipEntryName, siblingContent, exportFlags, this.imageMaxPreferredSize);
       }
@@ -291,10 +292,10 @@ public class HomeMapFileRecorder implements HomeRecorder {
   }
 
   /**
-   * Writes in <code>zipOut</code> stream a new entry named <code>entryName</code> that 
+   * Writes in <code>zipOut</code> stream a new entry named <code>entryName</code> that
    * contains a given <code>content</code>.
    */
-  private void writeZipEntry(ZipOutputStream zipOut, String entryName, 
+  private void writeZipEntry(ZipOutputStream zipOut, String entryName,
                              URLContent content, int exportFlags, final int imageMaxSize) throws IOException {
     byte [] buffer = new byte [8192];
     InputStream contentIn = null;
@@ -329,19 +330,19 @@ public class HomeMapFileRecorder implements HomeRecorder {
             if (reader.getWidth(minIndex) > imageMaxSize
                 || reader.getHeight(minIndex) > imageMaxSize
                 || !"JPEG".equalsIgnoreCase(reader.getFormatName())
-                   && opaqueImage) {  
-              // Compute reduced opaque image 
+                   && opaqueImage) {
+              // Compute reduced opaque image
               BufferedImage image = ImageIO.read(new ByteArrayInputStream(imageBytes));
               BufferedImage reducedImage = new BufferedImage(
-                  Math.min(image.getWidth(), imageMaxSize),  Math.min(image.getHeight(), imageMaxSize), 
+                  Math.min(image.getWidth(), imageMaxSize),  Math.min(image.getHeight(), imageMaxSize),
                   opaqueImage // Avoid image.getType() otherwise color profile of PNG images won't work when saved at JPEG format
-                      ? BufferedImage.TYPE_INT_RGB 
-                      : BufferedImage.TYPE_INT_ARGB); 
+                      ? BufferedImage.TYPE_INT_RGB
+                      : BufferedImage.TYPE_INT_ARGB);
               Graphics2D g2D = (Graphics2D)reducedImage.getGraphics();
               g2D.drawImage(image.getScaledInstance(reducedImage.getWidth(), reducedImage.getHeight(), Image.SCALE_SMOOTH), 0, 0, null);
               g2D.dispose();
               ByteArrayOutputStream out = new ByteArrayOutputStream();
-              // Keep a favor for PNG for model textures and non opaque images 
+              // Keep a favor for PNG for model textures and non opaque images
               ImageIO.write(reducedImage, content.getURL().toString().endsWith(".png") || !opaqueImage ? "PNG" : "JPEG", out);
               byte [] reducedImageBytes = out.toByteArray();
               // Use reduced image if it's 80% smaller
@@ -352,19 +353,19 @@ public class HomeMapFileRecorder implements HomeRecorder {
             // Stop iteration among readers
             break;
           }
-        }        
+        }
       } else {
         contentIn = content.openStream();
       }
-      
+
       // Write content
-      int size; 
+      int size;
       while ((size = contentIn.read(buffer)) != -1) {
         zipOut.write(buffer, 0, size);
       }
-      zipOut.closeEntry();  
+      zipOut.closeEntry();
     } finally {
-      if (contentIn != null) {          
+      if (contentIn != null) {
         contentIn.close();
       }
     }
