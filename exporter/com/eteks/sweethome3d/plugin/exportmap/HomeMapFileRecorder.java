@@ -44,6 +44,7 @@ import com.eteks.sweethome3d.j3d.OBJWriter;
 import com.eteks.sweethome3d.j3d.Object3DBranchFactory;
 import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.model.Home;
+import com.eteks.sweethome3d.model.HomeDoorOrWindow;
 import com.eteks.sweethome3d.model.HomePieceOfFurniture;
 import com.eteks.sweethome3d.model.HomeRecorder;
 import com.eteks.sweethome3d.model.HomeTexture;
@@ -131,7 +132,7 @@ public class HomeMapFileRecorder implements HomeRecorder {
       String homeStructure;
       if ((this.flags & INCLUDE_HOME_STRUCTURE) != 0) {
         // Export home structure in a zipped OBJ file
-        homeStructure = "views/three/three_home.obj";
+        homeStructure = "views/three/three_house.obj";
         homeStructureFile = exportHomeStructure(home, new Object3DBranchFactory(), 
             homeStructure.substring(homeStructure.lastIndexOf('/') + 1));
       } else {
@@ -231,7 +232,7 @@ public class HomeMapFileRecorder implements HomeRecorder {
     // Add 3D ground, walls, rooms and labels
     // root.addChild(new Ground3D(home, -0.5E5f, -0.5E5f, 1E5f, 1E5f, true));
     for (Selectable item : home.getSelectableViewableItems()) {
-      if (!(item instanceof HomePieceOfFurniture)) {
+      if (!(item instanceof HomePieceOfFurniture) || (item instanceof HomeDoorOrWindow)) {
         root.addChild((Node)objectFactory.createObject3D(home, item, true));
       }
     }
