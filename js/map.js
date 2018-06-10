@@ -83,6 +83,7 @@
  *     center
  *     resolution
  *
+ *     views
  *     elevations
  *     currentElevation
  *
@@ -436,7 +437,6 @@ function( ifuture, ol, db, utils, config ) {
             element: element,
         });
 
-        return visitor;
     }
 
     function emptyLayer() {
@@ -864,26 +864,35 @@ function( ifuture, ol, db, utils, config ) {
         if ( type === 'plane' ) {
             this._planelayer.setVisible( true );
             this._solidlayer.setVisible( false );
-            if ( this._threeview )
+            if ( this._threeview ) {
                 this._threeview.setVisible( false );
+                this.rotateViewport_();
+            }
         }
         else if ( type === 'solid' ) {
             this._planelayer.setVisible( false );
             this._solidlayer.setVisible( true );
-            if ( this._threeview )
+            if ( this._threeview ) {
                 this._threeview.setVisible( false );
+                this.rotateViewport_();
+            }
         }
         else if ( type == 'three' ) {
             this._planelayer.setVisible( true );
             this._solidlayer.setVisible( false );
             if ( this._threeview ) {
+                this.loadThreeHouse_();
                 this._threeview.setVisible( true );
+                this._threeview.render();
             }
             else {
                 requirejs( [ 'solid' ], function ( Solid ) {
-                    this._threeview = new Solid( {
+                    this._threeview = new Solid( this._app, {
                         target: this.map.getTargetElement(),
-                    } );
+                    } );               
+                    this.loadThreeHouse_();
+                    this._threeview.setVisible( true );
+                    this._threeview.render();
                 }.bind( this ) );
             }
         }
@@ -937,8 +946,6 @@ function( ifuture, ol, db, utils, config ) {
         return feature === undefined
             ? this.handleClickMapEvent_( evt )
             : this.handleClickFeatureEvent_( evt, feature, layer );
-
-        return true;
 
     };
 
@@ -1172,6 +1179,10 @@ function( ifuture, ol, db, utils, config ) {
         item.resolution = resolution * 1.1;
         item.url = url;
         item.title = house.title;
+        item.views = house.views;
+
+        var coord = house.coordinate.split( ',' );
+        item.coordinate = [ parseFloat( coord[ 0 ] ), parseFloat( coord[ 1 ] ) ];
 
         var layers = this.createHouseLayers_( house, url );
         this.planegroup.getLayers().push( layers[ 0 ] === undefined ? emptyLayer() : layers[ 0 ] );
@@ -1208,6 +1219,10 @@ function( ifuture, ol, db, utils, config ) {
         item.title = house.title;
         item.description = '';
         item.creator = house.creator;
+        item.views = house.views;
+
+        var coord = house.coordinate.split( ',' );
+        item.coordinate = [ parseFloat( coord[ 0 ] ), parseFloat( coord[ 1 ] ) ];
 
         var layers = this.createHouseLayers_( house, url );
         this.planegroup.getLayers().push( layers[ 0 ] === undefined ? emptyLayer() : layers[ 0 ] );
@@ -1548,6 +1563,36 @@ function( ifuture, ol, db, utils, config ) {
 
     /**
      *
+     * 当三维模型视角发生变化之后，同步调整地图视角
+     *
+     * @param {Array.<number>} extent 视图的区域
+     * @param {Array.<number>} euler  旋转角度
+     * @observable
+     * @api
+     */
+    Map.prototype.onThreeViewChanged = function ( extent, euler ) {
+
+        this.view.setCenter( ol.extent.getCenter( extent ) );
+        this.view.setResolution( this.view.getResolutionForExtent( extent ) );
+
+        this.rotateViewport_( euler );
+
+    };
+
+    Map.prototype.rotateViewport_ = function ( euler ) {
+        if ( true ) {
+            return;
+        }
+        // var element = this.map.getViewport();
+        var element = this.map.getTargetElement();
+        if ( euler === undefined )
+            element.style.transform = 'rotateX(0deg) rotateY(0deg)';
+        else
+            element.style.transform = 'rotateX(' + euler.x.toFixed( 4 ) + 'rad) rotateY(' + euler.y.toFixed( 4 ) + 'rad)';
+    };
+
+    /**
+     *
      * 直播模式下面自动设置摄像头的方向，根据手机指南针的方向
      *
      * @param {DeviceOrientationEvent} event 事件对象
@@ -1676,8 +1721,8 @@ function( ifuture, ol, db, utils, config ) {
      *
      */
     Map.prototype.onPostRender_ = function ( event ) {
-        if ( this._threeview && this._threeview.isVisible() )
-            this._threeview.render();
+        // if ( this._threeview && this._threeview.isVisible() )
+        //     this._threeview.render();
     };
 
     /**
@@ -1778,11 +1823,32 @@ function( ifuture, ol, db, utils, config ) {
 
         this.fitView( v.extent, center );
 
+        this._app.request( 'vision', 'setViewState', [ v.views ] );
+
         // 如果是三维模式，那么需要装载三维对象
         if ( this._threeview && this._threeview.isVisible() ) {
-
+            if ( ! v.views ) {
+                this.loadThreeHouse_();
+            }
+            else {
+                this._threeview.setVisible( false );
+            }
         }
 
+    };
+
+    Map.prototype.loadThreeHouse_ = function ( level ) {
+        var v = this.housestack[ level === undefined ? this.houselevel : level ];
+        var extent = this.view.calculateExtent();
+        var url;
+        for ( var i = 0; i < v.views.length; i ++ ) {
+            if ( v.views[ i ].type === 'three' ) {
+                url = v.views[ i ].url;
+                break; 
+            }
+        }
+        if ( url )
+            this._threeview.loadHouse( url, v.coordinate, extent );
     };
 
     /**

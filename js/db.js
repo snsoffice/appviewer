@@ -274,7 +274,7 @@ define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, co
     // document.addEventListener( 'resume', synchronizeHandler, false );
 
     // App 启动进行数据同步操作
-    synchronizeHandler();
+    // synchronizeHandler();
 
     //
     // 初始化 config.settings
