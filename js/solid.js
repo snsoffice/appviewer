@@ -81,10 +81,6 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
         this._app = app;
         this._visible = false;
 
-        this._loadingUrl = null;
-        this._boudingBox = null;
-
-        this._currentOrigin = null;
         this._currentHouse = null;
 
         this._scene = null;
@@ -169,12 +165,12 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
         var scope = this;
         var onControlChanged = function () {
 
-            if ( ! scope._currentOrigin )
+            if ( ! scope._currentHouse )
                 return;
 
             var polar = control.getPolarAngle();
             var azimuthal = control.getAzimuthalAngle();
-            var extent = scope.getExtentFromCamera_( scope._currentOrigin );
+            var extent = scope.getExtentFromCamera_( scope._currentHouse.origin );
             var euler = {
                 x: polar - Math.PI / 2,
                 y: -azimuthal,
@@ -184,6 +180,8 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 
         };
         control.addEventListener( 'change', onControlChanged );
+
+        return control;
 
     };
 
@@ -223,12 +221,14 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
             this._visionHelper.visible = false;
         }
 
-        else if ( this._boudingBox && this._currentOrigin ) {
+        else if ( this._currentHouse !== null ) {
+            var origin = this._currentHouse.origin;
+            var boundingBox = this._currentHouse.boundingBox;
             var coordinate = data.coordinage;
             var angle = data.angle * Math.PI / 180;
-            var x = coordinage[ 0 ] - this._currentOrigin[ 0 ];
-            var y = coordinage[ 1 ] - this._currentOrigin[ 1 ];
-            var z = ( this._boudingBox.min.z + this._boudingBox.max.z ) / 2;
+            var x = coordinage[ 0 ] - origin[ 0 ];
+            var y = coordinage[ 1 ] - origin[ 1 ];
+            var z = ( boundingBox.min.z + boundingBox.max.z ) / 2;
 
             this._visionHelper.position.set( x, y, z );
             this._visionHelper.quaternion.setFromAxisAngle( zAxis, angle );
@@ -240,13 +240,9 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 
         var scope = this;
 
-        if ( this._currentHouse === url ) {
+        if ( this._currentHouse !== null && this._currentHouse.url === url ) {
             this.setCameraByExtent_( extent );
             return;
-        }
-
-        if ( this._loadingUrl ) {
-            console.log( '其他房子的三维模型正在装载中： ' + this._loadingUrl );
         }
 
         var camera = this._camera;
@@ -254,14 +250,8 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
         scene.add( camera, this._lightGroup, this._visionHelper );
 
         this._scene = scene;
-        this._loadingUrl = url;
 
         var callback = function ( obj ) {
-
-            if ( url !== scope._loadingUrl ) {
-                console.log( '已经有新的房子在装载，丢弃当前装载的模型: ' + url );
-                return;
-            }
 
             var geometry = ( new THREE.BoxHelper( obj ) ).geometry;
             if ( geometry.boundingBox === null )
@@ -269,14 +259,12 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 
             scope._scene.add( obj );
 
-            scope._currentHouse = url;
-            scope._currentOrigin = origin;
+            scope._currentHouse = {
+                url: url,
+                origin: origin,
+                boundingBox: geometry.boundingBox,
+            };
 
-            scope._boudingBox = geometry.boundingBox;
-            scope._loadingUrl = undefined;
-
-            // scope.setCameraPosition_( camera, extent );
-            // scope.resetHouseCamera_();
             scope.setCameraByExtent_( extent );
 
         };
@@ -306,16 +294,17 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 
     Solid.prototype.setCameraByExtent_ = function ( extent ) {
 
-        if ( this._boudingBox === null || this._currentOrigin === null )
+        if ( this._currentHouse === null )
             return;
 
         var camera = this._camera;
-        var origin = this._currentOrigin;
+        var origin = this._currentHouse.origin;
+        var boundingBox = this._currentHouse.boundingBox;
 
         var fov = camera.fov;
 
-        var z0 = this._boudingBox.min.z;
-        var z1 = this._boudingBox.max.z;
+        var z0 = boundingBox.min.z;
+        var z1 = boundingBox.max.z;
 
         var x0 = ( extent[ 0 ] + extent[ 2 ] ) / 2 - origin[ 0 ];
         var y0 = ( extent[ 1 ] + extent[ 3 ] ) / 2 - origin[ 1 ];
@@ -329,10 +318,10 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 
     Solid.prototype.resetHouseCamera_ = function () {
 
-        if ( this._boudingBox === null )
+        if ( this._currentHouse === null )
             return;
 
-        var b = this._boudingBox;
+        var b = this._currentHouse.boundingBox;
         var c = this._camera;
 
         var min = b.min;
@@ -375,22 +364,22 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 
         var onError = function ( xhr ) {
             utils.warning( '装载三维模型失败!' );
-            if ( url === scope._loadingUrl )
-                scope._loadingUrl = undefined;
+            scope._app.request( 'loader', 'hide' );
         };
 
         var onLoad = function ( object ) {
 
-            var houseGround = object.getObjectByName( 'ground_1' );
-            if ( houseGround ) {
-                houseGround.visible = false;
-            }
+            // var houseGround = object.getObjectByName( 'ground_1' );
+            // if ( houseGround ) {
+            //     houseGround.visible = false;
+            // }
 
             // 单位从厘米转换为米
             object.scale.setScalar( 0.01 );
             object.rotateX( Math.PI / 2 );
 
             callback( object );
+            scope._app.request( 'loader', 'hide' );
 
             // if ( true ) {
             //     var b = geometry.boundingSphere;
@@ -410,8 +399,7 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
         mtlLoader.setPath( path );
         mtlLoader.load( name + '.mtl', function( materials ) {
 
-            scope._isloading = true;
-
+            scope._app.request( 'loader', 'show', '正在装载三维模型...' );
             materials.preload();
 
             objLoader.setMaterials( materials );

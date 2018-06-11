@@ -190,9 +190,9 @@ function( ifuture, utils, config, User, Map, Minimap,
     };
 
     Application.prototype.login = function () {
-        this.dialog.login( function ( username, password ) {
-            console.log( 'User: ' + username + ', password: you guess' );
-        } );
+        this.dialog.login( function ( username, password ) {            
+            this.user.login( username, password );
+        }.bind( this ) );
     }
 
     Application.prototype.logout = function () {

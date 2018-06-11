@@ -77,7 +77,7 @@ define( [ 'ifuture', 'jquery', 'db', 'config' ], function ( ifuture, $, db, conf
             '          <label for="inputPassword" class="sr-only">Password</label>' +
             '          <input type="password" id="inputPassword" class="form-control" placeholder="密码" required>' +
             '        </div>' +
-            '        <div class="form-group">' +
+            '        <div class="form-group d-none">' +
             '          <div class="checkbox mb-3">' +
             '            <label>' +
             '              <input type="checkbox" value="remember-me"> 记住本次登录用户' +
