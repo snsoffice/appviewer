@@ -13,11 +13,11 @@
 //
 define( [ 'ifuture', 'utils', 'config', 'user', 'map', 'minimap',
           'explorer', 'manager', 'vision', 'navbar', 'modebar',
-          'footbar', 'responsebar', 'dialog', 'communicator' ],
+          'footbar', 'responsebar', 'dialog', 'loader', 'communicator' ],
 
 function( ifuture, utils, config, User, Map, Minimap,
           Explorer, Manager, Vision, Navbar, Modebar,
-          Footbar, Responsebar, Dialog, Communicator ) {
+          Footbar, Responsebar, Dialog, Loader, Communicator ) {
 
     var HOUSE_DOMAIN = 'domain';
     var HOUSE_NAME = 'house';
@@ -82,6 +82,8 @@ function( ifuture, utils, config, User, Map, Minimap,
         this.dialog = new Dialog( this, opt_options );
         this.communicator = new Communicator( this, opt_options );
         this.responsebar = new Responsebar( this, opt_options );
+
+        this.loader = new Loader( this, opt_options );
 
         // 所有对象之间的事件绑定关系
         this.on( [ 'helper:changed' ], this.map.handleFutureEvent, this.map );

@@ -296,11 +296,12 @@ function( ifuture, ol, config, db, utils ) {
 
     Minimap.prototype.nextItem = function ( index ) {
         index ++;
-        return index >= this._dxmap.housestack.length ? 0 : index;
+        return index >= this._dxmap.housestack.length ? -1 : index;
     };
 
     Minimap.prototype.prevItem = function ( index ) {
-        return index > 0 ? index - 1 : this._dxmap.housestack.length - 1;
+        return index - 1;
+        // return index > 0 ? index - 1 : this._dxmap.housestack.length - 1;
     };
 
     Minimap.prototype.setCurrentItem = function ( index ) {

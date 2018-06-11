@@ -4,6 +4,8 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
     var NEAR = 0.1;
     var FAR = 1000;
 
+    var zAxis = new THREE.Vector3( 0, 0, 1 );
+
     // Default lights
     var HOUSE_LIGHTS = {
         directions: [
@@ -47,7 +49,6 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
         var color = visualizationColor;
         var opacity = visualizationOpacity;
 
-        var offset = 32;
         var t = Math.tan( angle / 2.0 );
         var radius = distance * t * 2 * 0.618;
 
@@ -60,8 +61,6 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
         points.push( new THREE.Vector2( 0, 1 ) );
         var geometry = new THREE.LatheBufferGeometry( points );
         geometry.scale( radius, distance * 0.618, radius * 0.618 );
-        // geometry.translate( 0, offset, - houseVisitorSize );
-        // geometry.rotateX( Math.PI / 2 );
 
         var material = new THREE.MeshBasicMaterial( {
             color:  color,
@@ -82,15 +81,15 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
         this._app = app;
         this._visible = false;
 
-        this._isloading = false;
-        this._loadingUrl;
+        this._loadingUrl = null;
+        this._boudingBox = null;
 
         this._currentOrigin = null;
         this._currentHouse = null;
 
-        this._boudingBox = null;
         this._scene = null;
         this._camera = new THREE.PerspectiveCamera( FOV, window.innerWidth / window.innerHeight, NEAR, FAR );
+        this._inverseQuaternion = this._camera.quaternion.clone();
 
         var ambientLight = new THREE.AmbientLight( HOUSE_LIGHTS.ambients[ 0 ].color, HOUSE_LIGHTS.ambients[ 0 ].intensity );
         var directionLight = new THREE.DirectionalLight( HOUSE_LIGHTS.directions[ 0 ].color, HOUSE_LIGHTS.directions[ 0 ].intensity );
@@ -129,36 +128,7 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
         // this._renderer.setClearColor( 0xf0f0f0, 0.9 );
         this._renderer.setClearColor( 0, 0 );
 
-        this._control = new THREE.OrbitControls( this._camera, canvas );
-        this._control.enabled = false;
-	this._control.minDistance = NEAR;
-	this._control.maxDistance = FAR;
-	this._control.minZoom = 0;
-	this._control.maxZoom = Infinity;
-        this._control.minPolarAngle = Math.PI / 3; // radians
-        this._control.maxPolarAngle = Math.PI / 3 * 2; // radians
-        this._control.minAzimuthAngle = - Math.PI / 6; // - Infinity; // radians
-        this._control.maxAzimuthAngle = Math.PI / 6; // radians
-
-        // 三维模型视角改变之后，同步修改地图视角
-        this._control.addEventListener( 'change', function ( e ) {
-            if ( ! this._currentOrigin )
-                return;
-
-            var polar = this._control.getPolarAngle();
-            var azimuthal = this._control.getAzimuthalAngle();
-            var extent = this.getExtentFromCamera_( this._currentOrigin );
-            var euler = {
-                x: polar - Math.PI / 2,
-                y: -azimuthal,
-            };
-            app.request( 'map', 'onThreeViewChanged', [ extent, euler ] );
-            // console.log( 'Polar is ' + polar * 180 / Math.PI +
-            //              ', Azimuthal is ' + azimuthal * 180 / Math.PI +
-            //              ', Position is ' + this._camera.position.toArray() +
-            //              ', Target is ' + this._control.target.toArray() );
-
-        }.bind( this ) );
+        this._control = Solid.prototype.createControl_.call( this, this._camera, canvas );
 
         var manager = new THREE.LoadingManager();
         manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
@@ -181,6 +151,41 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 
     };
     ifuture.inherits( Solid, ifuture.Component );
+
+    Solid.prototype.createControl_ = function ( camera, canvas ) {
+
+        var control = new THREE.OrbitControls( camera, canvas );
+        control.enabled = false;
+	control.minDistance = NEAR;
+	control.maxDistance = FAR;
+	control.minZoom = 0;
+	control.maxZoom = Infinity;
+        control.minPolarAngle = Math.PI / 3;
+        control.maxPolarAngle = Math.PI / 3 * 2;
+        control.minAzimuthAngle = - Math.PI / 6;
+        control.maxAzimuthAngle = Math.PI / 6;
+
+        // 三维模型视角改变之后，同步修改地图视角
+        var scope = this;
+        var onControlChanged = function () {
+
+            if ( ! scope._currentOrigin )
+                return;
+
+            var polar = control.getPolarAngle();
+            var azimuthal = control.getAzimuthalAngle();
+            var extent = scope.getExtentFromCamera_( scope._currentOrigin );
+            var euler = {
+                x: polar - Math.PI / 2,
+                y: -azimuthal,
+                z: 0,
+            };
+            scope._app.request( 'map', 'onThreeViewChanged', [ extent, euler ] );
+
+        };
+        control.addEventListener( 'change', onControlChanged );
+
+    };
 
     Solid.prototype.onDocumentResize_ = function ( e ) {
         var w = window.innerWidth;;
@@ -212,6 +217,25 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 
     };
 
+    Solid.prototype.showVisionHelper = function ( data ) {
+
+        if ( data === undefined ) {
+            this._visionHelper.visible = false;
+        }
+
+        else if ( this._boudingBox && this._currentOrigin ) {
+            var coordinate = data.coordinage;
+            var angle = data.angle * Math.PI / 180;
+            var x = coordinage[ 0 ] - this._currentOrigin[ 0 ];
+            var y = coordinage[ 1 ] - this._currentOrigin[ 1 ];
+            var z = ( this._boudingBox.min.z + this._boudingBox.max.z ) / 2;
+
+            this._visionHelper.position.set( x, y, z );
+            this._visionHelper.quaternion.setFromAxisAngle( zAxis, angle );
+        }
+
+    };
+
     Solid.prototype.loadHouse = function ( url, origin, extent ) {
 
         var scope = this;
@@ -221,7 +245,7 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
             return;
         }
 
-        if ( this._isloading ) {
+        if ( this._loadingUrl ) {
             console.log( '其他房子的三维模型正在装载中： ' + this._loadingUrl );
         }
 
@@ -239,10 +263,17 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
                 return;
             }
 
+            var geometry = ( new THREE.BoxHelper( obj ) ).geometry;
+            if ( geometry.boundingBox === null )
+                geometry.computeBoundingBox();
+
             scope._scene.add( obj );
 
             scope._currentHouse = url;
             scope._currentOrigin = origin;
+
+            scope._boudingBox = geometry.boundingBox;
+            scope._loadingUrl = undefined;
 
             // scope.setCameraPosition_( camera, extent );
             // scope.resetHouseCamera_();
@@ -256,7 +287,7 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 
     Solid.prototype.getExtentFromCamera_ = function ( origin ) {
         var camera = this._camera;
-        var target = this._control.target.clone(); 
+        var target = this._control.target.clone();
 
         var v = camera.position.clone();
         var d = v.sub( target ).length();
@@ -265,38 +296,12 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
         var dx = dy * camera.aspect;
 
         // 反向旋转 target
-        target.applyQuaternion( camera.quaternion.clone().inverse() );
+        this._inverseQuaternion.copy( this._camera.quaternion ).inverse();
+        target.applyQuaternion( this._inverseQuaternion );
 
         var x0 = target.x + origin[ 0 ];
         var y0 = target.y + origin[ 1 ];
         return [ x0 - dx, y0 - dy, x0 + dx, y0 + dy ];
-    };
-
-    Solid.prototype.getPositionFromExtent_ = function ( extent, origin, fov ) {
-
-        var xc = ( extent[ 0 ] + extent[ 2 ] ) / 2;
-        var yc = ( extent[ 1 ] + extent[ 3 ] ) / 2;
-
-        var w = ( extent[ 2 ] - extent[ 0 ] ) / 2;
-        var h = ( extent[ 3 ] - extent[ 1 ] ) / 2;
-
-        var x = xc - origin[ 0 ];
-        var y = yc - origin[ 1 ];
-        var z = ( extent[ 3 ] - extent[ 1 ] ) / 2 * Math.tan( fov * Math.PI / 180 );
-
-        // 俯视图
-        // target: ( x, y, z0 )
-        // camera.position: ( 0, 0, z0 + z )
-    };
-
-    Solid.prototype.setCameraPosition_ = function ( camera, extent ) {
-        var x = ( extent[ 0 ] + extent[ 2 ] ) / 2;
-        var y = ( extent[ 1 ] + extent[ 3 ] ) / 2;
-        var z = ( extent[ 3 ] - extent[ 1 ] ) / 2 * Math.tan( ( FOV / 1 ) * ( Math.PI / 180 ) );
-
-        var z0 = 0;
-        camera.lookAt( x, y, z0 );
-        camera.position.set( 0, 0, z0 + z );
     };
 
     Solid.prototype.setCameraByExtent_ = function ( extent ) {
@@ -311,13 +316,10 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 
         var z0 = this._boudingBox.min.z;
         var z1 = this._boudingBox.max.z;
-        
+
         var x0 = ( extent[ 0 ] + extent[ 2 ] ) / 2 - origin[ 0 ];
         var y0 = ( extent[ 1 ] + extent[ 3 ] ) / 2 - origin[ 1 ];
         var d = ( extent[ 3 ] - extent[ 1 ] ) / 2 / Math.tan( ( fov / 2 ) * ( Math.PI / 180 ) );
-
-        // camera.position.set( x0, y0, z0 + d );
-        // camera.lookAt( x0, y0, z0 );
 
 	this._control.target0.set( x0, y0, z0 );
 	this._control.position0.set( x0, y0, z0 + d );
@@ -343,9 +345,6 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
         var z0 = min.z;
         var z1 = max.z;
         var d = Math.max( max.y - min.y, ( max.x - min.x ) / aspect ) / 2 / Math.tan( fov / 2 * Math.PI / 180 );
-
-        c.position.set( x0, y0, z1 + d );
-        c.lookAt( x0, y0, z0 );
 
 	this._control.target0.set( x0, y0, z0 );
 	this._control.position0.set( x0, y0, z1 + d );
@@ -376,7 +375,8 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 
         var onError = function ( xhr ) {
             utils.warning( '装载三维模型失败!' );
-            scope._isloading = false;
+            if ( url === scope._loadingUrl )
+                scope._loadingUrl = undefined;
         };
 
         var onLoad = function ( object ) {
@@ -390,13 +390,7 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
             object.scale.setScalar( 0.01 );
             object.rotateX( Math.PI / 2 );
 
-            var geometry = ( new THREE.BoxHelper( object ) ).geometry;
-            if ( geometry.boundingBox === null )
-                geometry.computeBoundingBox();
-            scope._boudingBox = geometry.boundingBox;
-
             callback( object );
-            scope._isloading = false;
 
             // if ( true ) {
             //     var b = geometry.boundingSphere;
@@ -429,6 +423,10 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 
     };
 
+    //
+    // 下面的对象 THREE.OrbitControls THREE.MTLLoader THREE.OBJLoader 是从 three.js 的代码中直接拷贝过来
+    //
+    //
     THREE.OrbitControls = function ( object, domElement ) {
 
 	this.object = object;

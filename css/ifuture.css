@@ -134,6 +134,11 @@
     z-index: 1200;
 }
 
+.dx-loader {
+    opacity: 0.6;
+    z-index: 8096;
+}
+
 /*
  *
  * Part 3.1: explorer
