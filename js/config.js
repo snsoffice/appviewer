@@ -7,7 +7,10 @@ define( function () {
     }
 
     function set( name, value ) {
-        window.localStorage.setItem( name, value );
+        if ( value === undefined || value === null )
+            window.localStorage.removeItem( name );
+        else
+            window.localStorage.setItem( name, value );
     }
 
     return Object.create( Object.prototype, {

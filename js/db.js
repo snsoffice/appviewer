@@ -20,10 +20,9 @@ define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, co
 
     } );
 
-
     var _usrdb = new Dexie( config.userId === null ? 'anonymous' : config.userId );
 
-    _usrdb.version( 2 ).stores( {
+    _usrdb.version( 1 ).stores( {
 
         settings: '++id, &name, value, description',
         features: 'id, &title, geometry, category, icon, url',

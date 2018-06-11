@@ -10,6 +10,10 @@ define( [ 'config', 'utils' ], function ( config, utils ) {
             var xhr = new XMLHttpRequest();
 
             xhr.onloadend = function( e ) {
+                // DEBUG:
+                resolve( 'ATokenForTestItIsNotReallyTokenJustForDebug' );
+                return;
+
                 if (xhr.status != 200) {
                     console.log( 'User login return ' + xhr.status + ' : ' + e );
                     reject( e );
@@ -28,13 +32,17 @@ define( [ 'config', 'utils' ], function ( config, utils ) {
                 password: password,
             } ) );
 
-        }
+        } );
 
     };
 
     var _logout = function ( token ) {
 
         return new Promise( function ( resolve, reject ) {
+
+            // DEBUG:
+            resolve();
+            return;
 
             var url = baseurl + '/@logout';
             var xhr = new XMLHttpRequest();
@@ -45,7 +53,7 @@ define( [ 'config', 'utils' ], function ( config, utils ) {
                     reject( e );
                 }
                 else {
-                    resolve( xhr.response.token );
+                    resolve();
                 }
             };
 
@@ -56,7 +64,7 @@ define( [ 'config', 'utils' ], function ( config, utils ) {
             xhr.responseType = 'json';
             xhr.send();
 
-        }
+        } );
 
     };
 
@@ -84,7 +92,40 @@ define( [ 'config', 'utils' ], function ( config, utils ) {
             xhr.responseType = 'json';
             xhr.send();
 
-        }
+        } );
+
+    };
+
+    var _registerUser = function ( username, password, email, fullname ) {
+
+        return new Promise( function ( resolve, reject ) {
+
+            var url = baseurl + '/@users';
+            var xhr = new XMLHttpRequest();
+
+            xhr.onloadend = function( e ) {
+                if (xhr.status != 200) {
+                    console.log( 'Register user return ' + xhr.status + ' : ' + e );
+                    reject( e );
+                }
+                else {
+                    resolve( xhr.response );
+                }
+            };
+
+            xhr.open('POST', url, true);
+            xhr.setRequestHeader( 'Accept', 'application/json' );
+            xhr.setRequestHeader( 'Content-Type', 'application/json' );
+            xhr.responseType = 'json';
+            xhr.send( JSON.stringify( {
+                username: username,
+                email: email,
+                fullname: fullname,
+                sendPasswordReset: false,                
+                password: password,
+            } ) );
+
+        } );
 
     };
 
@@ -212,7 +253,7 @@ define( [ 'config', 'utils' ], function ( config, utils ) {
     // 查询用户的全名，使用自己定义的帮助视图，返回 { id, fullname }
     // 不需要额外权限，匿名用户也可以使用
     //
-    var _queryUserFullname = function ( userid ) {
+    var _queryUserInfo = function ( userid ) {
 
         return new Promise( function ( resolve, reject ) {
 
@@ -269,6 +310,36 @@ define( [ 'config', 'utils' ], function ( config, utils ) {
 
     };
 
+    //
+    // 搜索房子
+    //
+    var _queryHouses = function ( url ) {
+
+        return new Promise( function ( resolve, reject ) {
+
+            var xhr = new XMLHttpRequest();
+            xhr.onloadend = function( e ) {
+                if (xhr.status != 200) {
+                    console.log( 'Query houses return ' + xhr.status + ' : ' + e );
+                    reject( e );
+                }
+                else {
+                    resolve( xhr.response );
+                }
+            };
+
+            xhr.open('GET', url, true);
+            xhr.setRequestHeader( 'Accept', 'application/json' );
+            xhr.setRequestHeader( 'Content-Type', 'application/json' );
+            if ( config.loginToken )
+                xhr.setRequestHeader( 'Authorization', 'Bearer ' + config.loginToken );
+            xhr.responseType = 'json';
+            xhr.send();
+
+        } );
+
+    };
+
     return {
 
         login: _login,
@@ -277,15 +348,19 @@ define( [ 'config', 'utils' ], function ( config, utils ) {
 
         loginRenew: _loginRenew,
 
+        registerUser: _registerUser,
+
         queryVillages: _queryVillages,
 
         queryUsers: _queryUsers,
 
         queryUser: _queryUser,
 
-        queryUserFullname: _queryUserFullname,
+        queryUserInfo: _queryUserInfo,
 
         queryObject: _queryObject,
+
+        queryHouses: _queryHouses,
 
     }
 

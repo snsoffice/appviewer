@@ -184,7 +184,7 @@ function( ifuture, config, db, restapi, $ ) {
 
         else if ( !! userid ) {
 
-            restapi.queryUserFullname( userid ).then( function ( user ) {
+            restapi.queryUserInfo( userid ).then( function ( user ) {
 
                 setBrand( userid, user.fullname );
 

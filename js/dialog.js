@@ -134,8 +134,8 @@ define( [ 'ifuture', 'jquery', 'db', 'config' ], function ( ifuture, $, db, conf
             '          <input type="email" id="inputEmail" class="form-control" placeholder="电子邮件" required>' +
             '        </div>' +
             '        <div class="form-group">' +
-            '          <label for="inputUsername" class="sr-only">User fullname</label>' +
-            '          <input type="text" id="inputUsername" class="form-control" placeholder="用户名称" required>' +
+            '          <label for="inputFullname" class="sr-only">User fullname</label>' +
+            '          <input type="text" id="inputFullname" class="form-control" placeholder="用户名称" required>' +
             '        </div>' +
             '        <div class="form-group">' +
             '          <label for="inputPassword" class="sr-only">Password</label>' +
@@ -163,6 +163,12 @@ define( [ 'ifuture', 'jquery', 'db', 'config' ], function ( ifuture, $, db, conf
             var form = dialog.querySelector( 'form.modal-body' );
             if ( form.checkValidity() ) {
                 $( dialog ).modal( 'hide' );
+                callback( dialog.querySelector( '#inputLogin' ).value,
+                          dialog.querySelector( '#inputEmail' ).value,
+                          dialog.querySelector( '#inputFullname' ).value,
+                          dialog.querySelector( '#inputPassword' ).value
+                        );
+
             }
         }, false );
 
