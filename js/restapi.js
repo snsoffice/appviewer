@@ -313,8 +313,9 @@ define( [ 'config', 'utils' ], function ( config, utils ) {
     //
     // 搜索房子
     //
-    var _queryHouses = function ( url ) {
+    var _queryHouses = function ( query ) {
 
+        var url = baseurl + '/@search?' + query;
         return new Promise( function ( resolve, reject ) {
 
             var xhr = new XMLHttpRequest();

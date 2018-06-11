@@ -4,7 +4,7 @@ function( ifuture ) {
 
     Manager = function ( app, opt_options ) {
 
-        ifuture.Component.call( this );
+        ifuture.Component.call( this, app );
 
         this.element = document.querySelector( '#manager' );
         this.element.querySelector( '.dx-taskbar' ).style.visibility = 'hidden';
@@ -12,22 +12,26 @@ function( ifuture ) {
 
         this.currentTask = null;
         this.plugins = {};
+
+        app.on( [ 'task:close' ], function () {
+            this.toggle( false ); 
+        }, this );
     }
     ifuture.inherits( Manager, ifuture.Component );
 
     Manager.prototype.addPlugin = function ( app, plugin ) {
         var scope = this;
-        requirejs( [ plugin.source ], function ( Showcase ) {
-            var component = new Showcase( app, plugin.options );
+        requirejs( [ plugin.source ], function ( Toolcase ) {
+            var component = new Toolcase( app, plugin.options );
             scope.plugins[ plugin.name ] = component;
             var title = component.title ? component.title : plugin.name;
             var li = document.createElement( 'LI' );
             li.setAttribute( 'data-plugin', plugin.name );
             li.innerHTML = '<a href="#">' + title + '</a>';
             scope.element.querySelector( '.dx-taskbar > ul' ).appendChild( li );
-            component.on( [ 'task:close' ], function () {
-                scope.toggle( false );
-            } );
+            // component.on( [ 'task:close' ], function () {
+            //     scope.toggle( false );
+            // } );
         } );
     };
 

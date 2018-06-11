@@ -71,6 +71,7 @@ function( ifuture, config, db, restapi, $ ) {
 
         if ( event.type.startsWith( 'user:' ) ) {
             this.resetActionState_();
+            this.resetBrand_( config.userId );
         }
 
         else if ( event.type === 'living:start' ) {

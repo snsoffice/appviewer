@@ -3,9 +3,8 @@ define( [ 'ifuture' ],
 function( ifuture ) {
 
     var Toolcase = function ( app, opt_options ) {
-        ifuture.Component.call( this );
+        ifuture.Component.call( this, app );
 
-        this.app = app;
         this.name = '';
         this.title = '';
         this.actions = [];

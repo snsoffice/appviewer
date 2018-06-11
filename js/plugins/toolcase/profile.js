@@ -3,7 +3,7 @@ define( [ 'ifuture', 'jquery', 'toolcase' ],
 function( ifuture, $, Toolcase ) {
 
     ProfileTool = function ( app, opt_options ) {
-        Toolcase.call( this );
+        Toolcase.call( this, app );
 
         this.name = 'profile';
         this.title = '设置';

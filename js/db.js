@@ -10,7 +10,7 @@ define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, co
 
     // DEBUG:
     // Dexie.delete('ifuture');
-    // Dexie.delete('anonymous');
+    Dexie.delete('anonymous');
 
     var _db = new Dexie( 'ifuture' );
 
