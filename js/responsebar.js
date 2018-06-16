@@ -15,11 +15,11 @@ function( ifuture ) {
 
         var buttons = [];
         if ( typeof acceptCallback === 'function' )
-            buttons.push( '<button name="accept" class="btn btn-xs btn-success"><i class="fas fa-check"></i></button>' );
+            buttons.push( '<button name="accept" class="btn btn-xs btn-success m-2"><i class="fas fa-check"></i></button>' );
         if ( typeof rejectCallback === 'function' )
-            buttons.push( '<button name="reject" class="btn btn-xs btn-success"><i class="fas fa-times"></i></button>' );
+            buttons.push( '<button name="reject" class="btn btn-xs btn-danger m-2"><i class="fas fa-times"></i></button>' );
         if ( typeof ignoreCallback === 'function' )
-            buttons.push( '<button name="ignore" class="btn btn-xs btn-success"><i class="fas fa-ellipsis-h"></i></button>' );
+            buttons.push( '<button name="ignore" class="btn btn-xs btn-default m-2"><i class="fas fa-ellipsis-h"></i></button>' );
 
         var element = document.createElement( 'DIV' );
         element.id = 'responsebar';

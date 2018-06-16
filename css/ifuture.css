@@ -24,6 +24,17 @@
     user-select: none;
 }
 
+.dx-tab {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+
+    overflow-y: auto;
+    padding-top: 56px;
+}
+
 .dx-toolbar {
     position: absolute;
     right: 0;
@@ -136,7 +147,12 @@
 
 .dx-loader {
     opacity: 0.6;
+    display: flex;
     z-index: 8096;
+}
+
+.dx-finder {
+    display: none;
 }
 
 /*
@@ -295,6 +311,10 @@
 #searchbox > input:hover,
 #searchbox > input:focus {
     opacity: 0.6;
+}
+
+.dx-house-card {
+    max-width: 18rem;
 }
 
 /*

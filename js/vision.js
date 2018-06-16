@@ -23,6 +23,9 @@ function( ifuture, $ ) {
         //     }
         // }, false );
 
+        this.element.querySelector( '#join-living' ).addEventListener( 'click', function ( e ) {
+            app.request( 'map', 'openLiving' );
+        }, false );
         this._initialized = false;
         this.app_ = app;
 

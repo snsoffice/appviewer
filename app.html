@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+  <head>
+    <title>远景网</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0" /> -->
+    <!-- Disable zooming capabilities on mobile devices -->
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <style type="text/css">
+      html, body {
+          height: 100%;
+      }
+
+      .dx-splash {
+          height: 100%;
+          background-color: #f8f9fa !important;
+      }
+
+    </style>
+
+    <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="css/fa-svg-with-js.css" type="text/css" />
+    <link rel="stylesheet" href="css/ifuture.css" type="text/css" />
+
+    <script data-main="app" src="js/lib/require.js"></script>
+  </head>
+
+  <body>
+
+    <div class="dx-splash">
+      <div class="d-flex flex-column align-items-center justify-content-center bg-light h-100">
+        <h3 class="py-3">远景网</h3>
+        <img class="py-3" alt="欢迎来到远景网" src="images/house.png"/>
+        <p class="text-muted py-3">版权所有 @ 2018 德新科技. 保留所有权利</p>
+      </div>
+    </div>
+
+    <div id="finder" class="dx-finder">
+
+      <nav class="navbar fixed-top navbar-dark bg-dark">
+
+        <a class="navbar-brand" href="#"><i class="fas fa-globe"></i>&nbsp;远景网</a>
+
+        <form class="form-inline ml-auto mr-3">
+          <button class="btn btn-outline-secondary border-0" type="button"><i class="fas fa-search fa-lg"></i></button>
+        </form>
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse"
+                data-target="#menu-finder" aria-controls="menu-finder" aria-expanded="false" aria-label="Toggle menu">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menu-finder">
+          <div class="navbar-nav">
+            <a class="nav-item nav-link" href="#">注册</a>
+            <a class="nav-item nav-link" href="#">登录</a>
+            <a class="nav-item nav-link" href="#">设置</a>
+            <a class="nav-item nav-link d-none" href="#">注销</a>
+            <a class="nav-item nav-link d-none" href="#">我的空间</a>
+          </div>
+        </div>
+
+      </nav>
+
+      <div id="find-conditions" class="dx-tab d-none">
+        <form class="p-3 border">
+          <div class="form-group form-row">
+            <label for="select-house-scope" class="col-2 col-form-label">空间</label>
+            <div class="col-10">
+              <select class="form-control" id="select-house-scope">
+                <option value="public">公共空间</option>
+                <option value="private">我的空间</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group form-row">
+            <label for="inputVillage" class="col-2 col-form-label">小区</label>
+            <div class="col-10">
+              <input type="text" class="form-control" id="inputVillage" placeholder="小区名称">
+            </div>
+          </div>
+          <div class="form-group form-row">
+            <label for="inputHouseType" class="col-2 col-form-label">户型</label>
+            <div class="col-10">
+              <input type="text" class="form-control" id="inputHouseType" placeholder="户型">
+            </div>
+          </div>
+          <div class="form-group form-row">
+            <label for="inputHouseArea1" class="col-2 col-form-label">面积</label>
+            <div class="col-5">
+              <input type="text" class="form-control" id="inputHouseArea1" placeholder="最小值">
+            </div>
+            <div class="col-5">
+              <input type="text" class="form-control" id="inputHouseArea2" placeholder="最大值">
+            </div>
+          </div>
+          <button type="text" class="btn btn-link">上次搜索结果</button>
+          <button type="text" class="btn btn-primary float-right">搜索</button>
+          <button type="text" class="btn btn-primary mx-3 float-right">清空</button>
+        </form>
+      </div>
+
+      <div id="houses" class="dx-tab text-center">
+        <div class="px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+          <div class="card-group">
+            <div class="card-deck mb-3 mx-auto text-center dx-house-card">
+              <div class="card mb-4 box-shadow">
+                <div class="card-header">
+                  <h5 class="font-weight-normal">绿地世纪城A区 - 11号楼</h5>
+                </div>
+                  <div class="card-body">
+                    <h5 class="card-title"><a href="#" class="text-primary">1单元1701</a></h5>
+                    <ul class="list-unstyled text-muted">
+                      <li>一室两厅</li>
+                      <li>69.56平方米</li>
+                    </ul>
+                    <p class="card-text text-right"><small class="text-muted">来自 zhaojunde 的空间</small></p>
+                  </div>                  
+                  <img class="card-image-bottom" src="images/house-s2.jpg" alt="房屋缩略图">
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="text" class="btn btn-link">装载更多...</button>
+      </div>
+
+    </div>
+
+    <div id="loader" class="dx-loader dx-page h-100 flex-column justify-content-center align-items-center">
+      <div class="fa-3x">
+        <i class="fas fa-spinner fa-pulse"></i>
+      </div>
+      <span class="text-muted"></span>
+    </div>
+
+    <div id="viewer" class="dx-viewer">
+
+      <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-dark">
+
+        <a class="navbar-brand" href="#"><i class="fas fa-arrow-left"></i>&nbsp;远景看房</a>
+
+        <span class="navbar-text mx-auto d-md-none .d-lg-block">视图名称</span>
+
+        <!-- <form class="form-inline"> -->
+        <!--   <button class="btn btn-outline-secondary" type="button"><i class="fas fa-bars fa-lg"></i></button> -->
+        <!-- </form> -->
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse"
+                data-target="#menu-viewer" aria-controls="menu-viewer" aria-expanded="false" aria-label="Toggle menu">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="menu-viewer">
+          <div class="navbar-nav ml-auto">
+            <a class="nav-item nav-link active" href="#">基本信息</a>
+            <a class="nav-item nav-link" href="#">房屋结构</a>
+            <a class="nav-item nav-link" href="#">全景照片</a>
+            <a class="nav-item nav-link" href="#">地理位置</a>
+            <a class="nav-item nav-link" href="#">周边环境</a>
+            <a class="nav-item nav-link" href="#">直播看房</a>
+          </div>
+        </div>
+
+      </nav>
+
+    </div>
+
+  </body>
+</html>

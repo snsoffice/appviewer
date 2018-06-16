@@ -43,6 +43,10 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
     var visualizationColor = 0xff1493;
     var visualizationOpacity = 0.20;
     var houseVisitorSize = 48;
+    var houseVisitorTextureUrl = 'images/visitor.png';
+
+    var raycaster = new THREE.Raycaster();
+    var tmpMouse = new THREE.Vector2();
 
     function createSolidVisualization ( angle, distance ) {
 
@@ -69,7 +73,22 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
             depthTest: false,
             transparent: true
         } );
-        return new THREE.Mesh( geometry, material ) ;
+
+        var mshVision = new THREE.Mesh( geometry, material );
+
+        var mshVisitor = new THREE.Sprite( new THREE.SpriteMaterial( { depthTest: false } ) );
+        mshVisitor.visible = false;
+        mshVisitor.name = 'visitor';
+        // mshVisitor.scale.setScalar( houseVisitorSize );
+        var textureLoader = new THREE.TextureLoader();
+        textureLoader.load( houseVisitorTextureUrl, function ( texture ) {
+            mshVisitor.material.map = texture;
+            mshVisitor.visible = true;
+        } );
+
+        var group = new THREE.Group();
+        group.add( mshVisitor, mshVision );
+        return group;
     }
 
     var Solid = function ( app, opt_options ) {
@@ -180,8 +199,29 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 
         };
         control.addEventListener( 'change', onControlChanged );
+        control.addEventListener( 'single', Solid.prototype.onTouchHouse_.bind( this ), false );
 
         return control;
+
+    };
+
+    Solid.prototype.onTouchHouse_ = function ( event ) {
+        // 仅当直播模式切换位置
+        
+        tmpMouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+        tmpMouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+        raycaster.setFromCamera( tmpMouse, this._camera );
+        var intersects = raycaster.intersectObjects( this._scene.children, true );
+
+        if ( intersects.length ) {
+            var pt = intersects[ 0 ].point;
+            var origin = this._currentHouse.origin;
+            this.showVisionHelper( {
+                coordinate: [ origin[ 0 ] + pt.x, origin[ 1 ] + pt.y ],
+                angle: undefined,
+            } );
+        }
 
     };
 
@@ -224,14 +264,16 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
         else if ( this._currentHouse !== null ) {
             var origin = this._currentHouse.origin;
             var boundingBox = this._currentHouse.boundingBox;
-            var coordinate = data.coordinage;
-            var angle = data.angle * Math.PI / 180;
-            var x = coordinage[ 0 ] - origin[ 0 ];
-            var y = coordinage[ 1 ] - origin[ 1 ];
+            var coordinate = data.coordinate;
+            var angle = data.angle;
+            var x = coordinate[ 0 ] - origin[ 0 ];
+            var y = coordinate[ 1 ] - origin[ 1 ];
             var z = ( boundingBox.min.z + boundingBox.max.z ) / 2;
 
             this._visionHelper.position.set( x, y, z );
-            this._visionHelper.quaternion.setFromAxisAngle( zAxis, angle );
+            if ( typeof angle === 'number' )
+                this._visionHelper.quaternion.setFromAxisAngle( zAxis, angle * Math.PI / 180 );
+            this._visionHelper.visible = true;
         }
 
     };
@@ -638,6 +680,9 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 	var changeEvent = { type: 'change' };
 	var startEvent = { type: 'start' };
 	var endEvent = { type: 'end' };
+
+        var singleEvent = { type: 'single' };
+        var mouseMoved = false;
 
 	var STATE = { NONE: - 1, ROTATE: 0, DOLLY: 1, PAN: 2, TOUCH_ROTATE: 3, TOUCH_DOLLY: 4, TOUCH_PAN: 5 };
 
@@ -1052,6 +1097,8 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 
 	function onMouseDown( event ) {
 
+                mouseMoved = false;
+
 		if ( scope.enabled === false ) return;
 
 		event.preventDefault();
@@ -1095,10 +1142,12 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 
 	function onMouseMove( event ) {
 
+                mouseMoved = true;
+
 		if ( scope.enabled === false ) return;
 
 		event.preventDefault();
-
+                
 		if ( state === STATE.ROTATE ) {
 
 			if ( scope.enableRotate === false ) return;
@@ -1131,6 +1180,8 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 		document.removeEventListener( 'mouseup', onMouseUp, false );
 
 		scope.dispatchEvent( endEvent );
+                if ( ! mouseMoved ) 
+                    scope.dispatchEvent( singleEvent, event );
 
 		state = STATE.NONE;
 
@@ -1159,6 +1210,8 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 	}
 
 	function onTouchStart( event ) {
+
+                mouseMoved = false;
 
 		if ( scope.enabled === false ) return;
 
@@ -1210,6 +1263,8 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 
 	function onTouchMove( event ) {
 
+                mouseMoved = true;
+
 		if ( scope.enabled === false ) return;
 
 		event.preventDefault();
@@ -1259,6 +1314,8 @@ define( [ 'ifuture', 'three' ], function( ifuture, THREE ) {
 		handleTouchEnd( event );
 
 		scope.dispatchEvent( endEvent );
+                if ( ! mouseMoved )
+		    scope.dispatchEvent( singleEvent, event );
 
 		state = STATE.NONE;
 

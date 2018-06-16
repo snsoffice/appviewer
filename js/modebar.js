@@ -60,7 +60,7 @@ function( ifuture, $ ) {
             var html = [ '<ul class="list-group list-group-flush">' ];
             for ( var i = 0 ; i < this.modeList.length; i ++ ) {
                 if ( this.modeList[ i ].menuitem )
-                    html.push( '<li class="list-group-item" index="' + i + '">' + this.modeList[ i ].menuitem + '</li>' );
+                    html.push( '<li class="list-group-item" index="' + i + '"><a href="#" class="list-group-item-action">' + this.modeList[ i ].menuitem + '</a></li>' );
             }
             html.push( '</ul>' );
 

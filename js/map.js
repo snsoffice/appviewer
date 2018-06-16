@@ -889,7 +889,7 @@ function( ifuture, ol, db, utils, config ) {
                 requirejs( [ 'solid' ], function ( Solid ) {
                     this._threeview = new Solid( this._app, {
                         target: this.map.getTargetElement(),
-                    } );               
+                    } );
                     this.loadThreeHouse_();
                     this._threeview.setVisible( true );
                     this._threeview.render();
@@ -932,6 +932,11 @@ function( ifuture, ol, db, utils, config ) {
      * @private
      */
     Map.prototype.handleSingleClick_ = function ( evt ) {
+
+        if ( this._majormode !== 'browse' ) {
+            return this.handleClickMapEvent_( evt );
+        }
+
         var map = evt.map;
         var selected = map.forEachFeatureAtPixel( evt.pixel, function ( feature, layer ) {
             return [ feature, layer ];
@@ -1072,12 +1077,16 @@ function( ifuture, ol, db, utils, config ) {
 
         var mode = this._majormode;
 
-        if ( mode === 'anchor' ) {
+        if ( mode === 'anchor' || mode === 'visit' ) {
             this.setVisionHelper( 'anchor', evt.coordinate );
-        }
-
-        else if ( mode === 'visit' ) {
-            this.setVisionHelper( 'visitor', evt.coordinate );
+            var argument = {                
+                msgType: 'anchor',
+                msgData: {
+                    name: 'anchor',
+                    position: evt.coordinate,
+                }
+            };
+            this._app.dispatchEvent( new ifuture.Event( 'peerMessage', argument ) );
         }
 
     };
@@ -1088,7 +1097,7 @@ function( ifuture, ol, db, utils, config ) {
      * @param {string} url 指向房屋的连接
      * @private
      */
-    Map.prototype.openHouse_ = function ( url ) {
+    Map.prototype.openHouse_ = function ( url, level ) {
 
         for ( var i = this.housestack.length - 1; i > -1 ; i -- ) {
             if ( this.housestack[ i ].url === url ) {
@@ -1097,7 +1106,7 @@ function( ifuture, ol, db, utils, config ) {
             }
         }
 
-        var level = this.houselevel;
+        level = level === undefined ? this.houselevel : level;
         var xhr = new XMLHttpRequest();
 
         xhr.onloadend = function ( e ) {
@@ -1436,16 +1445,16 @@ function( ifuture, ol, db, utils, config ) {
      *
      * 设置地图的主模式，任何状态下地图必定处于某一个主模式下面
      *
-     * @param {string} mode 模式名称，'browser', 'anchor', 'viewer'
+     * @param {string} mode 模式名称，'browse', 'anchor', 'visit'
      * @observable
      * @api
      */
     Map.prototype.setMajorMode = function ( mode ) {
 
-        if ( this.majorMode_ === mode )
+        if ( this._majormode === mode )
             return;
 
-        if ( this.majorMode_ === 'anchor' ) {
+        if ( this._majormode === 'anchor' ) {
             if( window.DeviceOrientationEvent ) {
                 window.removeEventListener( 'deviceorientation', this.onCameraPoseChanged_, false );
             }
@@ -1462,7 +1471,7 @@ function( ifuture, ol, db, utils, config ) {
 
         }
 
-        this.majorMode_ = mode;
+        this._majormode = mode;
 
     };
 
@@ -1506,7 +1515,7 @@ function( ifuture, ol, db, utils, config ) {
      */
     Map.prototype.setVisionHelper = function ( name, position, direction ) {
 
-        if (name === 'visitor' || name === 'camera') {
+        if ( name === 'visitor' || name === 'anchor' ) {
 
             var overlay = this.map.getOverlayById( name );
 
@@ -1609,6 +1618,7 @@ function( ifuture, ol, db, utils, config ) {
 
         if ( this.isLiving_ ) {
             // Send message to peer
+            // peerMessage
         }
 
     };
@@ -1622,11 +1632,12 @@ function( ifuture, ol, db, utils, config ) {
      */
     Map.prototype.startBroadcast = function () {
 
-        if ( this.majorMode_ === 'anchor' )
+        if ( this._majormode === 'anchor' )
             return ;
 
         var roomName = this.getRoomName_();
         if ( ! roomName ) {
+            utils.info( '请选择你所在的房子，然后在开始直播' );
             return ;
         }
 
@@ -1642,6 +1653,7 @@ function( ifuture, ol, db, utils, config ) {
             callback: this.stopBroadcast.bind( this ),
             exclusive: true,
         } ] );
+        this._app.request( 'explorer', 'toggle', true );
 
     };
 
@@ -1654,13 +1666,12 @@ function( ifuture, ol, db, utils, config ) {
      */
     Map.prototype.stopBroadcast = function () {
 
-        this.setMajorMode( 'browser' );
+        this.setMajorMode( 'browse' );
         this.isLiving_ = false;
 
-        this.setVisionHelper( 'camera' );
+        this.setVisionHelper( 'anchor' );
         this._app.request( 'communicator', 'stopBroadcast' );
         this._app.request( 'modebar', 'remove', 'living' );
-        document.getElementById( 'start-living' ).removeAttribute( 'disabled' );
 
     };
 
@@ -1672,8 +1683,16 @@ function( ifuture, ol, db, utils, config ) {
      *
      */
     Map.prototype.getRoomName_ = function () {
-        if ( this.layerLevel > -1 )
-            return this.layerStack[ this.layerLevel ].url.slice( config.resourceBaseUrl.length + 1 ).replace( /\//g, '.' );
+        if ( this.houselevel > -1 ) {
+            var url = this.housestack[ this.houselevel ].url;
+            // if ( url.startsWith( 'http://' ) || url.startsWith( 'https://' ) ) {
+            //     return url.slice( config.portalBaseUrl.length + 1 ).replace( /\//g, '.' );
+            // }
+            // else {
+            //     return url.replace( /\//g, '.' );
+            // }
+            return url.slice( -32 ).split( '/' ).join( '.' );
+        }
     };
 
     /**
@@ -1685,7 +1704,7 @@ function( ifuture, ol, db, utils, config ) {
      */
     Map.prototype.openLiving = function () {
 
-        if ( this.majorMode_ !== 'browser' )
+        if ( this._majormode !== 'browse' )
             return ;
 
         var roomName = this.getRoomName_();
@@ -1693,7 +1712,17 @@ function( ifuture, ol, db, utils, config ) {
             return ;
         }
 
-        this._app.request( 'communicator', 'openLiving', roomName );
+        this.setMajorMode( 'visit' );
+
+        this._app.request( 'communicator', 'openLiving', roomName );        
+        this._app.request( 'modebar', 'add', [ 'watch', {
+            name: 'watch',
+            title: '观看直播',
+            icon: 'fas fa-video',
+            menuitem: '结束观看',
+            callback: this.closeLiving.bind( this ),
+            exclusive: true,
+        } ] );
 
     };
 
@@ -1706,10 +1735,11 @@ function( ifuture, ol, db, utils, config ) {
      */
     Map.prototype.closeLiving = function () {
 
-        this.setMajorMode( 'browser' );
+        this.setMajorMode( 'browse' );
 
-        this.setVisionHelper( 'camera' );
+        this.setVisionHelper( 'anchor' );
         this._app.request( 'communicator', 'closeLiving' );
+        this._app.request( 'modebar', 'remove', 'watch' );
 
     };
 
@@ -1844,7 +1874,7 @@ function( ifuture, ol, db, utils, config ) {
         for ( var i = 0; i < v.views.length; i ++ ) {
             if ( v.views[ i ].type === 'three' ) {
                 url = v.views[ i ].url;
-                break; 
+                break;
             }
         }
         if ( url )
@@ -1914,13 +1944,21 @@ function( ifuture, ol, db, utils, config ) {
         }
 
         else if ( event.type === 'living:opened' ) {
-            this.setMajorMode( 'viewer' );
+            this.setMajorMode( 'visit' );
         }
 
         else if ( event.type === 'view:remove' ) {
             var level = event.argument;
             this.popHouseStack_( level + 1 );
             this.selectHouseLevel_( level );
+        }
+
+        else if ( event.type === 'select:village' ) {
+            this.openHouse_( event.argument, 0 );
+        }
+
+        else if ( event.type === 'select:house' ) {
+            this.openHouse_( event.argument, 0 );
         }
 
     };

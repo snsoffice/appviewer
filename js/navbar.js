@@ -173,8 +173,8 @@ function( ifuture, config, db, restapi, $ ) {
         var scope = this;
         var setBrand = function ( userid, username ) {
             var button = scope._element.querySelector( _BRAND_BUTTON );
-            var title =  ! userid ? '公众空间' : username + '的空间';
-            button.innerHTML = '<i class="fas fa-globe fa-lg"></i> 远景网 - ' + title;
+            var title =  ! userid ? '远景网 - 公众空间' : username + '的空间';
+            button.innerHTML = '<i class="fas fa-globe fa-lg"></i> ' + title;
             button.setAttribute( 'data-domain', ! userid ? '' : userid );
             button.setAttribute( 'data-title', title );
         };

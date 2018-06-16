@@ -1,6 +1,6 @@
-define( [ 'ifuture', 'jquery', 'toolcase' ],
+define( [ 'ifuture', 'jquery', 'config', 'toolcase' ],
 
-function( ifuture, $, Toolcase ) {
+function( ifuture, $, config, Toolcase ) {
 
     ProfileTool = function ( app, opt_options ) {
         Toolcase.call( this, app );
@@ -11,6 +11,7 @@ function( ifuture, $, Toolcase ) {
     ifuture.inherits( ProfileTool, Toolcase );
 
     ProfileTool.prototype.create = function ( container ) {
+        var scope = this;
         var element = document.createElement( 'DIV' );
         element.className = 'dx-toolcase';
 
@@ -71,8 +72,13 @@ function( ifuture, $, Toolcase ) {
         });
 
         element.querySelector( 'nav.navbar > button' ).addEventListener( 'click', function ( e ) {
-            this.dispatchEvent( new ifuture.Event( 'task:close' ) );
-        }.bind( this ), false );
+            scope.dispatchEvent( new ifuture.Event( 'task:close' ) );
+        }, false );
+
+        element.querySelector( '#userFullname' ).addEventListener( 'change', function ( e ) {
+            config.userName = e.currentTarget.value;
+            scope.dispatchEvent( new ifuture.Event( 'userName:changed' ) );
+        }, false );
 
         container.appendChild( element );
     };

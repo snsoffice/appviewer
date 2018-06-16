@@ -10,35 +10,6 @@ function( ifuture, Toolcase, restapi ) {
 
         // Refer to https://plonerestapi.readthedocs.io/en/latest/batching.html#batching
         this.searchResults = null;
-
-        // DEBUG:
-        this.searchResults = {
-            items: [
-                {
-                    '@id': '#',
-                    house_location: '绿地世纪城A区 - 11号楼',
-                    title: '1701',
-                    house_area: 69.56,
-                    house_type: '一室两厅',
-                    Creator: 'zhaojunde',
-                },
-                {
-                    '@id': '#',
-                    house_location: '绿地世纪城A区 - 11号楼',
-                    title: '1701',
-                    house_area: 69.56,
-                    house_type: '一室两厅',
-                    Creator: 'zhaojunde',
-                },
-                {
-                    '@id': '#',
-                    house_location: '绿地世纪城A区 - 11号楼',
-                    title: '1701',
-                    house_area: 69.56,
-                    house_type: '一室两厅',
-                    Creator: 'zhaojunde',
-                }
-            ] };
     }
     ifuture.inherits( SearchTool, Toolcase );
 
@@ -80,6 +51,7 @@ function( ifuture, Toolcase, restapi ) {
 
 
         html.push( '<div class="search-results m-1"><button type="text" class="btn btn-link float-right">重新搜索</button>' );
+        html.push( '<div class="items"></div>' );
         html.push( '<button type="text" class="btn btn-link float-right">重新搜索</button></div>' );
 
         element.innerHTML = html.join( '' );
@@ -166,16 +138,17 @@ function( ifuture, Toolcase, restapi ) {
             );
         }
 
-        element.querySelector( '.search-results' ).innerHTML = html.join( '' );
+        element.querySelector( '.search-results > div.items' ).innerHTML = html.join( '' );
 
         var scope = this;
         Array.prototype.forEach.call(
             element.querySelectorAll( '.search-results h5.card-title > a' ),
             function ( item ) {
                 item.addEventListener( 'click', function ( e ) {
+                    e.preventDefault();
                     var url = item.href;
                     scope.dispatchEvent( new ifuture.Event( 'task:close' ) );
-                    scope.app.dispatchEvent( new ifuture.Event( 'select:house', url ) );
+                    scope.dispatchEvent( new ifuture.Event( 'select:house', url ) );
                 }, false );
             }
         );
@@ -220,7 +193,7 @@ function( ifuture, Toolcase, restapi ) {
         restapi.queryHouses( filters.join( '&' ) ).then( function ( results ) {
             scope.searchResults = results;
             scope.buildSearchResult_( element );
-        } ).then( function ( e ) {
+        } ).catch( function ( e ) {
             // Something is wrong
             console.log( 'Query house error: ' + e );
             element.querySelector( '.search-results' ).innerHTML =

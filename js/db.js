@@ -9,7 +9,7 @@
 define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, config, utils ) {
 
     // DEBUG:
-    // Dexie.delete('ifuture');
+    Dexie.delete('ifuture');
     Dexie.delete('anonymous');
 
     var _db = new Dexie( 'ifuture' );
@@ -179,14 +179,9 @@ define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, co
     //
     // 处理数据同步
     //
-    function synchronizeHandler( event ) {
+    function synchornizeHandler() {
 
-        if ( ! navigator.onLine ) {
-            utils.warning( '离线状态无法同步数据' );
-            return;
-        }
-
-        _db.organizations.orderBy( 'id' ).last().then( function ( lastItem ) {
+        return _db.organizations.orderBy( 'id' ).last().then( function ( lastItem ) {
 
             // 如果有本地数据，那么只更新最后一次更新之后服务器修改过的数据
             if ( lastItem !== undefined )
@@ -212,10 +207,6 @@ define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, co
             } );
 
             return items.length;
-
-        } ).catch( function ( err ) {
-
-            utils.warning( '同步数据失败' );
 
         } );
 
@@ -264,7 +255,7 @@ define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, co
     //
 
     // 网络连接从离线到在线
-    window.addEventListener( 'online', synchronizeHandler, false );
+    window.addEventListener( 'online', synchornizeHandler, false );
 
     // 登录成功之后进行数据同步操作
     // document.addEventListener( 'login', synchronizeHandler, false );
@@ -282,7 +273,7 @@ define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, co
 
     return {
 
-        synchronize: synchronizeHandler,
+        synchornize: synchornizeHandler,
 
         queryVillages: queryVillages,
 

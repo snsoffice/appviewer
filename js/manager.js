@@ -13,9 +13,6 @@ function( ifuture ) {
         this.currentTask = null;
         this.plugins = {};
 
-        app.on( [ 'task:close' ], function () {
-            this.toggle( false ); 
-        }, this );
     }
     ifuture.inherits( Manager, ifuture.Component );
 
@@ -126,6 +123,22 @@ function( ifuture ) {
         }
         else
             this.toggle( false );
+    };
+
+    /**
+     *
+     * 事件处理程序，相对于对外部的所有接口，可以响应的外部事件
+     *
+     * @param {ifuture.Event} event 事件对象
+     * @observable
+     * @api
+     */
+    Manager.prototype.handleFutureEvent = function ( event ) {
+
+        if ( event.type === 'task:close' ) {
+            this.toggle( false );
+        }
+
     };
 
     return Manager;

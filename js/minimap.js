@@ -173,7 +173,7 @@ function( ifuture, ol, config, db, utils ) {
             new ol.layer.Tile( {
                 maxResolution: MAX_RESOLUTION * 1.1,
                 minResolution: MIDDLE_RESOLUTION,
-                opacity: 0.6,
+                // opacity: 0.6,
                 source: new ol.source.XYZ( {
                     crossOrigin: 'anonymous',
                     url:'http://webst0{1-4}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=7&x={x}&y={y}&z={z}'

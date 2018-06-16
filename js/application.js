@@ -11,11 +11,11 @@
 //     个人空间     domain=USERID
 //     公众空间     没有 domain 或者 domain 为空
 //
-define( [ 'ifuture', 'utils', 'config', 'user', 'map', 'minimap',
+define( [ 'ifuture', 'utils', 'config', 'db', 'user', 'map', 'minimap',
           'explorer', 'manager', 'vision', 'navbar', 'modebar',
           'footbar', 'responsebar', 'dialog', 'loader', 'communicator' ],
 
-function( ifuture, utils, config, User, Map, Minimap,
+function( ifuture, utils, config, db, User, Map, Minimap,
           Explorer, Manager, Vision, Navbar, Modebar,
           Footbar, Responsebar, Dialog, Loader, Communicator ) {
 
@@ -86,16 +86,16 @@ function( ifuture, utils, config, User, Map, Minimap,
         this.loader = new Loader( this, opt_options );
 
         // 所有对象之间的事件绑定关系
-        this.on( [ 'helper:changed' ], this.map.handleFutureEvent, this.map );
+        this.on( [ 'helper:changed', 'select:village', 'select:house', 'living:opened' ], this.map.handleFutureEvent, this.map );
         this.on( [ 'carousel:changed' ], this.explorer.handleFutureEvent, this.explorer );
         this.on( [ 'user:login', 'user:logout', 'living:start', 'living:end' ], this.navbar.handleFutureEvent, this.navbar );
+        this.on( [ 'task:close' ], this.manager.handleFutureEvent, this.manager );
+        this.on( [ 'peerMessage', 'userNameChanged' ], this.communicator.handleFutureEvent, this.communicator );
 
         this.map.on( [ 'site:changed', 'view:opened' ], this.minimap.handleFutureEvent, this.minimap );
         this.map.on( [ 'elevation:changed' ], this.modebar.handleFutureEvent, this.modebar );
 
         this.minimap.on( [ 'view:remove' ], this.map.handleFutureEvent, this.map );
-
-        this.communicator.on( 'living:opened', this.map.handleFutureEvent, this.map );
 
     };
     ifuture.inherits( Application, ifuture.Component );
@@ -120,20 +120,35 @@ function( ifuture, utils, config, User, Map, Minimap,
 
     // 参考安卓的进程状态
     Application.prototype.hiberate = function () {
-        this.map.hiberate();
+        // this.map.hiberate();
         this.communicator.stop();
     };
 
 
     Application.prototype.revive = function () {
         this.communicator.start();
-        this.map.revive();
+        // this.map.revive();
     };
 
     Application.prototype.run = function () {
         //
         // 全局事件处理
         //
+        var scope = this;
+        if ( navigator.onLine ) {
+            db.synchornize().then( function () {
+                scope.map.revive();
+            } ).catch( function ( e ) {
+                console.log( '同步数据失败: ' + e );
+            } );
+        }
+        else {
+            console.log( '离线状态无法同步数据' );
+            this.map.revive();
+        }
+
+
+        
 
         //
         // 退出页面的时候保存状态

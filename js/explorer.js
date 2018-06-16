@@ -117,7 +117,8 @@ function( ifuture, Carousel ) {
 
             if ( ! this.viewname ) {
                 this.touchItem();
-                e.currentTarget.innerHTML = '<i class="fas fa-times fa-lg"></i>';
+                if ( this.viewname )
+                    e.currentTarget.innerHTML = '<i class="fas fa-times fa-lg"></i>';
             }
             else {
                 this.close();
@@ -287,12 +288,12 @@ function( ifuture, Carousel ) {
         if ( event.type === 'carousel:changed' ) {
             var index = event.argument;
             var item = this.items[ index ];
-            var pos = item.position;
-            var yaw = item.pose === undefined ? 0 : item.pose[ 0 ];
+            var pos = item.coordinate;
+            var yaw = item.angle === undefined ? 0 : item.angle;
             this.app_.dispatchEvent( new ifuture.Event( 'helper:changed', {
                 name: 'visitor',
                 position: pos,
-                yaw: yaw * 180 / Math.PI
+                yaw: yaw
             } ) );
         }
 

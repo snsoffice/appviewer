@@ -7,7 +7,7 @@ define( function () {
 
     var _clearMessage = function ( e ) {
 
-        if ( msglist !== null ) {
+        if ( msglist !== null && e.target.className !== 'dropdown-item' ) {
             var element = document.getElementById( 'messagebox' );
             element.remove();
             msglist = [];

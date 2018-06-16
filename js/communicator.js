@@ -17,13 +17,7 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
      */
     var Communicator = function ( app, opt_options ) {
 
-        ifuture.Component.call( this );
-
-        /**
-         * @private
-         * @type {ifuter.Application}
-         */
-        this.app_ = app;
+        ifuture.Component.call( this, app );
 
         /**
          * @private
@@ -67,16 +61,17 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
     Communicator.prototype.initEasyrtc_ = function () {
 
         easyrtc.setOnError( function ( errObj ) {
-            utils.warning( errObj.errorText );
+            // utils.warning( errObj.errorText );
+            console.log( 'easyrtc report error: ' + errObj.errorText );
         } );
 
         easyrtc.setSocketUrl( EASYRTC_SERVER );
         easyrtc.usernameRegExp = new RegExp( '[_a-zA-Z0-9\s\u4E00-\u9FA5\uF900-\uFA2D]+' );
-        easyrtc.setUsername( this.userName_ );
+        easyrtc.setUsername( config.userName === null ? '客户' : config.userName );
         easyrtc.setPeerListener( this.peerListener_.bind( this ) );
         easyrtc.setPeerClosedListener( this.peerClosedListener_.bind( this ) );
         easyrtc.setAcceptChecker( this.onRequestTalking_.bind( this ) );
-        // easyrtc.setVideoDims( this.videoWidth_, this.videoHeight_ );
+        easyrtc.setVideoDims( this.videoWidth_, this.videoHeight_ );
         easyrtc.setRoomOccupantListener( this.onRoomOccupants_.bind( this ) );
 
         easyrtc.connect(
@@ -123,7 +118,7 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
      */
     Communicator.prototype.onRequestTalking_ = function ( easyrtcid, acceptor ) {
 
-        this.app_.request( 'responsebar', 'show', [
+        this.app.request( 'responsebar', 'show', [
             easyrtc.idToName( easyrtcid ) + '请求直播?',
             function () { acceptor( true ); },
             function () { acceptor( false ); }
@@ -148,9 +143,6 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
 
             var anchor;
 
-            if ( isPrimary )
-                return;
-
             for( var other in occupants ) {
                 if ( occupants[ other ].apiField.anchor && occupants[ other ].apiField.anchor.fieldValue === true ) {
                     anchor = other;
@@ -164,14 +156,6 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
             if ( anchor === undefined ) {
                 utils.warning( '这里(' + roomName + ')没有直播信号' );
                 return;
-            }
-
-            if ( config.userName === undefined ) {
-                config.userName = 'tester';
-                if( ! easyrtc.setUsername( config.userName ) ) {
-                    utils.warning( '设置用户名称失败' );
-                    return ;
-                }
             }
 
             this.callAnchor_( roomName, anchor );
@@ -190,7 +174,7 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
      */
     Communicator.prototype.callAnchor_ = function ( roomName, anchor ) {
 
-        var app = this.app_;
+        var app = this.app;
 
         var acceptedCB = function ( accepted, easyrtcid ) {
 
@@ -229,19 +213,48 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
      * @param {string} msgType
      * @param {Object} msgData
      */
+    Communicator.prototype.sendPeerMessage_ = function( msgType, msgData ) {
+
+        if ( ! this.roomName_ )
+            return;
+
+        // sendPeerMessage(destination, msgType, msgData, successCB, failureCB);
+        // @param {String} destination - either a string containing
+        // the easyrtcId of the other user, or an object containing
+        // some subset of the following fields: targetEasyrtcid,
+        // targetGroup, targetRoom.
+
+        var roomName = this.roomName_;
+        var destination = {
+            targetRoom: roomName,
+        };
+
+        var successCB = function () {
+            console.log( 'Send peer message to ' + roomName + ': ' + msgType + ' OK' );
+        };
+
+        var failureCB = function () {
+            console.log( 'Send peer message to ' + roomName + ': ' + msgType + ' FAILED' );
+        };
+
+        easyrtc.sendPeerMessage( destination, msgType, msgData, successCB, failureCB );
+
+    };
+
+    /**
+     *
+     * @param {string} who
+     * @param {string} msgType
+     * @param {Object} msgData
+     */
     Communicator.prototype.peerListener_ = function( who, msgType, msgData ) {
 
         if ( who === this.easyrtcid_ )
             return;
 
-        if ( msgType === 'camera' ) {
+        if ( msgType === 'anchor' ) {
 
-            // sendPeerMessage(destination, msgType, msgData, successCB, failureCB);
-
-            // @param {String} destination - either a string containing
-            // the easyrtcId of the other user, or an object containing
-            // some subset of the following fields: targetEasyrtcid,
-            // targetGroup, targetRoom.
+            this.dispatchEvent( new ifuture.Event( 'helper:changed', msgData ) );
 
         }
 
@@ -348,7 +361,7 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
         easyrtc.setOnStreamClosed( function ( easyrtcid ) {
             var container = document.querySelector( '#explorer > .dx-showcase' );
             if ( container ) {
-                var video = item.firstElementChild;
+                var video = container.firstElementChild;
                 easyrtc.setVideoObjectSrc( video, '');
                 easyrtc.clearMediaStream( video );
                 easyrtc.closeLocalMediaStream();
@@ -357,16 +370,24 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
         } );
 
         this.roomName_ = roomName;
-        easyrtc.joinRoom( roomName, null,
-            function ( roomName ) {
-                console.log( 'Joined room: ' + roomName );
-            },
-            function ( errorCode, errorText, roomName ) {
-                this.roomName_ = '';
-                console.log( 'Join room  ' + roomName + ' return ' + errorCode + ': '  + errorText);
-                utlils.warning( '无法观看直播: ' + errorText );
-            }
-        );
+
+        var occupants = easyrtc.getRoomOccupantsAsArray( roomName );
+        if ( occupants === null ) {
+            easyrtc.joinRoom( roomName, null,
+                              function ( roomName ) {
+                                  console.log( 'Joined room: ' + roomName );
+                              },
+                              function ( errorCode, errorText, roomName ) {
+                                  this.roomName_ = '';
+                                  console.log( 'Join room  ' + roomName + ' return ' + errorCode + ': '  + errorText);
+                                  utlils.warning( '无法观看直播: ' + errorText );
+                              }
+                            );
+        }
+
+        else {
+            this.onRoomOccupants_( roomName, occupants, false );
+        }
 
     };
 
@@ -404,6 +425,29 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils' ], function( ifuture, easyrtc,
             if ( occupants[ easyrtcid ].userName === userName )
                 return easyrtcid;
 
+        }
+
+    };
+
+    /**
+     *
+     * 事件处理程序，相对于对外部的所有接口，可以响应的外部事件
+     *
+     * @param {ifuture.Event} event 事件对象
+     * @observable
+     * @api
+     */
+    Communicator.prototype.handleFutureEvent = function ( event ) {
+
+        if ( event.type === 'peerMessage' ) {
+            var arg = event.argument;
+            this.sendPeerMessage_( arg.msgType, arg.msgData );
+        }
+
+        else if ( event.type === 'userNameChanged' ) {
+            if( ! easyrtc.setUsername( config.userName ) ) {
+                utils.warning( '设置用户名称失败' );
+            }
         }
 
     };

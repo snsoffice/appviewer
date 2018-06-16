@@ -198,7 +198,7 @@ define( [ 'ifuture', 'jquery', 'db', 'config' ], function ( ifuture, $, db, conf
         if ( config.userId ) {
             domains.push( {
                 id: config.userId,
-                title: config.userName,
+                title: '我的空间',
             } );
         }
 
