@@ -1,8 +1,15 @@
 define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( ifuture, config, restapi, utils, db, logger ) {
 
     var _SELECTOR = '.dx-finder';
+
     var _NAVBAR_BRAND_SELECTOR = '.navbar-brand';
+    var _NAVBAR_MENU_SELECTOR = '.navbar-collapse.collapse';
     var _NAVBAR_SEARCH_SELECTOR = 'form.form-inline > button';
+    var _NAVBAR_SIGNUP_SELECTOR = '.navbar-nav > a:nth-of-type(1)';
+    var _NAVBAR_LOGIN_SELECTOR = '.navbar-nav > a:nth-of-type(2)';
+    var _NAVBAR_PROFILE_SELECTOR = '.navbar-nav > a:nth-of-type(3)';
+    var _NAVBAR_LOGOUT_SELECTOR = '.navbar-nav > a:nth-of-type(4)';
+    var _NAVBAR_MYHOUSE_SELECTOR = '.navbar-nav > a:nth-of-type(5)';
 
     var _SEARCH_FORM_SELECTOR = '.dx-searchform';
     var _LAST_SEARCH_SELECTOR = 'button:nth-of-type(1)';
@@ -10,6 +17,8 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
     var _CLEAR_SEARCH_SELECTOR = 'button:nth-of-type(3)';
 
     var _HOUSE_LIST_SELECTOR = '.dx-houselist';
+    var _LOAD_MORE_SELECTOR = '.dx-loadmore';
+    var _LOAD_HOUSE_SELECTOR = '.dx-loadhouse';
 
     var _SEARCH_FORM_TEMPLATE = '                                                                     \
         <form class="p-3 border">                                                                     \
@@ -54,20 +63,20 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
           %HOUSES%                              \
           </div>                                \
         </div>                                  \
-        <button type="text" class="btn btn-link">装载更多...</button>';
+        <button type="text" class="btn btn-link dx-loadmore">装载更多...</button>';
 
-    var _HOUSE_ITEM_TEMPLATE = '                                                                       \
-        <div class="card-deck mb-3 mx-auto dx-house-card">                                             \
-          <div class="card mb-4 box-shadow">                                                           \
-            <div class="card-footer">%LOCATION%</div>                                                  \
-            <div class="card-body">                                                                    \
-              <h5 class="card-title"><a href="%URL%" class="text-primary">%TITLE%</a></h5>             \
-              <ul class="list-unstyled text-muted">                                                    \
-                %METADATA%                                                                             \
-              </ul>                                                                                    \
-              <p class="card-text text-right"><small class="text-muted">来自 %USER% 的空间</small></p> \
-            </div>                                                                                     \
-          </div>                                                                                       \
+    var _HOUSE_ITEM_TEMPLATE = '                                                                        \
+        <div class="card-deck mb-3 mx-auto dx-house-card">                                              \
+          <div class="card mb-4 box-shadow">                                                            \
+            <div class="card-footer">%LOCATION%</div>                                                   \
+            <div class="card-body">                                                                     \
+              <h5 class="card-title"><a href="%URL%" class="text-primary dx-loadhouse">%TITLE%</a></h5> \
+              <ul class="list-unstyled text-muted">                                                     \
+                %METADATA%                                                                              \
+              </ul>                                                                                     \
+              <p class="card-text text-right"><small class="text-muted">来自 %USER% 的空间</small></p>  \
+            </div>                                                                                      \
+          </div>                                                                                        \
         </div>';
 
     Finder = function ( app, opt_options ) {
@@ -84,7 +93,59 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
             app.dispatchEvent( new ifuture.Event( 'show:searchform' ) );
         }, false );
 
+        element.querySelector( _NAVBAR_SIGNUP_SELECTOR ).addEventListener( 'click', function ( e ) {
+            app.dispatchEvent( new ifuture.Event( 'signup' ) );
+        }, false );
+
+        element.querySelector( _NAVBAR_LOGIN_SELECTOR ).addEventListener( 'click', function ( e ) {
+            app.dispatchEvent( new ifuture.Event( 'login' ) );
+        }, false );
+
+        element.querySelector( _NAVBAR_PROFILE_SELECTOR ).addEventListener( 'click', function ( e ) {
+            app.dispatchEvent( new ifuture.Event( 'profile' ) );
+        }, false );
+
+        element.querySelector( _NAVBAR_LOGOUT_SELECTOR ).addEventListener( 'click', function ( e ) {
+            app.dispatchEvent( new ifuture.Event( 'logout' ) );
+        }, false );
+
+        element.querySelector( _NAVBAR_MYHOUSE_SELECTOR ).addEventListener( 'click', function ( e ) {
+            app.dispatchEvent( new ifuture.Event( 'search:myhouse' ) );
+        }, false );
+
+        element.querySelector( _NAVBAR_MENU_SELECTOR ).addEventListener( 'click', function ( e ) {
+            e.currentTarget.classList.remove( 'show' );
+        }, false );
+
+        /**
+         *
+         * @private
+         * @type {HTMLDivElement}
+         */
         this._element = element;
+
+        /**
+         *
+         * 调用 restapi 从服务器返回的搜索结果，参考 https://plonerestapi.readthedocs.io/en/latest/batching.html
+         *     {
+         *       "@id": "http://.../folder/search",
+         *       "batching": {
+         *         "@id": "http://.../folder/search?b_size=10&b_start=20",
+         *         "first": "http://.../plone/folder/search?b_size=10&b_start=0",
+         *         "last": "http://.../plone/folder/search?b_size=10&b_start=170",
+         *         "prev": "http://.../plone/folder/search?b_size=10&b_start=10",
+         *         "next": "http://.../plone/folder/search?b_size=10&b_start=30"
+         *       },
+         *       "items": [
+         *         "..."
+         *       ],
+         *       "items_total": 175,
+         *     }
+         *
+         * @private
+         * @type {Object}
+         */
+        this._searchResults = null;
 
     }
     ifuture.inherits( Finder, ifuture.Component );
@@ -100,9 +161,9 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
     Finder.prototype.startup = function () {
 
         var scope = this;
-        restapi.queryHouses().then( function ( items ) {
+        restapi.queryHouses().then( function ( result ) {
 
-            scope.buildHouseList_( items );
+            scope.buildHouseList_( result );
             scope.showHouseList_();
 
         } ).catch( function ( err ) {
@@ -131,6 +192,15 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
 
         this.app.on( 'search:house', this.searchHouse_, this );
         this.app.on( 'show:searchform', this.showSearchForm_, this );
+        this.app.on( [ 'user:login', 'user:logout' ], this.resetMenuitems_, this );
+
+        this.app.on( 'open:house', function () {
+            this.hide_();
+        }, this );
+
+        this.app.on( 'close:house', function () {
+            this.show_();
+        }, this );
 
     };
 
@@ -185,11 +255,11 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
         var scope = this;
         this.dispatchEvent( new ifuture.Event( 'show:loader' ) );
 
-        restapi.queryHouses().then( function ( items ) {
+        restapi.queryHouses().then( function ( result ) {
 
-            scope.buildHouseList_( items );
-            scope.showHouseList_();
             scope._element.querySelector( _SEARCH_FORM_SELECTOR + ' ' + _LAST_SEARCH_SELECTOR ).style.visibility = 'visible';
+            scope.buildHouseList_( result );
+            scope.showHouseList_();            
 
         } ).catch( function ( err ) {
 
@@ -210,9 +280,11 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
      */
     Finder.prototype.buildHouseList_ = function ( result ) {
 
+        this._searchResults = result;
+
         var houselist = this._element.querySelector( _HOUSE_LIST_SELECTOR );
 
-        if ( result === undefined || ! result.items_total ) {
+        if ( result === null || ! result.items_total ) {
             houselist.innerHTML = '<h4 class="mt-5">没有找到符合条件的房子</h4>';
         }
 
@@ -230,8 +302,30 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
                         );
             } );
             houselist.innerHTML = _HOUSE_LIST_TEMPLATE.replace( '%HOUSES%', arr.join( '' ) );
-        }
 
+            houselist.querySelector( _LOAD_MORE_SELECTOR )
+
+            var scope = this;
+            Array.prototype.forEach.call( houselist.querySelectorAll( _LOAD_HOUSE_SELECTOR ), function ( a ) {
+                a.addEventListener( 'click', function ( e ) {
+                    e.preventDefault();
+                    scope.dispatchEvent( new ifuture.Event( 'open:house', e.currentTarget.getAttribute( 'href' ) ) );
+                }, false );
+            } );
+
+            var loadmore = houselist.querySelector( _LOAD_MORE_SELECTOR );
+            if ( result.hasOwnProperty( 'batching' ) ) {
+                var url = result.batching.next;
+                loadmore.addEventListener( 'click', function ( e ) {
+                    e.preventDefault();
+                }, false );
+                loadmore.style.display = 'block';
+            }
+            else {
+                loadmore.style.display = 'none';
+            }
+        }
+        
     };
 
     /**
@@ -261,6 +355,22 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
             e.preventDefault();
             scope.searchHouse_();
         }, false );
+
+    };
+
+    /**
+     * 设置菜单是否可用
+     *
+     * @private
+     */
+    Finder.prototype.resetMenuitems_ = function () {
+
+        var user = !! config.userId;
+        var element = this._element;
+        element.querySelector( _NAVBAR_SIGNUP_SELECTOR ).style.display = user ? 'none' : 'block';
+        element.querySelector( _NAVBAR_LOGIN_SELECTOR ).style.display = user ? 'none' : 'block';
+        element.querySelector( _NAVBAR_LOGOUT_SELECTOR ).style.display = user ? 'block' : 'none';
+        element.querySelector( _NAVBAR_MYHOUSE_SELECTOR ).style.display = user ? 'block' : 'none';
 
     };
 

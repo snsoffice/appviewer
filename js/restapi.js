@@ -6,14 +6,15 @@ define( [ 'config', 'utils' ], function ( config, utils ) {
 
         return new Promise( function ( resolve, reject ) {
 
+            // DEBUG:
+            resolve( 'ATokenForTestItIsNotReallyTokenJustForDebug' );
+            if ( true )
+                return;
+
             var url = baseurl + '/@login';
             var xhr = new XMLHttpRequest();
 
             xhr.onloadend = function( e ) {
-                // DEBUG:
-                resolve( 'ATokenForTestItIsNotReallyTokenJustForDebug' );
-                return;
-
                 if (xhr.status != 200) {
                     console.log( 'User login return ' + xhr.status + ' : ' + e );
                     reject( e );

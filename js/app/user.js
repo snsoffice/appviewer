@@ -1,4 +1,4 @@
-define( [ 'ifuture', 'config', 'restapi', 'utils' ], function ( ifuture, config, restapi, utils ) {
+define( [ 'ifuture', 'config', 'restapi', 'utils', 'app/dialog' ], function ( ifuture, config, restapi, utils, dialog ) {
 
     User = function ( app, opt_options ) {
 
@@ -6,6 +6,20 @@ define( [ 'ifuture', 'config', 'restapi', 'utils' ], function ( ifuture, config,
 
     }
     ifuture.inherits( User, ifuture.Component );
+
+    User.prototype.bindFutureEvent = function () {
+
+        this.app.on( 'login', function () {
+            dialog.login( this.login.bind( this ) );
+        }, this );
+
+        this.app.on( 'logout', this.logout, this );
+
+        this.app.on( 'signup', function () {
+            dialog.signup( this.signup.bind( this ) );
+        }, this );
+
+    };
 
     User.prototype.login = function ( username, password ) {
 
@@ -22,12 +36,12 @@ define( [ 'ifuture', 'config', 'restapi', 'utils' ], function ( ifuture, config,
 
     User.prototype.logout = function () {
 
-        var app = this.app;
+        var scope = this;
         restapi.logout( config.loginToken ).then( function ( token ) {
             config.userId = null;
             config.userName = null;
             config.loginToken = null;
-            app.dispatchEvent( new ifuture.Event( 'user:logout' ) );
+            scope.dispatchEvent( new ifuture.Event( 'user:logout' ) );
         } ).catch( function ( e ) {
             utils.warning( '用户注销失败!' );
         } );
