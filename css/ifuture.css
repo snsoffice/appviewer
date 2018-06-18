@@ -375,6 +375,11 @@
 /* } */
 
 /* Fix Opera issue */
-/* button, button:hover, button:focus { */
-/*     outline: 0!important; */
-/* } */
+button, button:hover, button:focus {
+    outline: 0!important;
+}
+
+/* Fix Firefox issue */
+a, a:hover, a:focus {
+    outline: 0!important;
+}

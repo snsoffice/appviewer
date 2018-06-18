@@ -1,10 +1,15 @@
 define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( ifuture, config, restapi, utils, db, logger ) {
 
     var _SELECTOR = '.dx-finder';
-    var _SEARCH_FORM_SELECTOR = '.dx-searchform';
-    var _HOUSE_LIST_SELECTOR = '.dx-houselist';
     var _NAVBAR_BRAND_SELECTOR = '.navbar-brand';
-    var _SEARCH_BUTTON_SELECTOR = 'form.form-inline > button';
+    var _NAVBAR_SEARCH_SELECTOR = 'form.form-inline > button';
+
+    var _SEARCH_FORM_SELECTOR = '.dx-searchform';
+    var _LAST_SEARCH_SELECTOR = 'button:nth-of-type(1)';
+    var _SEARCH_BUTTON_SELECTOR = 'button:nth-of-type(2)';
+    var _CLEAR_SEARCH_SELECTOR = 'button:nth-of-type(3)';
+
+    var _HOUSE_LIST_SELECTOR = '.dx-houselist';
 
     var _SEARCH_FORM_TEMPLATE = '                                                                     \
         <form class="p-3 border">                                                                     \
@@ -54,7 +59,6 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
     var _HOUSE_ITEM_TEMPLATE = '                                                                       \
         <div class="card-deck mb-3 mx-auto dx-house-card">                                             \
           <div class="card mb-4 box-shadow">                                                           \
-            <img class="card-image-top" src="%IMAGE%" alt="房屋缩略图">                                \
             <div class="card-footer">%LOCATION%</div>                                                  \
             <div class="card-body">                                                                    \
               <h5 class="card-title"><a href="%URL%" class="text-primary">%TITLE%</a></h5>             \
@@ -76,7 +80,7 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
             app.dispatchEvent( new ifuture.Event( 'search:house' ) );
         }, false );
 
-        element.querySelector( _SEARCH_BUTTON_SELECTOR ).addEventListener( 'click', function ( e ) {
+        element.querySelector( _NAVBAR_SEARCH_SELECTOR ).addEventListener( 'click', function ( e ) {
             app.dispatchEvent( new ifuture.Event( 'show:searchform' ) );
         }, false );
 
@@ -185,13 +189,14 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
 
             scope.buildHouseList_( items );
             scope.showHouseList_();
+            scope._element.querySelector( _SEARCH_FORM_SELECTOR + ' ' + _LAST_SEARCH_SELECTOR ).style.visibility = 'visible';
 
         } ).catch( function ( err ) {
 
-            logger.logging( err );            
+            logger.logging( err );
 
         } ).then( function () {
-            
+
             scope.dispatchEvent( new ifuture.Event( 'hide:loader' ) );
 
         } );
@@ -217,7 +222,6 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
                 var metadata = '<li>' + item.house_area + '平方米</li><li>' + item.house_type + '</li>';
                 var url = item[ '@id' ];
                 arr.push( _HOUSE_ITEM_TEMPLATE
-                          .replace( '%IMAGE%', url + '/plan/plan_house.png' )
                           .replace( '%LOCATION%', item.house_location )
                           .replace( '%TITLE%', item.title )
                           .replace( '%URL%', url )
@@ -239,6 +243,24 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
 
         var searchform = this._element.querySelector( _SEARCH_FORM_SELECTOR );
         searchform.innerHTML = _SEARCH_FORM_TEMPLATE;
+
+        var scope = this;
+        searchform.querySelector( _LAST_SEARCH_SELECTOR ).addEventListener( 'click', function ( e ) {
+            e.preventDefault();
+            scope.showHouseList_();
+        }, false );
+
+        searchform.querySelector( _CLEAR_SEARCH_SELECTOR ).addEventListener( 'click', function ( e ) {
+            e.preventDefault();
+            Array.prototype.forEach.call( searchform.querySelectorAll( 'input' ), function ( input ) {
+                input.value = '';
+            } );
+        }, false );
+
+        searchform.querySelector( _SEARCH_BUTTON_SELECTOR ).addEventListener( 'click', function ( e ) {
+            e.preventDefault();
+            scope.searchHouse_();
+        }, false );
 
     };
 
