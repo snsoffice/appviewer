@@ -288,9 +288,9 @@ public class HomeMapOptionalExporter extends PlanComponent {
     public void writeHome(OutputStreamWriter writer, Home home) throws IOException {
         Rectangle2D itemBounds = getItemsBounds(getGraphics(), getSelectableViewableItems(home));
 
-        File tempPlanFile = OperatingSystem.createTemporaryFile("plan_house", ".png"); 
+        File tempPlanFile = OperatingSystem.createTemporaryFile("plane_house", ".png"); 
         float planScale = 1 / this.resolution / 100;
-        String planFilename = "views/plan/plan_house.png";
+        String planFilename = "views/plane/plane_house.png";
         String imageType = "PNG";
         System.out.printf("输出缩放比例为 %f 的平面图到 %s%n", planScale, planFilename);
         exportToPNG(home, tempPlanFile.getAbsolutePath(), planScale, imageType);
