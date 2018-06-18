@@ -15,8 +15,8 @@
     position: absolute;
     right: 2px;
     bottom: 2px;
-    width: 240px;
-    height: 180px;
+    width: 200px;
+    height: 150px;
 
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -40,6 +40,24 @@
     right: 0;
     top: 0;
     z-index: 20;
+}
+
+.dx-view-tool {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 20;
+}
+
+.dx-photo-list {
+    max-width: 100%;
+    height: 160px;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.dx-galary {
+    max-width: 100%;
 }
 
 /*
@@ -329,6 +347,18 @@
 }
 
 #vision .carousel-item button.btn-outline-secondary.active {
+    background-color: #6c757d;
+}
+
+.dx-view-tool button.btn-outline-secondary {
+    background-color: transparent;
+}
+
+.dx-view-tool button.btn-outline-secondary {
+    box-shadow: none;
+}
+
+.dx-view-tool button.btn-outline-secondary.active {
     background-color: #6c757d;
 }
 
