@@ -340,7 +340,7 @@ public class HomeMapOptionalExporter extends PlanComponent {
 
         writer.write(String.format("%s{%n%s\"type\": \"plane\",%n" +
                                    "%s\"extent\": [ %f, %f, %f, %f ],%n" +
-                                   "%s\"source\": \"plan_house.png\"%n" +
+                                   "%s\"source\": \"plane_house.png\"%n" +
                                    "%s},%n",
                                    indent2, indent3, indent3,
                                    x0, y0, x1, y1,
