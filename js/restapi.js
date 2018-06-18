@@ -325,6 +325,7 @@ define( [ 'config', 'utils' ], function ( config, utils ) {
             xhr.onloadend = function( e ) {
                 // DEBUG: for local debug
                 resolve( {
+                    items_total: 3,
                     items: [
                         {
                             '@id': '/data/villages/greenland/building/1701',

@@ -1,5 +1,5 @@
-define( [ 'ifuture', 'config', 'restapi', 'logger'
-          'user', 'finder', 'house',
+define( [ 'ifuture', 'config', 'restapi', 'logger',
+          'app/user', 'app/finder', 'app/house',
           'app/loader', 'app/communicator' ],
 
 function( ifuture, config, restapi, logger,
@@ -53,24 +53,44 @@ function( ifuture, config, restapi, logger,
         this.loader = new Loader( this, opt_options );
         this.communicator = new Communicator( this, opt_options );
 
-        this.bindEvent();
-        this.user.bindEvent();
-        this.finder.bindEvent();
-        this.house.bindEvent();
-        this.loader.bindEvent();
-        this.communicator.bindEvent();
+        this.bindFutureEvent();
+        this.user.bindFutureEvent();
+        this.finder.bindFutureEvent();
+        this.house.bindFutureEvent();
+        this.loader.bindFutureEvent();
+        this.communicator.bindFutureEvent();
     };
     ifuture.inherits( Application, ifuture.Component );
 
+    /**
+     *
+     * 同步请求函数，用于一个组件同步调用另外一个组件的方法
+     *
+     * @api
+     */
+    Application.prototype.request = function ( name, action, arguments ) {
+
+        if ( typeof name !== 'string' || typeof action !== 'string' || action.substring(0, 1) === '_' )
+            return null;
+
+        var component = this.hasOwnProperty( name ) ? this[ name ] : null;
+
+        if ( component && typeof component[ action ] === 'function' ) {
+            if ( !! arguments && ! ( arguments instanceof Array ) )
+                arguments = [ arguments ];
+            return component[ action ].apply( component, arguments );
+        }
+
+    };
 
     /**
      *
      * 启动应用程序
      *
      * @api
-     */    
+     */
     Application.prototype.run = function () {
-        var options = configFromURL();
+        this.finder.startup();
     };
 
     /**
@@ -78,22 +98,35 @@ function( ifuture, config, restapi, logger,
      * 绑定需要处理的所有事件
      *
      * @api
-     */    
-    Application.prototype.bindEvent = function () {
+     */
+    Application.prototype.bindFutureEvent = function () {
 
         // window.addEventListener('unload', this.handleUnload.bind( this ), false);
         // window.addEventListener( 'online', this.handleOnline.bind( this ), false );
         // window.addEventListener( 'offline', this.handleOffline.bind( this ), false );
-
-        this.on( '', this.handle
+        this.on( 'finder:ready', this.onStartup_, this );
 
     };
 
-    // $( document ).ready( function () {
-    //     document.getElementById( 'loader' ).style.display = 'none';
-    //     document.querySelector( '.dx-splash' ).style.display = 'none';
-    //     document.querySelector( '.dx-finder' ).style.display = 'block';
-    // } );
+    /**
+     *
+     * 应用启动之后根据选项
+     *
+     * @private
+     */
+    Application.prototype.onStartup_ = function () {
+
+        document.querySelector( '.dx-splash' ).style.display = 'none';
+
+        var options = configFromURL();
+        if ( options[ HOUSE_URL ] ) {
+            this.dispatchEvent( new ifuture.Event( 'open:house', options[ HOUSE_URL ] ) );
+        }
+        else {
+            this.dispatchEvent( new ifuture.Event( 'search:house' ) );
+        }
+
+    };
 
     return Application;
 

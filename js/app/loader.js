@@ -8,29 +8,22 @@ function( ifuture ) {
 
         ifuture.Component.call( this, app );
 
-        var element = document.getElementById( _ID );
-        this._element = element;
+        this._element = document.getElementById( _ID );
 
     }
     ifuture.inherits( Loader, ifuture.Component );
 
     /**
      *
-     * 事件处理程序，相对于对外部的所有接口，可以响应的外部事件
+     * 事件绑定程序，相对于对外部的所有接口，可以响应的外部事件
      *
-     * @param {ifuture.Event} event 事件对象
      * @observable
      * @api
      */
-    Loader.prototype.handleFutureEvent = function ( event ) {
-        
-        if ( event.type === 'loader:show' ) {
-            this.show( event.argument );
-        }
+    Loader.prototype.bindFutureEvent = function () {
 
-        else if ( event.type === 'loader:hide' ) {
-            this.hide();
-        }
+        this.app.on( 'show:loader', this.show, this );
+        this.app.on( 'hide:loader', this.hide, this );
 
     };
 
@@ -43,7 +36,7 @@ function( ifuture ) {
      */
     Loader.prototype.show = function ( msg ) {
         this._element.style.display = 'flex';
-        this._element.querySelector( 'SPAN' ).textContent = msg === undefined ? '' : msg;
+        this._element.querySelector( 'SPAN' ).textContent = typeof msg === 'string' ? msg : '';
     }
 
     /**

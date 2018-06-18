@@ -101,6 +101,9 @@ define( [ 'ol' ], function ( ol ) {
         ol.Object.prototype.dispatchEvent.call( this.app === undefined ? this : this.app, e );
     };
 
+    Component.prototype.bindFutureEvent = function () {
+    };
+
     return {
         Event: Event,
         Component: Component,

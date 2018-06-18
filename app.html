@@ -16,14 +16,12 @@
           height: 100%;
           background-color: #f8f9fa !important;
       }
-
     </style>
 
     <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
     <link rel="stylesheet" href="css/fa-svg-with-js.css" type="text/css" />
     <link rel="stylesheet" href="css/ifuture.css" type="text/css" />
 
-    <script data-main="app" src="js/lib/require.js"></script>
   </head>
 
   <body>
@@ -36,7 +34,7 @@
       </div>
     </div>
 
-    <div id="finder" class="dx-finder">
+    <div class="dx-finder" style="display: none">
 
       <nav class="navbar fixed-top navbar-dark bg-dark">
 
@@ -50,7 +48,7 @@
                 data-target="#menu-finder" aria-controls="menu-finder" aria-expanded="false" aria-label="Toggle menu">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="menu-finder">
+        <div class="collapse navbar-collapse">
           <div class="navbar-nav">
             <a class="nav-item nav-link" href="#">注册</a>
             <a class="nav-item nav-link" href="#">登录</a>
@@ -62,66 +60,8 @@
 
       </nav>
 
-      <div id="find-conditions" class="dx-tab d-none">
-        <form class="p-3 border">
-          <div class="form-group form-row">
-            <label for="select-house-scope" class="col-2 col-form-label">空间</label>
-            <div class="col-10">
-              <select class="form-control" id="select-house-scope">
-                <option value="public">公共空间</option>
-                <option value="private">我的空间</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group form-row">
-            <label for="inputVillage" class="col-2 col-form-label">小区</label>
-            <div class="col-10">
-              <input type="text" class="form-control" id="inputVillage" placeholder="小区名称">
-            </div>
-          </div>
-          <div class="form-group form-row">
-            <label for="inputHouseType" class="col-2 col-form-label">户型</label>
-            <div class="col-10">
-              <input type="text" class="form-control" id="inputHouseType" placeholder="户型">
-            </div>
-          </div>
-          <div class="form-group form-row">
-            <label for="inputHouseArea1" class="col-2 col-form-label">面积</label>
-            <div class="col-5">
-              <input type="text" class="form-control" id="inputHouseArea1" placeholder="最小值">
-            </div>
-            <div class="col-5">
-              <input type="text" class="form-control" id="inputHouseArea2" placeholder="最大值">
-            </div>
-          </div>
-          <button type="text" class="btn btn-link">上次搜索结果</button>
-          <button type="text" class="btn btn-primary float-right">搜索</button>
-          <button type="text" class="btn btn-primary mx-3 float-right">清空</button>
-        </form>
-      </div>
-
-      <div id="houses" class="dx-tab text-center">
-        <div class="px-3 py-3 pt-md-5 pb-md-4">
-          <div class="card-group">
-            <div class="card-deck mb-3 mx-auto dx-house-card">
-              <div class="card mb-4 box-shadow">
-                <img class="card-image-top" src="images/house-s2.jpg" alt="房屋缩略图">
-                <div class="card-footer">绿地世纪城A区 - 11号楼</div>
-                <div class="card-body">
-                  <h5 class="card-title"><a href="#" class="text-primary">1单元1701</a></h5>
-                  <ul class="list-unstyled text-muted">                   
-                    <li>一室两厅</li>
-                    <li>69.56平方米</li>
-                  </ul>
-                  <p class="card-text text-right"><small class="text-muted">来自 zhaojunde 的空间</small></p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <button type="text" class="btn btn-link">装载更多...</button>
-
-      </div>
+      <div class="dx-tab dx-searchform bg-light" style="display: none">搜索条件</div>
+      <div class="dx-tab text-center dx-houselist bg-light" style="display: none">房子列表</div>
 
     </div>
 
@@ -132,151 +72,7 @@
       <span class="text-muted"></span>
     </div>
 
-    <div id="viewer" class="dx-viewer d-none">
-
-      <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-dark">
-
-        <a class="navbar-brand" href="#"><i class="fas fa-arrow-left"></i>&nbsp;远景看房</a>
-
-        <span class="navbar-text mx-auto d-md-none .d-lg-block">视图名称</span>
-
-        <!-- <form class="form-inline"> -->
-        <!--   <button class="btn btn-outline-secondary" type="button"><i class="fas fa-bars fa-lg"></i></button> -->
-        <!-- </form> -->
-
-        <button class="navbar-toggler" type="button" data-toggle="collapse"
-                data-target="#menu-viewer" aria-controls="menu-viewer" aria-expanded="false" aria-label="Toggle menu">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="menu-viewer">
-          <div class="navbar-nav ml-auto">
-            <a class="nav-item nav-link" href="#">基本信息</a>
-            <a class="nav-item nav-link" href="#">房屋结构</a>
-            <a class="nav-item nav-link" href="#">照片全景</a>
-            <a class="nav-item nav-link" href="#">地理位置</a>
-            <a class="nav-item nav-link" href="#">周边环境</a>
-            <a class="nav-item nav-link" href="#">直播看房</a>
-          </div>
-        </div>
-
-      </nav>
-
-      <div id="house-basic" class="dx-tab bg-secondary ">
-        <div class="card m-3">
-          <div class="card-header">绿地世纪城A区 - 11号楼</div>
-          <div class="card-body">
-            <dl>
-              <dt>房号</dt>
-              <dd>1单元1701</dd>
-              <dt>户型</dt>
-              <dd>一室两厅</dd>
-              <dt>楼层</dt>
-              <dd>17</dd>
-              <dt>创建时间</dt>
-              <dd>2008月12月20日</dd>
-              <dt>描述</dt>
-              <dd>这是我的房子</dd>
-            </dl>
-          </div>
-        </div>
-      </div>
-
-      <div id="house-view" class="dx-tab bg-secondary ">
-        <div class="d-flex h-100 justify-content-center align-items-center">
-          <img src="data/test/1701/views/plan/plan_house.png" class="img-fluid mh-100 mw-100 p-1" alt="House Plan">
-        </div>
-         <ol class="carousel-indicators">
-           <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
-           <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
-           <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
-         </ol>
-      </div>
-
-      <div id="house-photo" class="dx-tab bg-secondary">
-        <div class="w-100 h-100">
-          <img src="data/test/1701/panorama/bedroom.jpg" class="img-fluid h-100 w-100" alt="Panorama">
-        </div>
-         <div class="dx-view-tool mx-3 mb-2">
-           <button class="btn btn-sm btn-outline-secondary border-0 rounded-circle mr-2" data-toggle="mini" type="button">
-             <i class="far fa-map fa-lg"></i>
-           </button>
-           <button class="btn btn-sm btn-outline-secondary border-0 rounded-circle mr-2" data-toggle="modal" data-target="#house-galary-dialog" type="button">
-             <i class="far fa-images fa-lg"></i>
-           </button>
-         </div>
-         <div class="dx-mini">
-           <div class="d-flex h-100 justify-content-center align-items-center">
-             <img src="data/test/1701/views/plan/plan_house.png" class="img-fluid mh-100 mw-100 p-1" alt="House Plan">
-           </div>
-         </div>
-
-         <div class="modal fade" id="house-galary-dialog" tabindex="-1" role="dialog" aria-hidden="true">
-           <div class="modal-dialog modal-dialog-centered dx-galary" role="document">
-             <div class="modal-content bg-light">
-               <!-- <div class="modal-header"> -->
-               <!--   <h5 class="modal-title" id="house-galary-title">相册</h5> -->
-               <!--   <button type="button" class="close" data-dismiss="modal" aria-label="Close"> -->
-               <!--     <span aria-hidden="true">&times;</span> -->
-               <!--   </button> -->
-               <!-- </div> -->
-               <div class="dx-photo-list">
-                 <div class="d-flex h-100">
-                   <img class="img-fluid p-1" src="images/house-s2.jpg">
-                   <img class="img-fluid p-1" src="images/house-s2.jpg">
-                   <img class="img-fluid p-1" src="images/house-s2.jpg">
-                 </div>
-               </div>
-             </div>
-           </div>
-         </div>
-
-      </div>
-
-      <div id="house-location" class="dx-tab bg-secondary ">
-        <div class="dx-map w-100 h-100">
-        </div>
-        <ol class="carousel-indicators">
-          <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
-          <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
-          <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
-        </ol>
-      </div>
-
-      <div id="house-context" class="dx-tab bg-light ">
-        <div class="dx-map w-100 h-100">
-        </div>
-         <div class="dx-mini">           
-           <div class="dx-overview w-100 h-100 bg-info">
-           </div>
-         </div>
-         <div class="dx-view-tool mx-3 mb-2">
-           <button class="btn btn-sm btn-outline-secondary border-0 rounded-circle mr-2" data-toggle="mini" type="button">
-             <i class="far fa-map fa-lg"></i>
-           </button>
-           <button class="btn btn-sm btn-outline-secondary border-0 rounded-circle mr-2" data-toggle="mini" type="button">
-             <i class="fas fa-th fa-lg"></i>
-           </button>
-         </div>
-      </div>
-
-      <div id="house-living" class="dx-tab ">
-        <div class="dx-video w-100 h-100">
-        </div>
-         <div class="dx-mini">           
-           <div class="dx-overview w-100 h-100 bg-info">
-           </div>
-         </div>
-         <div class="dx-view-tool mx-3 mb-2">
-           <button class="btn btn-sm btn-outline-secondary border-0 rounded-circle mr-2" data-toggle="mini" type="button">
-             <i class="far fa-map fa-lg"></i>
-           </button>
-           <button class="btn btn-sm btn-outline-secondary border-0 rounded-circle mr-2" data-toggle="mini" type="button">
-             <i class="far fa-window-close fa-lg"></i>
-           </button>
-         </div>
-      </div>
-
-    </div>
+    <script data-main="app" src="js/lib/require.js"></script>
 
   </body>
 </html>
