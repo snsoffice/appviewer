@@ -194,11 +194,11 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
         this.app.on( 'show:searchform', this.showSearchForm_, this );
         this.app.on( [ 'user:login', 'user:logout' ], this.resetMenuitems_, this );
 
-        this.app.on( 'open:house', function () {
+        this.app.on( 'house:opened', function () {
             this.hide_();
         }, this );
 
-        this.app.on( 'close:house', function () {
+        this.app.on( 'house:closed', function () {
             this.show_();
         }, this );
 

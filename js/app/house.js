@@ -1,16 +1,20 @@
-define( [ 'ifuture', 'config', 'restapi' ], function ( ifuture, config, restapi ) {
+define( [ 'ifuture', 'config', 'restapi',
+          'app/plugins/info', 'app/plugins/frame', 'app/plugins/photo',
+          'app/plugins/location', 'app/plugins/outer', 'app/plugins/panel' ],
+function ( ifuture, config, restapi,
+           HouseInfo, HouseFrame, HousePhoto, HouseLocation, HouseFeature, HousePanel ) {
 
     var _SELECTOR = '.dx-viewer';
 
     var _NAVBAR_BRAND_SELECTOR = '.navbar-brand';
     var _NAVBAR_TITLE_SELECTOR = 'nav.navbar > span.navbar-text';
     var _NAVBAR_MENU_SELECTOR = '.navbar-collapse.collapse';
-    var _NAVBAR_BASIC_SELECTOR = '.navbar-nav > a:nth-of-type(1)';
-    var _NAVBAR_VIEW_SELECTOR = '.navbar-nav > a:nth-of-type(2)';
+    var _NAVBAR_INFO_SELECTOR = '.navbar-nav > a:nth-of-type(1)';
+    var _NAVBAR_FRAME_SELECTOR = '.navbar-nav > a:nth-of-type(2)';
     var _NAVBAR_PHOTO_SELECTOR = '.navbar-nav > a:nth-of-type(3)';
     var _NAVBAR_LOCATION_SELECTOR = '.navbar-nav > a:nth-of-type(4)';
-    var _NAVBAR_CONTEXT_SELECTOR = '.navbar-nav > a:nth-of-type(5)';
-    var _NAVBAR_LIVING_SELECTOR = '.navbar-nav > a:nth-of-type(6)';
+    var _NAVBAR_FEATURE_SELECTOR = '.navbar-nav > a:nth-of-type(5)';
+    var _NAVBAR_PANEL_SELECTOR = '.navbar-nav > a:nth-of-type(6)';
 
     var _TEMPLATE = '                                                                            \
         <div id="viewer" class="dx-viewer">                                                      \
@@ -23,7 +27,7 @@ define( [ 'ifuture', 'config', 'restapi' ], function ( ifuture, config, restapi 
               <span class="navbar-toggler-icon"></span>                                          \
             </button>                                                                            \
             <div class="collapse navbar-collapse" id="menu-viewer">                              \
-              <div class="navbar-nav ml-auto text-center">                                                   \
+              <div class="navbar-nav ml-auto text-center">                                       \
                 <a class="nav-item nav-link" href="#">基本信息</a>                               \
                 <a class="nav-item nav-link" href="#">房屋结构</a>                               \
                 <a class="nav-item nav-link" href="#">照片全景</a>                               \
@@ -45,6 +49,28 @@ define( [ 'ifuture', 'config', 'restapi' ], function ( ifuture, config, restapi 
          * @type {HTMLDivElement}
          */
         this._element = null;
+
+        /**
+         * 当前打开房子的地址
+         * @private
+         * @type {String}
+         */
+        this._url = null;
+
+        /**
+         * 所有的视图
+         * @private
+         * @type {Object}
+         */
+        this._views = {
+            current: null,
+            info: new HouseInfo( app ),
+            frame: new HouseFrame( app ),
+            location: new HouseLocation( app ),
+            photo: new HousePhoto( app ),
+            feature: new HouseFeature( app ),
+            panel: new HousePanel( app ),
+        };
 
     }
     ifuture.inherits( House, ifuture.Component );
@@ -69,7 +95,7 @@ define( [ 'ifuture', 'config', 'restapi' ], function ( ifuture, config, restapi 
         }, this );
 
         this.app.on( 'close:house', function ( e ) {
-            this.hide_();
+            this.closeHouse_();
         }, this );
 
     };
@@ -99,6 +125,24 @@ define( [ 'ifuture', 'config', 'restapi' ], function ( ifuture, config, restapi 
      */
     House.prototype.openHouse_ = function ( url ) {
 
+        if ( this._url === url ) {
+            scope.dispatchEvent( new ifuture.Event( 'house:opened' ) );
+            return;
+        }
+
+        this._url = url;
+        scope.dispatchEvent( new ifuture.Event( 'house:opened' ) );
+
+    };
+
+    /**
+     * 关闭房子
+     *
+     * @private
+     */
+    House.prototype.closeHouse_ = function ( url ) {
+        this.hide_();
+        scope.dispatchEvent( new ifuture.Event( 'house:closed' ) );
     };
 
     /**
@@ -124,12 +168,12 @@ define( [ 'ifuture', 'config', 'restapi' ], function ( ifuture, config, restapi 
             e.currentTarget.classList.remove( 'show' );
         }, false );
 
-        element.querySelector( _NAVBAR_BASIC_SELECTOR ).addEventListener( 'click', function ( e ) {
-            scope.showBasic_( e.currentTarget.textContent );
+        element.querySelector( _NAVBAR_INFO_SELECTOR ).addEventListener( 'click', function ( e ) {
+            scope.showInfo_( e.currentTarget.textContent );
         }, false );
 
-        element.querySelector( _NAVBAR_VIEW_SELECTOR ).addEventListener( 'click', function ( e ) {
-            scope.showView_( e.currentTarget.textContent );
+        element.querySelector( _NAVBAR_FRAME_SELECTOR ).addEventListener( 'click', function ( e ) {
+            scope.showFrame_( e.currentTarget.textContent );
         }, false );
 
         element.querySelector( _NAVBAR_PHOTO_SELECTOR ).addEventListener( 'click', function ( e ) {
@@ -140,12 +184,12 @@ define( [ 'ifuture', 'config', 'restapi' ], function ( ifuture, config, restapi 
             scope.showLocation_( e.currentTarget.textContent );
         }, false );
 
-        element.querySelector( _NAVBAR_CONTEXT_SELECTOR ).addEventListener( 'click', function ( e ) {
-            scope.showContext_( e.currentTarget.textContent );
+        element.querySelector( _NAVBAR_FEATURE_SELECTOR ).addEventListener( 'click', function ( e ) {
+            scope.showFeature_( e.currentTarget.textContent );
         }, false );
 
-        element.querySelector( _NAVBAR_LIVING_SELECTOR ).addEventListener( 'click', function ( e ) {
-            scope.showLiving_( e.currentTarget.textContent );
+        element.querySelector( _NAVBAR_PANEL_SELECTOR ).addEventListener( 'click', function ( e ) {
+            scope.showPanel_( e.currentTarget.textContent );
         }, false );
 
         this._element = element;
@@ -157,7 +201,60 @@ define( [ 'ifuture', 'config', 'restapi' ], function ( ifuture, config, restapi 
      *
      * @private
      */
-    House.prototype.showBasic_ = function ( title ) {
+    House.prototype.showInfo_ = function ( title ) {
+
+        if ( this._views.current === this._views.info )
+            return;
+        if ( this._views.current !== null )
+            this._views.current.hide();
+
+        this._element.querySelector( _NAVBAR_TITLE_SELECTOR ).textContent = title;
+        this._views.show( this._url );
+
+    };
+
+    /**
+     * 显示房屋结构图片
+     *
+     * @private
+     */
+    House.prototype.showView_ = function ( title ) {
+        this._element.querySelector( _NAVBAR_TITLE_SELECTOR ).textContent = title;
+    };
+
+    /**
+     * 显示房屋照片全景
+     *
+     * @private
+     */
+    House.prototype.showPhoto_ = function ( title ) {
+        this._element.querySelector( _NAVBAR_TITLE_SELECTOR ).textContent = title;
+    };
+
+    /**
+     * 显示房屋地理位置
+     *
+     * @private
+     */
+    House.prototype.showLocation_ = function ( title ) {
+        this._element.querySelector( _NAVBAR_TITLE_SELECTOR ).textContent = title;
+    };
+
+    /**
+     * 显示房屋周边环境
+     *
+     * @private
+     */
+    House.prototype.showContext_ = function ( title ) {
+        this._element.querySelector( _NAVBAR_TITLE_SELECTOR ).textContent = title;
+    };
+
+    /**
+     * 显示房屋直播窗口
+     *
+     * @private
+     */
+    House.prototype.showPanel_ = function ( title ) {
         this._element.querySelector( _NAVBAR_TITLE_SELECTOR ).textContent = title;
     };
 
