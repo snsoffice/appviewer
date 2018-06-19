@@ -58,6 +58,8 @@ function( ifuture, config, restapi, logger, utils,
      * @api
      */
     Application.prototype.run = function () {
+        if ( config.userId !== null )
+            this.dispatchEvent( new ifuture.Event( 'user:login' ) );
         this.finder.startup();
     };
 

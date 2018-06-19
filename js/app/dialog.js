@@ -1,5 +1,24 @@
 define( [ 'ifuture', 'jquery', 'db', 'config' ], function ( ifuture, $, db, config ) {
 
+    function createDialog( template ) {
+
+        Array.prototype.forEach.call( document.querySelectorAll( '.dx-modal-container' ), function ( dialog ) {
+            document.body.removeChild( dialog );
+        } );
+
+        // <div class="modal fade dx-modal-container" tabindex="-1" role="dialog" aria-hidden="true">
+        var element = document.createElement( 'DIV' );
+        element.className = 'modal fade dx-modal-container';
+        element.setAttribute( 'tabindex', '-1' );
+        element.setAttribute( 'role', 'dialog' );
+        element.setAttribute( 'aria-hidden', 'true' );
+        element.innerHTML = template;
+        document.body.appendChild( element );
+
+        return element
+
+    }
+
     var login = function ( callback ) {
         var html =
             '<div class="modal fade dx-modal-container" tabindex="-1" role="dialog" aria-hidden="true">' +
@@ -118,10 +137,54 @@ define( [ 'ifuture', 'jquery', 'db', 'config' ], function ( ifuture, $, db, conf
         $( dialog ).modal( 'show' );
     };
 
+    var info = function ( msg ) {
+
+        var template = '                                                        \
+            <div class="modal-dialog modal-dialog-centered" role="document">    \
+              <div class="modal-content text-center py-2 bg-warning text-dark"> \
+                %MESSAGE%                                                       \
+              </div>                                                            \
+            </div>';
+
+        var dialog = createDialog( template.replace( '%MESSAGE%', msg ) );
+        $( dialog ).modal( 'show' );
+
+    };
+
+    var warning = function ( msg ) {
+
+        var template = '                                                        \
+            <div class="modal-dialog modal-dialog-centered" role="document">    \
+              <div class="modal-content text-center py-2 bg-warning text-dark"> \
+                %MESSAGE%                                                       \
+              </div>                                                            \
+            </div>';
+
+        var dialog = createDialog( template.replace( '%MESSAGE%', msg ) );
+        $( dialog ).modal( 'show' );
+
+    };
+
+    var askfor = function ( msg ) {
+
+        var template = '                                                     \
+            <div class="modal-dialog modal-dialog-centered" role="document"> \
+              <div class="modal-content text-center py-2 bg-warning">        \
+                %MESSAGE%                                                    \
+              </div>                                                         \
+            </div>';
+
+        var dialog = createDialog( template.replace( '%MESSAGE%', msg ) );
+        $( dialog ).modal( 'show' );
+
+    };
 
     return {
         login: login,
         signup: signup,
+        askfor: askfor,
+        info: info,
+        warning: warning,
     };
 
 } );

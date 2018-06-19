@@ -1,4 +1,4 @@
-define( [ 'ifuture', 'config', 'utils' ], function ( ifuture, config, utils ) {
+define( [ 'ifuture', 'config', 'utils', 'app/dialog' ], function ( ifuture, config, utils, dialog ) {
 
     var _TEMPLATE = '                                                                 \
         <div data-view="panel" class="dx-tab bg-light ">                              \
@@ -22,8 +22,8 @@ define( [ 'ifuture', 'config', 'utils' ], function ( ifuture, config, utils ) {
           </form>                                                                     \
         </div>';
 
-    var _WATCH_BUTTON_SELECTOR = 'button:nth-of-type(1)';
-    var _START_BUTTON_SELECTOR = 'button:nth-of-type(2)';
+    var _WATCH_BUTTON_SELECTOR = 'div.border-bottom:nth-of-type(1) > button';
+    var _START_BUTTON_SELECTOR = 'div.border-bottom:nth-of-type(2) > button';
     var _COPY_BUTTON_SELECTOR = 'form button:nth-of-type(1)';
     var _CALL_BUTTON_SELECTOR = 'form button:nth-of-type(2)';
     var _URL_INPUT_SELECTOR = 'form input:nth-of-type(1)';
@@ -116,6 +116,7 @@ define( [ 'ifuture', 'config', 'utils' ], function ( ifuture, config, utils ) {
      * @private
      */
     View.prototype.buildView_ = function () {
+
         var element = document.createElement( 'DIV' );
         element.innerHTML = _TEMPLATE;
         element = element.firstElementChild;
@@ -140,6 +141,7 @@ define( [ 'ifuture', 'config', 'utils' ], function ( ifuture, config, utils ) {
         }, false );
 
         this._element = element;
+
     };
 
     /**
@@ -158,6 +160,7 @@ define( [ 'ifuture', 'config', 'utils' ], function ( ifuture, config, utils ) {
     View.prototype.startLiving_ = function () {
 
         if ( config.userId === null ) {
+            dialog.info( '只有登录之后才可以进行直播' );
             return ;
         }
 
@@ -192,6 +195,7 @@ define( [ 'ifuture', 'config', 'utils' ], function ( ifuture, config, utils ) {
     View.prototype.inviteFriend_ = function () {
 
         if ( config.userId === null ) {
+            dialog.info( '只有登录之后才可以邀请朋友' );
             return ;
         }
 
