@@ -1,6 +1,9 @@
 define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, logger, ol ) {
 
     var _SELECTOR = '.dx-screen';
+    var _CLOSE_BUTTON_SELECTOR = '.dx-toolbar button:nth-of-type(1)';
+    var _HANGUP_BUTTON_SELECTOR = '.dx-toolbar button:nth-of-type(2)';
+
     var _VIDEO_TEMPLATE = '<video autoplay="autoplay" class="w-100 h-100"></video>';
 
     var _LOCATION_MARKER_URL = 'images/location_marker.png';
@@ -15,7 +18,12 @@ define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, log
 
         ifuture.Component.call( this, app );
 
-        var element =
+        /**
+         *
+         * @private
+         * @type {HTMLDivElement}
+         */
+        this._element = document.querySelector( _SELECTOR );
 
         /**
          * 当前对应房子的地址
@@ -23,13 +31,6 @@ define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, log
          * @type {String}
          */
         this._url = null;
-
-        /**
-         *
-         * @private
-         * @type {HTMLDivElement}
-         */
-        this._element = document.querySelector( _SELECTOR );
 
         /**
          * 视频对象
@@ -64,11 +65,6 @@ define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, log
          */
         this._sensor = new ol.Geolocation();
 
-        // DEBUG:
-        this._sensor.on( 'error', function () {
-            logger.log( 'geolocation error' );
-        } );
-
     }
     ifuture.inherits( Screen, ifuture.Component );
 
@@ -83,13 +79,41 @@ define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, log
 
         this.app.on( 'open:screen', function ( e ) {
             var arg = e.argument;
-            this.openScreen_( arg.url, arg.views, arg.callee );
+            this.openScreen_( arg.url, arg.view, arg.callee );
+        }, this );
+
+        this.app.on( 'screen:opend', function ( e ) {
+            this._element.style.display = 'block';
+        }, this );
+
+        this.app.on( 'screen:closed', function ( e ) {
+            this._element.style.display = 'none';
         }, this );
 
         this.app.on( 'change:anchor', function ( e ) {
             var arg = e.argument;
             this.changeMarker_( arg.name, arg.coordinate, arg.direction );
         }, this );
+
+        this.app.on( 'living:started', function ( e ) {
+            this._element.querySelector( _CLOSE_BUTTON_SELECTOR ).style.display = 'none';
+            this._element.querySelector( _HANGUP_BUTTON_SELECTOR ).style.display = 'block';
+        }, this );
+
+        // 内部事件绑定
+        var scope = this;
+
+        this._sensor.on( 'error', function () {
+            logger.log( 'geolocation error' );
+        } );
+
+        this._element.querySelector( _CLOSE_BUTTON_SELECTOR ).addEventListener( 'click', function ( e ) {
+            scope.closeScreen_();
+        }, false );
+
+        this._element.querySelector( _HANGUP_BUTTON_SELECTOR ).addEventListener( 'click', function ( e ) {
+            scope.hangup_();
+        }, false );
 
     };
 
@@ -98,7 +122,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, log
      *
      * @private
      */
-    Screen.prototype.openScreen_ = function ( url, views, callee ) {
+    Screen.prototype.openScreen_ = function ( url, view, callee ) {
 
         if ( this._map === null )
             this.initMap_();
@@ -106,8 +130,11 @@ define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, log
         if ( this._video === null )
             this.initVideo_();
 
-        if ( url !== this._url ) {
-            this.buildHouseMap_( views );
+        if ( this._url === url ) {
+            this.dispatchEvent( new ifuture.Event( 'screen:opened' ) );
+        }
+        else {
+            this.buildHouseMap_( view );
             this._url = url;
         }
 
@@ -137,6 +164,26 @@ define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, log
             this.dispatchEvent( new ifutre.Event( 'watch:living', argument ) );
         }
 
+    };
+
+    /**
+     * 关闭直播视频，还没有开始通话
+     *
+     * @private
+     */
+    Screen.prototype.closeScreen_ = function () {
+        this.dispatchEvent( new ifuture.Event( 'screen:closed' ) );
+    };
+
+    /**
+     * 挂断直播视频，正在直播的过程中
+     *
+     * @private
+     */
+    Screen.prototype.hangup_ = function () {
+        this._element.querySelector( _CLOSE_BUTTON_SELECTOR ).style.display = 'block';
+        this._element.querySelector( _HANGUP_BUTTON_SELECTOR ).style.display = 'none';
+        this.closeScreen_();
     };
 
     /**
@@ -220,14 +267,22 @@ define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, log
         this.map.setLayerGroup( new ol.layer.Group( { layers: [ layer ] } ) );
 
         source.on( 'propertychange', function ( e ) {
+
             if ( key === 'state' ) {
+
                 switch ( e.target.getState() ) {
+
+                    case 'ready':
+                    this.dispatchEvent( new ifuture.Event( 'screen:opened' ) );
+                    break;
+
                     case 'error':
                     break;
-                    case 'ready':
-                    break;
+
                 }
+
             }
+
         }, this );
 
 
@@ -267,8 +322,8 @@ define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, log
         var marker = this._map.getOverlayById( _MARKER_ID );
         var element = marker.getElement();
 
-        var direction = this._sensor.getHeading();        
-        if ( direction === undefined ) {          
+        var direction = this._sensor.getHeading();
+        if ( direction === undefined ) {
             this._direction = false;
             logger.log( 'Sensor can not get heading' );
             return;
