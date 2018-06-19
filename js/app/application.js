@@ -1,48 +1,14 @@
-define( [ 'ifuture', 'config', 'restapi', 'logger',
+define( [ 'ifuture', 'config', 'restapi', 'logger', 'utils',
           'app/user', 'app/finder', 'app/house',
           'app/loader', 'app/screen', 'app/communicator' ],
 
-function( ifuture, config, restapi, logger,
+function( ifuture, config, restapi, logger, utils,
           User, Finder, House,
           Loader, LivingBox, Communicator ) {
 
-    var HOUSE_URL = 'houseUrl';
-    var HOUSE_TOKEN = 'houseToken';
-    var configFromURL = function () {
-
-        var url;
-        if (window.location.hash.length > 0) {
-            // Prefered method since parameters aren't sent to server
-            url = [window.location.hash.slice(1)];
-        } else {
-            url = decodeURI(window.location.href).split('?');
-            url.shift();
-        }
-        if (url.length < 1) {
-            return {};
-        }
-        url = url[0].split('&');
-
-        var options = {};
-        for (var i = 0; i < url.length; i++) {
-            var name = url[i].split('=')[0];
-            var value = url[i].split('=')[1];
-            switch(name) {
-                // configFromURL[ name ] = decodeURIComponent(value);
-                // configFromURL[ name ] = Number(value);
-                // configFromURL[ name ] = JSON.parse(value);
-            case HOUSE_URL: case HOUSE_TOKEN:
-                options[ name ] = decodeURIComponent(value);
-                break;
-            default:
-                console.log('An invalid configuration parameter was specified: ' + name);
-                break;
-            }
-        }
-        return options;
-
-    };
-
+    var HOUSE_URL = utils.PARA_HOUSE_URL;
+    var HOUSE_LIVING = utils.PARA_HOUSE_LIVING;
+    var configFromURL = utils.configFromURL;
 
     Application = function ( opt_options ) {
         ifuture.Component.call( this );
@@ -123,9 +89,9 @@ function( ifuture, config, restapi, logger,
         var options = configFromURL();
         if ( options[ HOUSE_URL ] ) {
             this.dispatchEvent( new ifuture.Event( 'open:house', options[ HOUSE_URL ] ) );
-        }
-        else {
-            this.dispatchEvent( new ifuture.Event( 'search:house' ) );
+            if ( options[ HOUSE_LIVING ] ) {
+                this.dispatchEvent( new ifuture.Event( 'view:panel', options[ HOUSE_LIVING ] ) );
+            }
         }
 
     };

@@ -1,27 +1,48 @@
 define( [ 'ifuture', 'config', 'restapi' ], function ( ifuture, config, restapi ) {
 
-    HouseInfo = function ( app, opt_options ) {
+    View = function ( app, opt_options ) {
 
         ifuture.Component.call( this, app );
+        
+        /**
+         *
+         * @public
+         * @type {String}
+         */
+        this.title = '基本信息';
+
+        /**
+         *
+         * @private
+         * @type {HTMLDivElement}
+         */
+        this._element = null;
+
+        /**
+         * 当前对应房子的地址
+         * @private
+         * @type {String}
+         */
+        this._url = null;
+
 
     }
-    ifuture.inherits( HouseInfo, ifuture.Component );
+    ifuture.inherits( View, ifuture.Component );
 
-    HouseInfo.prototype.bindFutureEvent = function () {
+    View.prototype.open = function ( url ) {
 
-        this.app.on( 'login', function () {
-            dialog.login( this.login.bind( this ) );
-        }, this );
-
-        this.app.on( 'logout', this.logout, this );
-
-        this.app.on( 'signup', function () {
-            dialog.signup( this.signup.bind( this ) );
-        }, this );
+        if ( this._url === url )
+            return;
 
     };
 
+    View.prototype.close = function () {
 
-    return HouseInfo;
+        if ( this._element !== null )
+            this._element.style.display = 'none';
+
+    }
+
+    return View;
 
 } );

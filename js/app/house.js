@@ -1,6 +1,6 @@
 define( [ 'ifuture', 'config', 'restapi',
           'app/plugins/info', 'app/plugins/frame', 'app/plugins/photo',
-          'app/plugins/location', 'app/plugins/outer', 'app/plugins/panel' ],
+          'app/plugins/location', 'app/plugins/feature', 'app/plugins/panel' ],
 function ( ifuture, config, restapi,
            HouseInfo, HouseFrame, HousePhoto, HouseLocation, HouseFeature, HousePanel ) {
 
@@ -9,12 +9,7 @@ function ( ifuture, config, restapi,
     var _NAVBAR_BRAND_SELECTOR = '.navbar-brand';
     var _NAVBAR_TITLE_SELECTOR = 'nav.navbar > span.navbar-text';
     var _NAVBAR_MENU_SELECTOR = '.navbar-collapse.collapse';
-    var _NAVBAR_INFO_SELECTOR = '.navbar-nav > a:nth-of-type(1)';
-    var _NAVBAR_FRAME_SELECTOR = '.navbar-nav > a:nth-of-type(2)';
-    var _NAVBAR_PHOTO_SELECTOR = '.navbar-nav > a:nth-of-type(3)';
-    var _NAVBAR_LOCATION_SELECTOR = '.navbar-nav > a:nth-of-type(4)';
-    var _NAVBAR_FEATURE_SELECTOR = '.navbar-nav > a:nth-of-type(5)';
-    var _NAVBAR_PANEL_SELECTOR = '.navbar-nav > a:nth-of-type(6)';
+    var _NAVBAR_MENUITEM_SELECTOR = 'nav.navbar.fixed-top .navbar-nav a';
 
     var _TEMPLATE = '                                                                            \
         <div id="viewer" class="dx-viewer">                                                      \
@@ -28,12 +23,12 @@ function ( ifuture, config, restapi,
             </button>                                                                            \
             <div class="collapse navbar-collapse" id="menu-viewer">                              \
               <div class="navbar-nav ml-auto text-center">                                       \
-                <a class="nav-item nav-link" href="#">基本信息</a>                               \
-                <a class="nav-item nav-link" href="#">房屋结构</a>                               \
-                <a class="nav-item nav-link" href="#">照片全景</a>                               \
-                <a class="nav-item nav-link" href="#">地理位置</a>                               \
-                <a class="nav-item nav-link" href="#">周边环境</a>                               \
-                <a class="nav-item nav-link" href="#">直播看房</a>                               \
+                <a class="nav-item nav-link" data-view="info" href="#">基本信息</a>              \
+                <a class="nav-item nav-link" data-view="frame" href="#">房屋结构</a>             \
+                <a class="nav-item nav-link" data-view="photo" href="#">照片全景</a>             \
+                <a class="nav-item nav-link" data-view="location" href="#">地理位置</a>          \
+                <a class="nav-item nav-link" data-view="feature" href="#">周边环境</a>           \
+                <a class="nav-item nav-link" data-view="panel" href="#">直播看房</a>             \
               </div>                                                                             \
             </div>                                                                               \
           </nav>                                                                                 \
@@ -64,12 +59,12 @@ function ( ifuture, config, restapi,
          */
         this._views = {
             current: null,
-            info: new HouseInfo( app ),
-            frame: new HouseFrame( app ),
-            location: new HouseLocation( app ),
-            photo: new HousePhoto( app ),
-            feature: new HouseFeature( app ),
-            panel: new HousePanel( app ),
+            info: new HouseInfo( app, _SELECTOR ),
+            frame: new HouseFrame( app, _SELECTOR ),
+            location: new HouseLocation( app, _SELECTOR ),
+            photo: new HousePhoto( app, _SELECTOR ),
+            feature: new HouseFeature( app, _SELECTOR ),
+            panel: new HousePanel( app, _SELECTOR ),
         };
 
     }
@@ -96,6 +91,10 @@ function ( ifuture, config, restapi,
 
         this.app.on( 'close:house', function ( e ) {
             this.closeHouse_();
+        }, this );
+
+        this.app.on( 'view:panel', function ( e ) {
+            this.showView_( 'panel' );
         }, this );
 
     };
@@ -126,12 +125,13 @@ function ( ifuture, config, restapi,
     House.prototype.openHouse_ = function ( url ) {
 
         if ( this._url === url ) {
-            scope.dispatchEvent( new ifuture.Event( 'house:opened' ) );
+            this.dispatchEvent( new ifuture.Event( 'house:opened' ) );
             return;
         }
 
         this._url = url;
-        scope.dispatchEvent( new ifuture.Event( 'house:opened' ) );
+        this.showView_( 'info' );
+        this.dispatchEvent( new ifuture.Event( 'house:opened' ) );
 
     };
 
@@ -142,7 +142,7 @@ function ( ifuture, config, restapi,
      */
     House.prototype.closeHouse_ = function ( url ) {
         this.hide_();
-        scope.dispatchEvent( new ifuture.Event( 'house:closed' ) );
+        this.dispatchEvent( new ifuture.Event( 'house:closed' ) );
     };
 
     /**
@@ -168,94 +168,35 @@ function ( ifuture, config, restapi,
             e.currentTarget.classList.remove( 'show' );
         }, false );
 
-        element.querySelector( _NAVBAR_INFO_SELECTOR ).addEventListener( 'click', function ( e ) {
-            scope.showInfo_( e.currentTarget.textContent );
-        }, false );
-
-        element.querySelector( _NAVBAR_FRAME_SELECTOR ).addEventListener( 'click', function ( e ) {
-            scope.showFrame_( e.currentTarget.textContent );
-        }, false );
-
-        element.querySelector( _NAVBAR_PHOTO_SELECTOR ).addEventListener( 'click', function ( e ) {
-            scope.showPhoto_( e.currentTarget.textContent );
-        }, false );
-
-        element.querySelector( _NAVBAR_LOCATION_SELECTOR ).addEventListener( 'click', function ( e ) {
-            scope.showLocation_( e.currentTarget.textContent );
-        }, false );
-
-        element.querySelector( _NAVBAR_FEATURE_SELECTOR ).addEventListener( 'click', function ( e ) {
-            scope.showFeature_( e.currentTarget.textContent );
-        }, false );
-
-        element.querySelector( _NAVBAR_PANEL_SELECTOR ).addEventListener( 'click', function ( e ) {
-            scope.showPanel_( e.currentTarget.textContent );
-        }, false );
+        Array.prototype.forEach.call( element.querySelectorAll( _NAVBAR_MENUITEM_SELECTOR ), function ( m ) {
+                m.addEventListener( 'click', function ( e ) {
+                    scope.showView_( e.currentTarget.getAttribute( 'data-view' ) );
+                }, false );
+        } );
 
         this._element = element;
 
     };
 
     /**
-     * 显示房屋基本信息
+     * 显示房屋视图
      *
      * @private
      */
-    House.prototype.showInfo_ = function ( title ) {
+    House.prototype.showView_ = function ( name ) {
 
-        if ( this._views.current === this._views.info )
+        var view = this._views[ name ];
+
+        if ( this._views.current === view )
             return;
+
         if ( this._views.current !== null )
-            this._views.current.hide();
+            this._views.current.close();
 
-        this._element.querySelector( _NAVBAR_TITLE_SELECTOR ).textContent = title;
-        this._views.show( this._url );
+        this._element.querySelector( _NAVBAR_TITLE_SELECTOR ).textContent = view.title;
+        view.open( this._url );
+        this._views.current = view;
 
-    };
-
-    /**
-     * 显示房屋结构图片
-     *
-     * @private
-     */
-    House.prototype.showView_ = function ( title ) {
-        this._element.querySelector( _NAVBAR_TITLE_SELECTOR ).textContent = title;
-    };
-
-    /**
-     * 显示房屋照片全景
-     *
-     * @private
-     */
-    House.prototype.showPhoto_ = function ( title ) {
-        this._element.querySelector( _NAVBAR_TITLE_SELECTOR ).textContent = title;
-    };
-
-    /**
-     * 显示房屋地理位置
-     *
-     * @private
-     */
-    House.prototype.showLocation_ = function ( title ) {
-        this._element.querySelector( _NAVBAR_TITLE_SELECTOR ).textContent = title;
-    };
-
-    /**
-     * 显示房屋周边环境
-     *
-     * @private
-     */
-    House.prototype.showContext_ = function ( title ) {
-        this._element.querySelector( _NAVBAR_TITLE_SELECTOR ).textContent = title;
-    };
-
-    /**
-     * 显示房屋直播窗口
-     *
-     * @private
-     */
-    House.prototype.showPanel_ = function ( title ) {
-        this._element.querySelector( _NAVBAR_TITLE_SELECTOR ).textContent = title;
     };
 
     return House;

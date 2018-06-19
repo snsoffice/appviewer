@@ -1,63 +1,47 @@
-define( [ 'ifuture', 'config', 'restapi', 'utils', 'app/dialog' ], function ( ifuture, config, restapi, utils, dialog ) {
+define( [ 'ifuture', 'config' ], function ( ifuture, config ) {
 
-    User = function ( app, opt_options ) {
+    View = function ( app, opt_options ) {
 
         ifuture.Component.call( this, app );
 
+        /**
+         *
+         * @public
+         * @type {String}
+         */
+        this.title = '照片全景';
+
+        /**
+         *
+         * @private
+         * @type {HTMLDivElement}
+         */
+        this._element = null;
+
+        /**
+         * 当前对应房子的地址
+         * @private
+         * @type {String}
+         */
+        this._url = null;
+
     }
-    ifuture.inherits( User, ifuture.Component );
+    ifuture.inherits( View, ifuture.Component );
 
-    User.prototype.bindFutureEvent = function () {
+    View.prototype.open = function ( url ) {
 
-        this.app.on( 'login', function () {
-            dialog.login( this.login.bind( this ) );
-        }, this );
-
-        this.app.on( 'logout', this.logout, this );
-
-        this.app.on( 'signup', function () {
-            dialog.signup( this.signup.bind( this ) );
-        }, this );
+        if ( this._url === url )
+            return;
 
     };
 
-    User.prototype.login = function ( username, password ) {
+    View.prototype.close = function () {
 
-        var app = this.app;
-        restapi.login( username, password ).then( function ( token ) {
-            config.userId = username;
-            config.loginToken = token;
-            app.dispatchEvent( new ifuture.Event( 'user:login' ) );
-        } ).catch( function ( e ) {
-            utils.warning( '用户登录失败!' );
-        } );
+        if ( this._element !== null )
+            this._element.style.display = 'none';
 
-    };
+    }
 
-    User.prototype.logout = function () {
-
-        var scope = this;
-        restapi.logout( config.loginToken ).then( function ( token ) {
-            config.userId = null;
-            config.userName = null;
-            config.loginToken = null;
-            scope.dispatchEvent( new ifuture.Event( 'user:logout' ) );
-        } ).catch( function ( e ) {
-            utils.warning( '用户注销失败!' );
-        } );
-
-    };
-
-    User.prototype.signup = function ( userid, email, fullname, password ) {
-
-        restapi.registerUser( username, email, fullname, password ).then( function ( result ) {
-            utils.info( '用户注册成功，现在可以使用新用户 ' + username + ' 登录系统' );
-        } ).catch( function ( e ) {
-            utils.warning( '注册用户失败!' );
-        } );
-
-    };
-
-    return User;
+    return View;
 
 } );

@@ -83,6 +83,11 @@ define( function () {
             value: 'future'
         },
 
+        appBaseUrl: {
+            configurable: false,
+            value: '++theme++app'
+        },
+
         resourceBaseUrl: {
             configurable: false,
             value: 'http://owtayt1td.bkt.clouddn.com'
