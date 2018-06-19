@@ -179,12 +179,73 @@ define( [ 'ifuture', 'jquery', 'db', 'config' ], function ( ifuture, $, db, conf
 
     };
 
+    var acceptor = function ( msg, resolve, reject ) {
+
+        var template = '                                                     \
+        <div class="modal-dialog modal-dialog-centered" role="document">     \
+          <div class="modal-content text-center bg-light py-2">              \
+            <p>%MESSAGE%</p>                                                 \
+            <div class="modal-footer">                                       \
+              <button type="button" class="btn btn-success mx-auto px-3"     \
+                      data-dismiss="modal">接受</button>                     \
+              <button type="button" class="btn btn-danger mx-auto px-3"      \
+                      data-dismiss="modal">拒绝</button>                     \
+            </div>                                                           \
+          </div>                                                             \
+        </div>';
+
+        var dialog = createDialog( template.replace( '%MESSAGE%', msg ) );
+        $( dialog ).modal( 'show' );
+
+        dialog.querySelector( 'button.btn-success' ).addEventListener( 'click', resolve, false );
+        dialog.querySelector( 'button.btn-danger' ).addEventListener( 'click', reject, false );
+
+    };
+
+    var caller = function ( msg, reject ) {
+
+        var template = '                                                     \
+        <div class="modal-dialog modal-dialog-centered" role="document">     \
+          <div class="modal-content text-center bg-light py-2">              \
+            <p>%MESSAGE%</p>                                                 \
+            <div class="modal-footer">                                       \
+              <button type="button" class="btn btn-danger mx-auto px-3"      \
+                      data-dismiss="modal">挂断</button>                     \
+            </div>                                                           \
+          </div>                                                             \
+        </div>';
+
+        var dialog = createDialog( template.replace( '%MESSAGE%', msg ) );
+        $( dialog ).modal( 'show' );
+
+        // dialog.querySelector( 'button.btn-danger' ).addEventListener( 'click', reject, false );
+        $( dialog ).on( 'hidden.bs.modal', function ( e ) {
+            reject();
+        } );
+
+        var hide = function () {
+            $( dialog ).off( 'hidden.bs.modal' ).modal('hide'); 
+        };
+        var feedback = function () {
+            $( dialog ).off( 'hidden.bs.modal' );
+            $( '.modal-content', dialog ).html( '<p>%MESSAGE%</p>'.replace( '%MESSAGE%', msg ) );
+        };
+
+        return {
+            hide: hide,
+            feedback: feedback,
+        };
+
+    };
+
     return {
         login: login,
         signup: signup,
         askfor: askfor,
         info: info,
         warning: warning,
+        acceptor: acceptor,
+        caller: caller,
     };
 
 } );

@@ -168,7 +168,7 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
 
         } ).catch( function ( err ) {
 
-            logger.logging( err );
+            logger.log( err );
             scope.showSearchForm_();
 
         } ).then( function () {
@@ -263,7 +263,7 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
 
         } ).catch( function ( err ) {
 
-            logger.logging( err );
+            logger.log( err );
 
         } ).then( function () {
 

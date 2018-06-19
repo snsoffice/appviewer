@@ -224,7 +224,7 @@ define( function () {
 
     return {
 
-        logging: function ( msg ) { console.log( msg ); },
+        log: function ( msg ) { console.log( msg ); },
             
         warning: function ( msg ) {
             _showMessage( msg, 'warning' );

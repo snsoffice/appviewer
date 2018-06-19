@@ -1,10 +1,10 @@
 define( [ 'ifuture', 'config', 'restapi', 'logger', 'utils',
           'app/user', 'app/finder', 'app/house',
-          'app/loader', 'app/screen', 'app/communicator' ],
+          'app/loader', 'app/screen', 'app/connector' ],
 
 function( ifuture, config, restapi, logger, utils,
           User, Finder, House,
-          Loader, LivingBox, Communicator ) {
+          Loader, LivingBox, Connector ) {
 
     var HOUSE_URL = utils.PARA_HOUSE_URL;
     var HOUSE_LIVING = utils.PARA_HOUSE_LIVING;
@@ -18,7 +18,7 @@ function( ifuture, config, restapi, logger, utils,
         this.house = new House( this, opt_options );
         this.loader = new Loader( this, opt_options );
         this.screen = new Screen( this, opt_options );
-        this.communicator = new Communicator( this, opt_options );
+        this.connector = new Connector( this, opt_options );
 
         this.bindFutureEvent();
         this.user.bindFutureEvent();
@@ -26,7 +26,7 @@ function( ifuture, config, restapi, logger, utils,
         this.house.bindFutureEvent();
         this.loader.bindFutureEvent();
         this.screen.bindFutureEvent();
-        this.communicator.bindFutureEvent();
+        this.connector.bindFutureEvent();
     };
     ifuture.inherits( Application, ifuture.Component );
 

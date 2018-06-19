@@ -95,6 +95,7 @@ function ( ifuture, config, restapi,
 
         this.app.on( 'view:panel', function ( e ) {
             this.showView_( 'panel' );
+            this._view.panel.callee = e.argument;
         }, this );
 
     };

@@ -309,6 +309,7 @@
 
 .dx-video {
     object-fit: fill;
+    overflow: hidden;
 }
 
 /*
@@ -349,14 +350,17 @@
     background-color: #6c757d;
 }
 
+.dx-toolbar button.btn-outline-secondary,
 .dx-view-tool button.btn-outline-secondary {
     background-color: transparent;
 }
 
+.dx-toolbar button.btn-outline-secondary,
 .dx-view-tool button.btn-outline-secondary {
     box-shadow: none;
 }
 
+.dx-toolbar button.btn-outline-secondary.active,
 .dx-view-tool button.btn-outline-secondary.active {
     background-color: #6c757d;
 }

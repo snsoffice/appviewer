@@ -43,6 +43,13 @@ define( [ 'ifuture', 'config', 'utils', 'app/dialog' ], function ( ifuture, conf
         this.title = '直播看房';
 
         /**
+         * 远程主播
+         * @public
+         * @type {String}
+         */
+        this.callee = null;
+
+        /**
          * 父视图的选择符
          * @private
          * @type {String}
@@ -150,6 +157,12 @@ define( [ 'ifuture', 'config', 'utils', 'app/dialog' ], function ( ifuture, conf
      * @private
      */
     View.prototype.watchLiving_ = function () {
+
+        if ( this.callee === null ) {
+            dialog.info( '当前房屋没有直播信号' );
+            return ;
+        }
+
     };
 
     /**
