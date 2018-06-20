@@ -4,7 +4,10 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
     var _CLOSE_BUTTON_SELECTOR = '.dx-toolbar button:nth-of-type(1)';
     var _HANGUP_BUTTON_SELECTOR = '.dx-toolbar button:nth-of-type(2)';
 
-    var _VIDEO_TEMPLATE = '<video autoplay="autoplay" class="w-100 h-100"></video>';
+    var _VIDEO_TEMPLATE = '                                            \
+        <div class="dx-video w-100 h-100 bg-dark">                     \
+          <video autoplay="autoplay"></video>                          \
+        </div>';
 
     var _LOCATION_MARKER_URL = 'images/location_marker.png';
     var _LOCATION_MARKER_HEADING_URL = 'images/location_marker_heading.png';
@@ -82,7 +85,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
             this.openScreen_( arg.url, arg.views, arg.callee );
         }, this );
 
-        this.app.on( 'screen:opend', function ( e ) {
+        this.app.on( 'screen:opened', function ( e ) {
             this._element.style.display = 'block';
         }, this );
 
@@ -152,6 +155,10 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
                 marker.getElement().src = _LOCATION_MARKER_HEADING_URL;
                 this._sensor.on( 'change:heading', this.onHeadingChanged_, this );
             }
+            var argument = {
+                video: this._video.querySelector( 'video' ),
+            };
+            this.dispatchEvent( new ifuture.Event( 'start:living', argument ) );
         }
 
         // 观众模式，呼叫主播，观看直播
@@ -192,11 +199,21 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
      * @private
      */
     Screen.prototype.initVideo_ = function () {
-        var video = document.createElement( 'DIV' );
-        video.className = 'dx-video w-100 h-100';
-        video.innerHTML = _VIDEO_TEMPLATE;
-        this._element.appendChild( video );
-        this._video = video;
+        var element = document.createElement( 'DIV' );
+        element.innerHTML = _VIDEO_TEMPLATE;
+        element = element.firstElementChild;
+        this._element.appendChild( element );
+
+        var video = element.querySelector( 'video' );
+        video.width = window.innerWidth;
+        video.height = window.innerHeight;
+        this._video = element;
+
+        window.addEventListener( 'resize', function ( e ) {
+            video.width = element.clientWidth;
+            video.height = element.clientHeight;
+        }, false );
+
     };
 
     /**
@@ -211,6 +228,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
         var marker = new ol.Overlay({
             id: _MARKER_ID,
             element: img,
+            positioning: 'center-center',
             stopEvent: false,
         });
 
@@ -243,23 +261,29 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
         var extent = geometry.getExtent();
 
         var size = this._map.getSize();
-        if ( size === undefined )
+        if ( size === undefined || size[ 0 ] === 0 || size[ 1 ] === 0 ) {
             size = _DEFAULT_MAP_SIZE;
+            this._map.setSize( size );
+        }
 
         var resolution = Math.max( ol.extent.getWidth( extent ) / size[ 0 ], ol.extent.getHeight( extent ) / size[ 1 ] );
         var center = ol.extent.getCenter( extent );
-        var view = new ol.View( {
+        this._map.setView( new ol.View( {
             enableRotation: false,
             resolutions: [ resolution ],
             center: center,
             resolution: resolution,
-        } );
-        this._map.setView( view );
+        } ) );
+
+        var loadImage = function ( image, src ) {
+            image.getImage().src = src;
+        };
 
         var source = new ol.source.ImageStatic( {
             crossOrigin: 'anonymous',
             imageExtent: extent,
             url: view.url,
+            imageLoadFunction: loadImage,
         } );
 
         var layer = new ol.layer.Image( {
@@ -268,27 +292,14 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
         } );
         this._map.setLayerGroup( new ol.layer.Group( { layers: [ layer ] } ) );
 
-        source.on( 'propertychange', function ( e ) {
-
-            if ( key === 'state' ) {
-
-                switch ( e.target.getState() ) {
-
-                    case 'ready':
-                    this.dispatchEvent( new ifuture.Event( 'screen:opened' ) );
-                    break;
-
-                    case 'error':
-                    logger.log( 'Load static image to map failed: ' + e );
-                    dialog.info( '无法打开房屋的结构图' );
-                    break;
-
-                }
-
-            }
-
+        source.on( 'imageloadend', function ( e ) {
+            this.dispatchEvent( new ifuture.Event( 'screen:opened' ) );
         }, this );
 
+        source.on( 'imageloaderror', function ( e ) {
+            logger.log( 'Load static image to map failed: ' + e );
+            dialog.info( '无法打开房屋的结构图' );
+        }, this );
 
     };
 
@@ -333,7 +344,12 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
             return;
         }
         this._direction = direction;
-        element.style.transform = 'rotate(' + direction + 'rad)';
+
+        var rotate = 'rotate(' + direction + 'rad)';
+        element.style.transform = rotate;
+        element.style.webkitTransform = rotate;
+        element.style.mozTransform = rotate;
+        element.style.msTransform = rotate;
 
         var argument = {
             msgType: 'anchor',
@@ -366,7 +382,11 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
 
             marker.setPosition( coordinate );
             if ( this._direction !== null ) {
-                element.style.transform = 'rotate(' + direction + 'rad)';
+                var rotate = 'rotate(' + direction + 'rad)';
+                element.style.transform = rotate;
+                element.style.webkitTransform = rotate;
+                element.style.mozTransform = rotate;
+                element.style.msTransform = rotate;
             }
         }
     };

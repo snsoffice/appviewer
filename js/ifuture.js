@@ -98,6 +98,8 @@ define( [ 'ol' ], function ( ol ) {
     ol.inherits( Component, ol.Object );
 
     Component.prototype.dispatchEvent = function ( e ) {
+        // DEBUG:
+        console.log( e.type );
         ol.Object.prototype.dispatchEvent.call( this.app === undefined ? this : this.app, e );
     };
 

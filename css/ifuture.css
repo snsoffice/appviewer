@@ -308,8 +308,15 @@
 }
 
 .dx-video {
-    object-fit: fill;
     overflow: hidden;
+}
+
+.dx-video > video {
+    object-fit: none;
+}
+
+.dx-screen .dx-overview {
+    z-index: 1;
 }
 
 /*

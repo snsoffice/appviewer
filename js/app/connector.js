@@ -4,7 +4,6 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
     var _EASYRTC_SERVER = 'http://snsoffice.com:9090';
     var _EASYRTC_APPKEY = 'snsoffice.ifuture.sky';
 
-    var _DEFAULT_ROOM_NAME = 'default';
     var _USER_NAME_REGEXP = '[_a-zA-Z0-9\s\u4E00-\u9FA5\uF900-\uFA2D]+';
 
     /**
@@ -235,6 +234,17 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
     Connector.prototype.peerClosedListener_ = function ( easyrtcid ) {
 
         logger.log( 'Easyrtc: peer ' + easyrtcid + ' closed' );
+        this.closeLocalMediaStream_();
+
+    };
+
+
+    /**
+     * 关闭本地多媒体设备
+     *
+     */
+    Connector.prototype.closeLocalMediaStream_ = function ( easyrtcid ) {
+
         if ( this._video === null )
             return;
 
@@ -246,7 +256,11 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
 
     };
 
-
+    /**
+     * 打开直播视频，开始直播
+     *
+     * @param {HTMLVideoElement} video
+     */
     Connector.prototype.startLiving_ = function ( video ) {
 
         easyrtc.enableAudio( true );
@@ -258,6 +272,7 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
 
         easyrtc.initMediaSource(
             function( mediastream ) {
+                video.classList.add( 'dx-mirror' );
                 easyrtc.setVideoObjectSrc( video, mediastream );
                 scope._video = video;
             },
@@ -272,11 +287,18 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
 
     };
 
+    /**
+     * 开始观看直播
+     *
+     * @param {HTMLVideoElement} video
+     * @param {Object} callee, 包括 anchor 和 token 两个属性
+     */
     Connector.prototype.watchLiving_ = function ( video, callee ) {
 
         var scope = this;
 
         easyrtc.setStreamAcceptor( function ( easyrtcid, stream ) {
+            video.classList.remove( 'dx-mirror' );
             easyrtc.setVideoObjectSrc( video, stream );
             scope._video = video;
         });
@@ -299,22 +321,6 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
         this._easyrtcId = null;
     };
 
-    Connector.prototype.userNameToEasyrtcid_ = function ( userName ) {
-
-        var occupants = easyrtc.getRoomOccupantsAsMap( _DEFAULT_ROOM_NAME );
-
-        for ( var easyrtcid in occupants ) {
-
-            if ( ! occupants.hasOwnProperty( easyrtcid ) )
-                continue;
-
-            if ( occupants[ easyrtcid ].userName === userName )
-                return easyrtcid;
-
-        }
-
-    };
-
     /**
      *
      * 事件处理程序，相对于对外部的所有接口，可以响应的外部事件
@@ -330,7 +336,8 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
             this.sendPeerMessage_( arg.msgType, arg.msgData );
         }, this );
 
-        this.app.on( 'user:login', function ( event ) {
+        this.app.on( 'screen:closed', function ( event ) {
+            this.closeLocalMediaStream_();
         }, this );
 
         this.app.on( 'start:living', function ( event ) {

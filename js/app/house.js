@@ -97,17 +97,20 @@ function ( ifuture, config, restapi, logger, dialog,
 
         this.app.on( 'open:house', function ( e ) {
 
-            if ( this._element === null )
-                this.buildHouseViewer_();
-            else
-                this.show_();
-
             this.openHouse_( e.argument.url, e.argument.view, e.argument.options );
 
         }, this );
 
         this.app.on( 'close:house', function ( e ) {
             this.closeHouse_();
+        }, this );
+
+        this.app.on( 'screen:opened', function ( e ) {
+            this.hide_();
+        }, this );
+
+        this.app.on( 'screen:closed', function ( e ) {
+            this.show_();
         }, this );
 
     };
@@ -137,6 +140,9 @@ function ( ifuture, config, restapi, logger, dialog,
      */
     House.prototype.openHouse_ = function ( url, view, options ) {
 
+        if ( this._element === null )
+            this.buildHouseViewer_();
+
         if ( this._url === url ) {
             this.dispatchEvent( new ifuture.Event( 'house:opened' ) );
             return;
@@ -147,8 +153,10 @@ function ( ifuture, config, restapi, logger, dialog,
 
             .then( function ( data ) {
                 scope._data = data;
-                scope._url = url;                
+                scope._url = url;
                 scope._options = options;
+
+                scope.show_();
                 scope.showView_( view === undefined ? 'info' : view );
                 scope.dispatchEvent( new ifuture.Event( 'house:opened' ) );
             } )
