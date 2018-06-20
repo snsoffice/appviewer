@@ -99,7 +99,7 @@ define( [ 'ifuture', 'config', 'restapi', 'logger', 'app/dialog' ], function ( i
             this.buildView_();
 
         this._element.style.display = 'block';
-        this._element.querySelector( _URL_INPUT_SELECTOR ).value = this.buildUrl_();
+        this._element.querySelector( _URL_INPUT_SELECTOR ).value = this.buildUrl_( url );
 
         // this._room = ( config.userId + '.' + url.split( '/' ).slice( -1 ) ).slice( 0, 32 );
         this._callee = options && options.anchor && options.token ? options : null;
@@ -211,12 +211,12 @@ define( [ 'ifuture', 'config', 'restapi', 'logger', 'app/dialog' ], function ( i
      *
      * @private
      */
-    View.prototype.buildUrl_ = function () {
+    View.prototype.buildUrl_ = function ( url ) {
 
         var base = config.portalBaseUrl + '/' + config.portalSiteName + '/' + config.appBaseUrl;
         var paras =  [ HOUSE_URL + '=' + encodeURIComponent( url ),
                        HOUSE_ANCHOR + '=' + config.userId,
-                       HOUSE_TOKEN + '=' + config.easyrtcId ];
+                       HOUSE_TOKEN + '=' + config.settings.easyrtcId ];
         return base + '?' + paras.join( '&' );
 
     };
@@ -228,7 +228,7 @@ define( [ 'ifuture', 'config', 'restapi', 'logger', 'app/dialog' ], function ( i
      */
     View.prototype.copyUrl_ = function () {
 
-        var data = this.buildUrl_();
+        var data = this.buildUrl_( this._url );
         var handler = function ( e ) {
             e.clipboardData.setData( 'text/plain', data );
             e.preventDefault();

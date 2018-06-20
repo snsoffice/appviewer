@@ -35,7 +35,7 @@ function( ifuture, config, restapi, logger,
                 // configFromURL[ name ] = JSON.parse(value);
             case HOUSE_URL:
             case HOUSE_ANCHOR:
-            case HOUSE_TOKEY:
+            case HOUSE_TOKEN:
                 options[ name ] = decodeURIComponent(value);
                 break;
             default:
@@ -133,8 +133,8 @@ function( ifuture, config, restapi, logger,
             if ( options[ HOUSE_ANCHOR ] ) {
                 argument.view = 'panel';
                 argument.options = {
-                    anchor: options[ HOUSE_ANCHOR ]
-                    token: options[ HOUSE_TOKEN ]
+                    anchor: options[ HOUSE_ANCHOR ],
+                    token: options[ HOUSE_TOKEN ],
                 };
             }
             this.dispatchEvent( new ifuture.Event( 'open:house', argument ) );

@@ -1,7 +1,7 @@
 define( function () {
 
-    var settings = {
-        easyrtcId: null;
+    var _settings = {
+        easyrtcId: null,
     };
 
     function get( name ) {
@@ -44,12 +44,6 @@ define( function () {
             configurable: false,
             get: function () { return get( 'loginToken' ); },
             set: function ( value ) { set( 'loginToken', value ); }
-        },
-
-        easyrtcId: {
-            configurable: false,
-            get: function () { return setting.easyrtcId; },
-            set: function ( value ) { setting.easyrtcId = value; }
         },
 
         houseDomain: {

@@ -110,7 +110,7 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
      */
     Connector.prototype.loginSuccess_ = function ( easyrtcId ) {
         this._easyrtcId = easyrtcId;
-        config.easyrtcId = easyrtcId;
+        config.settings.easyrtcId = easyrtcId;
     };
 
     /**
@@ -122,6 +122,7 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
      */
     Connector.prototype.loginFailure_ = function ( errorCode, errorText ) {
         this._easyrtcId = null;
+        config.settings.easyrtcId = null;
     };
 
     /**
@@ -173,7 +174,7 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
         easyrtc.enableVideoReceive( true );
 
         easyrtc.hangupAll();
-        easyrtc.call( callee.token, successCB, failureCB, acceptedCB );
+        easyrtc.call( callee.token, successCB, failureCB );
 
         var reject = function () {
             easyrtc.hangupAll();

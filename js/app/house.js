@@ -102,7 +102,7 @@ function ( ifuture, config, restapi, logger, dialog,
             else
                 this.show_();
 
-            this.openHouse_( e.argument.url, e.argument.options );
+            this.openHouse_( e.argument.url, e.argument.view, e.argument.options );
 
         }, this );
 
