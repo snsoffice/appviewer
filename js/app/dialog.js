@@ -226,9 +226,12 @@ define( [ 'ifuture', 'jquery', 'db', 'config' ], function ( ifuture, $, db, conf
         var hide = function () {
             $( dialog ).off( 'hidden.bs.modal' ).modal('hide'); 
         };
-        var feedback = function () {
+        var feedback = function ( msg ) {
             $( dialog ).off( 'hidden.bs.modal' );
-            $( '.modal-content', dialog ).html( '<p>%MESSAGE%</p>'.replace( '%MESSAGE%', msg ) );
+            $( '.modal-content', dialog )
+                .removeClass( 'bg-light' )
+                .addClass( 'bg-warning' )
+                .html( '<span>%MESSAGE%</span>'.replace( '%MESSAGE%', msg ) );
         };
 
         return {

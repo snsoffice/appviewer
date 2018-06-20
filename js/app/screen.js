@@ -29,11 +29,11 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
         this._element = document.querySelector( _SELECTOR );
 
         /**
-         * 当前对应房子的地址
+         * 当前直播房子的数据
          * @private
-         * @type {String}
+         * @type {Object} 属性包括 url, views, callee
          */
-        this._url = null;
+        this._house = null;
 
         /**
          * 视频对象
@@ -81,13 +81,14 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
     Screen.prototype.bindFutureEvent = function () {
 
         this.app.on( 'open:screen', function ( e ) {
-            var arg = e.argument;
-            this.openScreen_( arg.url, arg.views, arg.callee );
+            this.openScreen_( e.argument );
         }, this );
 
-        this.app.on( 'screen:opened', function ( e ) {
-            this._element.style.display = 'block';
+        this.app.on( 'close:screen', function ( e ) {
+            this.closeScreen_();
         }, this );
+
+        this.app.on( 'screen:opened', this.onScreenOpened_, this );
 
         this.app.on( 'screen:closed', function ( e ) {
             this._element.style.display = 'none';
@@ -98,7 +99,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
             this.changeMarker_( arg.name, arg.coordinate, arg.direction );
         }, this );
 
-        this.app.on( 'living:started', function ( e ) {
+        this.app.on( 'living:connected', function ( e ) {
             this._element.querySelector( _CLOSE_BUTTON_SELECTOR ).style.display = 'none';
             this._element.querySelector( _HANGUP_BUTTON_SELECTOR ).style.display = 'block';
         }, this );
@@ -121,11 +122,11 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
     };
 
     /**
-     * 显示直播视频
+     * 打开直播视频窗口
      *
      * @private
      */
-    Screen.prototype.openScreen_ = function ( url, views, callee ) {
+    Screen.prototype.openScreen_ = function ( house ) {
 
         if ( this._map === null )
             this.initMap_();
@@ -133,13 +134,25 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
         if ( this._video === null )
             this.initVideo_();
 
-        if ( this._url === url ) {
+        if ( this._house && this._house.url === house.url ) {
             this.dispatchEvent( new ifuture.Event( 'screen:opened' ) );
+            return;
         }
-        else {
-            this.buildHouseMap_( views );
-            this._url = url;
-        }
+
+        this._house = house;
+        this.buildHouseMap_( house.views );
+    };
+
+    /**
+     * 显示直播视频
+     *
+     * @private
+     */
+    Screen.prototype.onScreenOpened_ = function () {
+
+        this._element.style.display = 'block';
+
+        var callee = this._house.callee;
 
         // 主播模式，向观众进行直播
         if ( ! callee ) {

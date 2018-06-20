@@ -134,11 +134,16 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
      */
     Connector.prototype.acceptChecker_ = function ( easyrtcid, acceptor ) {
 
-        dialog.acceptor(
-            easyrtc.idToName( easyrtcid ) + '请求直播看房?',
-            function () { acceptor( true ); },
-            function () { acceptor( false ); }
-        );
+        var accept = function () {
+            acceptor( true );
+            scope.dispatchEvent( new ifuture.Event( 'living:connected' ) );
+        },
+
+        reject = function () {
+            acceptor( false );
+        };
+
+        dialog.acceptor( '用户请求直播看房?', accept, reject );
 
     };
 
@@ -154,17 +159,18 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
 
         var scope = this;
         var accepted = null;
-        var dialog = null;
+        var msgbox = null;
 
         var successCB = function ( otherCaller, mediaType ) {
             scope._callee = callee;
-            dialog.hide();
-            scope.dispatchEvent( new ifuture.Event( 'open:screen' ) );
+            msgbox.hide();
+            scope.dispatchEvent( new ifuture.Event( 'living:connected' ) );
         };
 
         var failureCB = function ( errorCode, errorText ) {
             scope._callee = null;
-            dialog.feedback( '没有接通，对方忙或者还没有开始直播' );
+            msgbox.feedback( '没有接通，对方忙或者还没有开始直播' );
+            scope.dispatchEvent( new ifuture.Event( 'close:screen' ) );
         };
 
         easyrtc.enableAudio( true );
@@ -178,7 +184,7 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
         var reject = function () {
             easyrtc.hangupAll();
         };
-        dialog = dialog.caller( '正在呼叫 ' + callee.anchor + ' ...', reject );
+        msgbox = dialog.caller( '正在呼叫 ' + callee.anchor + ' ...', reject );
 
     };
 
