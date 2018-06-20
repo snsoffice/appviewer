@@ -144,6 +144,7 @@ function ( ifuture, config, restapi, logger, dialog,
             this.buildHouseViewer_();
 
         if ( this._url === url ) {
+            this.show_();
             this.dispatchEvent( new ifuture.Event( 'house:opened' ) );
             return;
         }

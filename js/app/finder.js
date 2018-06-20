@@ -310,7 +310,7 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
             Array.prototype.forEach.call( houselist.querySelectorAll( _LOAD_HOUSE_SELECTOR ), function ( a ) {
                 a.addEventListener( 'click', function ( e ) {
                     e.preventDefault();
-                    scope.dispatchEvent( new ifuture.Event( 'open:house', e.currentTarget.getAttribute( 'href' ) ) );
+                    scope.dispatchEvent( new ifuture.Event( 'open:house', { url: e.currentTarget.getAttribute( 'href' ) } ) );
                 }, false );
             } );
 
