@@ -161,7 +161,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
                 video: this._video.querySelector( 'video' ),
                 callee: callee,
             };
-            this.dispatchEvent( new ifutre.Event( 'watch:living', argument ) );
+            this.dispatchEvent( new ifuture.Event( 'watch:living', argument ) );
         }
 
     };
@@ -266,7 +266,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
             extent: extent,
             source: source,
         } );
-        this.map.setLayerGroup( new ol.layer.Group( { layers: [ layer ] } ) );
+        this._map.setLayerGroup( new ol.layer.Group( { layers: [ layer ] } ) );
 
         source.on( 'propertychange', function ( e ) {
 
