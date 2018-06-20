@@ -101,7 +101,7 @@ define( [ 'ifuture', 'config', 'restapi', 'logger', 'app/dialog' ], function ( i
         this._element.style.display = 'block';
         this._element.querySelector( _URL_INPUT_SELECTOR ).value = this.buildUrl_( url );
 
-        // this._room = ( config.userId + '.' + url.split( '/' ).slice( -1 ) ).slice( 0, 32 );
+        this._room = ( config.userId + '.' + url.split( '/' ).slice( -1 ) ).slice( 0, 32 );
         this._callee = options && options.anchor && options.token ? options : null;
         this._data = data;
         this._url = url;

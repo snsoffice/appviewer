@@ -1,6 +1,6 @@
-define( [ 'ifuture', 'owl', 'utils', 'jquery' ],
+define( [ 'ifuture', 'owl', 'jquery' ],
 
-function( ifuture, owl, utils, $ ) {
+function( ifuture, owl, $ ) {
 
     /**
      * Creates the fit view plugin.

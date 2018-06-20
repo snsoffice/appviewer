@@ -315,6 +315,7 @@
     object-fit: none;
 }
 
+.dx-tab .dx-overview,
 .dx-screen .dx-overview {
     z-index: 1;
 }

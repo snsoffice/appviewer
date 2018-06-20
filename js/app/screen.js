@@ -343,7 +343,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
         var argument = {
             msgType: 'anchor',
             msgData: {
-                name: 'marker',
+                name: _MARKER_ID,
                 coordinate: evt.coordinate,
                 direction: this._direction,
             }

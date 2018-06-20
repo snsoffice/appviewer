@@ -28,8 +28,8 @@ function ( ifuture, config, restapi, logger, dialog,
                 <a class="nav-item nav-link" data-view="info" href="#">基本信息</a>              \
                 <a class="nav-item nav-link" data-view="frame" href="#">房屋结构</a>             \
                 <a class="nav-item nav-link" data-view="photo" href="#">照片全景</a>             \
-                <a class="nav-item nav-link" data-view="location" href="#">地理位置</a>          \
-                <a class="nav-item nav-link" data-view="feature" href="#">周边环境</a>           \
+                <a class="nav-item nav-link" data-view="location" href="#">位置风水</a>          \
+                <a class="nav-item nav-link" data-view="feature" href="#">周边设施</a>           \
                 <a class="nav-item nav-link" data-view="panel" href="#">直播看房</a>             \
               </div>                                                                             \
             </div>                                                                               \
