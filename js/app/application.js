@@ -1,14 +1,52 @@
-define( [ 'ifuture', 'config', 'restapi', 'logger', 'utils',
+define( [ 'ifuture', 'config', 'restapi', 'logger',
           'app/user', 'app/finder', 'app/house',
           'app/loader', 'app/screen', 'app/connector' ],
 
-function( ifuture, config, restapi, logger, utils,
+function( ifuture, config, restapi, logger,
           User, Finder, House,
           Loader, LivingBox, Connector ) {
 
-    var HOUSE_URL = utils.PARA_HOUSE_URL;
-    var HOUSE_LIVING = utils.PARA_HOUSE_LIVING;
-    var configFromURL = utils.configFromURL;
+    var HOUSE_URL = 'house';
+    var HOUSE_ANCHOR = 'anchor';
+    var HOUSE_TOKEN = 'token';
+
+    var configFromURL = function () {
+
+        var url;
+        if (window.location.hash.length > 0) {
+            // Prefered method since parameters aren't sent to server
+            url = [window.location.hash.slice(1)];
+        } else {
+            url = decodeURI(window.location.href).split('?');
+            url.shift();
+        }
+        if (url.length < 1) {
+            return {};
+        }
+        url = url[0].split('&');
+
+        var options = {};
+        for (var i = 0; i < url.length; i++) {
+            var name = url[i].split('=')[0];
+            var value = url[i].split('=')[1];
+            switch(name) {
+                // configFromURL[ name ] = decodeURIComponent(value);
+                // configFromURL[ name ] = Number(value);
+                // configFromURL[ name ] = JSON.parse(value);
+            case HOUSE_URL:
+            case HOUSE_ANCHOR:
+            case HOUSE_TOKEY:
+                options[ name ] = decodeURIComponent(value);
+                break;
+            default:
+                console.log('An invalid configuration parameter was specified: ' + name);
+                break;
+            }
+        }
+        return options;
+
+    };
+
 
     Application = function ( opt_options ) {
         ifuture.Component.call( this );
@@ -92,10 +130,11 @@ function( ifuture, config, restapi, logger, utils,
         var options = configFromURL();
         if ( options[ HOUSE_URL ] ) {
             var argument = { url: options[ HOUSE_URL ] };
-            if ( options[ HOUSE_LIVING ] ) {
+            if ( options[ HOUSE_ANCHOR ] ) {
+                argument.view = 'panel';
                 argument.options = {
-                    view: 'panel',
-                    callee: options[ HOUSE_LIVING ]
+                    anchor: options[ HOUSE_ANCHOR ]
+                    token: options[ HOUSE_TOKEN ]
                 };
             }
             this.dispatchEvent( new ifuture.Event( 'open:house', argument ) );

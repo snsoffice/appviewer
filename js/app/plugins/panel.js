@@ -1,4 +1,4 @@
-define( [ 'ifuture', 'config', 'utils', 'restapi', 'logger', 'app/dialog' ], function ( ifuture, config, utils, restapi, logger, dialog ) {
+define( [ 'ifuture', 'config', 'restapi', 'logger', 'app/dialog' ], function ( ifuture, config, restapi, logger, dialog ) {
 
     var _TEMPLATE = '                                                                 \
         <div data-view="panel" class="dx-tab bg-light ">                              \
@@ -28,8 +28,9 @@ define( [ 'ifuture', 'config', 'utils', 'restapi', 'logger', 'app/dialog' ], fun
     var _CALL_BUTTON_SELECTOR = 'form button:nth-of-type(2)';
     var _URL_INPUT_SELECTOR = 'form input:nth-of-type(1)';
 
-    var HOUSE_URL = utils.PARA_HOUSE_URL;
-    var HOUSE_LIVING = utils.PARA_HOUSE_LIVING;
+    var HOUSE_URL = 'house';
+    var HOUSE_ANCHOR = 'anchor';
+    var HOUSE_TOKEN = 'token';
 
     View = function ( app, target ) {
 
@@ -43,9 +44,9 @@ define( [ 'ifuture', 'config', 'utils', 'restapi', 'logger', 'app/dialog' ], fun
         this.title = '直播看房';
 
         /**
-         * 远程主播
+         * 远程主播信息，包括 anchor 和 token 两个属性
          * @private
-         * @type {String}
+         * @type {Object}
          */
         this._callee = null;
 
@@ -92,20 +93,16 @@ define( [ 'ifuture', 'config', 'utils', 'restapi', 'logger', 'app/dialog' ], fun
      *
      * @public
      */
-    View.prototype.open = function ( url, data, callee ) {
+    View.prototype.open = function ( url, data, options ) {
 
         if ( this._element === null )
             this.buildView_();
 
         this._element.style.display = 'block';
+        this._element.querySelector( _URL_INPUT_SELECTOR ).value = this.buildUrl_();
 
         // this._room = ( config.userId + '.' + url.split( '/' ).slice( -1 ) ).slice( 0, 32 );
-
-        var base = config.portalBaseUrl + '/' + config.portalSiteName + '/' + config.appBaseUrl;
-        var paras =  HOUSE_URL + '=' + encodeURIComponent( url ) + '&' + HOUSE_LIVING + '=' + config.userId;
-        this._element.querySelector( _URL_INPUT_SELECTOR ).value = base + '?' + paras;
-
-        this._callee = callee;
+        this._callee = options && options.anchor && options.token ? options : null;
         this._data = data;
         this._url = url;
 
@@ -195,6 +192,33 @@ define( [ 'ifuture', 'config', 'utils', 'restapi', 'logger', 'app/dialog' ], fun
             return ;
         }
 
+        if ( this._data === null || ! this._data.views ) {
+            dialog.info( '无法直播，没有当前房屋的数据' );
+            return ;
+        }
+
+        var argument = {
+            url: this._url,
+            views: this._data.views,
+        };
+
+        this.dispatchEvent( new ifuture.Event( 'open:screen', argument ) );
+
+    };
+
+    /**
+     * 生成直播地址
+     *
+     * @private
+     */
+    View.prototype.buildUrl_ = function () {
+
+        var base = config.portalBaseUrl + '/' + config.portalSiteName + '/' + config.appBaseUrl;
+        var paras =  [ HOUSE_URL + '=' + encodeURIComponent( url ),
+                       HOUSE_ANCHOR + '=' + config.userId,
+                       HOUSE_TOKEN + '=' + config.easyrtcId ];
+        return base + '?' + paras.join( '&' );
+
     };
 
     /**
@@ -204,7 +228,7 @@ define( [ 'ifuture', 'config', 'utils', 'restapi', 'logger', 'app/dialog' ], fun
      */
     View.prototype.copyUrl_ = function () {
 
-        var data = this._element.querySelector( _URL_INPUT_SELECTOR ).value;
+        var data = this.buildUrl_();
         var handler = function ( e ) {
             e.clipboardData.setData( 'text/plain', data );
             e.preventDefault();

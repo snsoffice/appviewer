@@ -1,6 +1,8 @@
 define( function () {
 
-    var _settings = {};
+    var settings = {
+        easyrtcId: null;
+    };
 
     function get( name ) {
         return window.localStorage.getItem( name );
@@ -42,6 +44,12 @@ define( function () {
             configurable: false,
             get: function () { return get( 'loginToken' ); },
             set: function ( value ) { set( 'loginToken', value ); }
+        },
+
+        easyrtcId: {
+            configurable: false,
+            get: function () { return setting.easyrtcId; },
+            set: function ( value ) { setting.easyrtcId = value; }
         },
 
         houseDomain: {

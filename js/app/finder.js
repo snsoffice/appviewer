@@ -114,6 +114,7 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
         }, false );
 
         element.querySelector( _NAVBAR_MENU_SELECTOR ).addEventListener( 'click', function ( e ) {
+            e.preventDefault();
             e.currentTarget.classList.remove( 'show' );
         }, false );
 

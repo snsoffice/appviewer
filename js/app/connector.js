@@ -60,6 +60,9 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
         easyrtc.setAcceptChecker( this.acceptChecker_.bind( this ) );
         easyrtc.setOnError( this.onEasyrtcError_.bind( this ) );
 
+        // if ( typeof config.userId === 'string' )
+        //     easyrtc.setUsername( config.userId );
+
         easyrtc.connect(
             _EASYRTC_APPKEY,
             this.loginSuccess_.bind( this ),
@@ -77,20 +80,20 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
         logger.log( 'Easyrtc report ' + errObj.errorCode + ' : ' + errObj.errorText );
 
         switch ( errObj.errorCode ) {
-        case BAD_NAME: // a user name wasn't of the desired form
-        case CALL_ERR: // something went wrong creating the peer connection
-        case DEVELOPER_ERR: // the developer using the EasyRTC library made a mistake
-        case SYSTEM_ERR: // probably an error related to the network
-        case CONNECT_ERR: // error occurred when trying to create a connection
-        case MEDIA_ERR: // unable to get the local media
-        case MEDIA_WARNING: // didn't get the desired resolution
-        case INTERNAL_ERR:
-        case PEER_GONE: // peer doesn't exist
-        case ALREADY_CONNECTED:
-        case BAD_CREDENTIAL:
-        case ICECANDIDATE_ERR:
-        case NOVIABLEICE:
-        case SIGNAL_ERR:
+        case easyrtc.errCodes.BAD_NAME: // a user name wasn't of the desired form
+        case easyrtc.errCodes.CALL_ERR: // something went wrong creating the peer connection
+        case easyrtc.errCodes.DEVELOPER_ERR: // the developer using the EasyRTC library made a mistake
+        case easyrtc.errCodes.SYSTEM_ERR: // probably an error related to the network
+        case easyrtc.errCodes.CONNECT_ERR: // error occurred when trying to create a connection
+        case easyrtc.errCodes.MEDIA_ERR: // unable to get the local media
+        case easyrtc.errCodes.MEDIA_WARNING: // didn't get the desired resolution
+        case easyrtc.errCodes.INTERNAL_ERR:
+        case easyrtc.errCodes.PEER_GONE: // peer doesn't exist
+        case easyrtc.errCodes.ALREADY_CONNECTED:
+        case easyrtc.errCodes.BAD_CREDENTIAL:
+        case easyrtc.errCodes.ICECANDIDATE_ERR:
+        case easyrtc.errCodes.NOVIABLEICE:
+        case easyrtc.errCodes.SIGNAL_ERR:
             break;
 
         default:
@@ -105,10 +108,10 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
      * @param {sns.EasyrtcId} easyrtcid
      * @private
      */
-    Connector.prototype.loginSuccess_ = function ( easyrtcid ) {
-        this._easyrtcId = easyrtcid;
+    Connector.prototype.loginSuccess_ = function ( easyrtcId ) {
+        this._easyrtcId = easyrtcId;
+        config.easyrtcId = easyrtcId;
     };
-
 
     /**
      * 连接失败
@@ -170,12 +173,12 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
         easyrtc.enableVideoReceive( true );
 
         easyrtc.hangupAll();
-        easyrtc.call( anchor, successCB, failureCB, acceptedCB );
+        easyrtc.call( callee.token, successCB, failureCB, acceptedCB );
 
         var reject = function () {
             easyrtc.hangupAll();
         };
-        dialog = dialog.caller( '正在呼叫...', reject );
+        dialog = dialog.caller( '正在呼叫 ' + callee.anchor + ' ...', reject );
 
     };
 
@@ -187,10 +190,10 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
      */
     Connector.prototype.sendPeerMessage_ = function( msgType, msgData ) {
 
-        if ( this._callee === null )
+        if ( this._callee === null || ! this._callee.token )
             return;
 
-        var destination = this._callee;
+        var destination = this._callee.token;
         var successCB = function () {
             logger.log( 'Send message to ' + destination + ': ' + msgType + ' OK' );
         };
@@ -280,12 +283,7 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
         easyrtc.setOnStreamClosed( function ( easyrtcid ) {
         } );
 
-        var other = this.userNameToEasyrtcid_( callee );
-        if ( other === undefined ) {
-            dialog.info( '呼叫用户 ' + callee + '失败，没有在线' );
-            return;
-        }
-        this.callAnchor_( other );
+        this.callAnchor_( callee );
 
     };
 
@@ -294,14 +292,10 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
         this.initEasyrtc_();
     };
 
-    Connector.prototype.restart = function () {
-        this.stop();
-        this.start();
-    };
-
     Connector.prototype.stop = function () {
         easyrtc.hangupAll();
         easyrtc.disconnect();
+        this._easyrtcId = null;
     };
 
     Connector.prototype.userNameToEasyrtcid_ = function ( userName ) {
@@ -336,9 +330,6 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
         }, this );
 
         this.app.on( 'user:login', function ( event ) {
-            if( ! easyrtc.setUsername( config.userId ) ) {
-                logger.log( 'Easyrtc 设置用户名称失败' );
-            }
         }, this );
 
         this.app.on( 'start:living', function ( event ) {

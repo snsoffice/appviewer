@@ -1,7 +1,7 @@
-define( [ 'ifuture', 'config', 'restapi', 'logger',
+define( [ 'ifuture', 'config', 'restapi', 'logger', 'app/dialog',
           'app/plugins/info', 'app/plugins/frame', 'app/plugins/photo',
           'app/plugins/location', 'app/plugins/feature', 'app/plugins/panel' ],
-function ( ifuture, config, restapi, logger,
+function ( ifuture, config, restapi, logger, dialog,
            HouseInfo, HouseFrame, HousePhoto, HouseLocation, HouseFeature, HousePanel ) {
 
     var _HOUSE_CONFIG_FILE = 'config.json';
@@ -62,11 +62,11 @@ function ( ifuture, config, restapi, logger,
         this._data = null;
 
         /**
-         * 房屋的主播
+         * 房屋的额外属性，例如主播等
          * @private
          * @type {Object}
          */
-        this._callee = undefined;
+        this._options = undefined;
 
         /**
          * 所有的视图
@@ -135,7 +135,7 @@ function ( ifuture, config, restapi, logger,
      *
      * @private
      */
-    House.prototype.openHouse_ = function ( url, options ) {
+    House.prototype.openHouse_ = function ( url, view, options ) {
 
         if ( this._url === url ) {
             this.dispatchEvent( new ifuture.Event( 'house:opened' ) );
@@ -148,14 +148,8 @@ function ( ifuture, config, restapi, logger,
             .then( function ( data ) {
                 scope._data = data;
                 scope._url = url;                
-                if ( options === undefined ) {
-                    scope._callee = undefined;
-                    scope.showView_( 'info' );
-                }
-                else {
-                    scope._callee = options.callee;
-                    scope.showView_( options.view );
-                }
+                scope._options = options;
+                scope.showView_( view === undefined ? 'info' : view );
                 scope.dispatchEvent( new ifuture.Event( 'house:opened' ) );
             } )
 
@@ -229,7 +223,7 @@ function ( ifuture, config, restapi, logger,
             this._views.current.close();
 
         this._element.querySelector( _NAVBAR_TITLE_SELECTOR ).textContent = view.title;
-        view.open( this._url, this._data, this._callee );
+        view.open( this._url, this._data, this._options );
         this._views.current = view;
 
     };
