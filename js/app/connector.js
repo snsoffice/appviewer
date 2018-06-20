@@ -29,11 +29,18 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
         this._easyrtcId = null;
 
         /**
-         * 被呼叫方的 easyrtcid
+         * 主播的连接信息
+         * @private
+         * @type {Object} 属性 anchor 和 token
+         */
+        this._callee = null;
+
+        /**
+         * 观看者的连接Id
          * @private
          * @type {string} easyrtcid
          */
-        this._callee = null;
+        this._otherId = null;
 
         /**
          * 视频元素
@@ -134,13 +141,17 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
      */
     Connector.prototype.acceptChecker_ = function ( easyrtcid, acceptor ) {
 
+        var scope = this;
+
         var accept = function () {
             acceptor( true );
+            scope._otherId = easyrtcid;
             scope.dispatchEvent( new ifuture.Event( 'living:connected' ) );
         },
 
         reject = function () {
             acceptor( false );
+            scope._otherId = null;
         };
 
         dialog.acceptor( '用户请求直播看房?', accept, reject );
@@ -196,10 +207,8 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
      */
     Connector.prototype.sendPeerMessage_ = function( msgType, msgData ) {
 
-        if ( this._callee === null || ! this._callee.token )
-            return;
+        var destination = this._callee && this._callee.token ? this._callee.token : this._otherId;
 
-        var destination = this._callee.token;
         var successCB = function () {
             logger.log( 'Send message to ' + destination + ': ' + msgType + ' OK' );
         };
@@ -223,7 +232,7 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
 
         if ( msgType === 'anchor' ) {
 
-            this.dispatchEvent( new ifuture.Event( 'helper:changed', msgData ) );
+            this.dispatchEvent( new ifuture.Event( 'marker:changed', msgData ) );
 
         }
 
@@ -260,6 +269,8 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
 
         this._video = null;
 
+        this.dispatchEvent( new ifuture.Event( 'living:disconnected' ) );
+
     };
 
     /**
@@ -275,14 +286,18 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
         easyrtc.enableVideoReceive( false );
 
         var scope = this;
+        scope._video = video;
+        scope._otherId = null;
 
         easyrtc.initMediaSource(
             function( mediastream ) {
-                video.classList.add( 'dx-mirror' );
-                easyrtc.setVideoObjectSrc( video, mediastream );
-                scope._video = video;
+                if ( scope._video !== null ) {
+                    video.classList.add( 'dx-mirror' );
+                    easyrtc.setVideoObjectSrc( video, mediastream );
+                }
             },
             function( errorCode, errorText ){
+                scope._video = null;
                 logger.log( 'initMediaSource return ' + errorCode + ': '  + errorText );
                 dialog.info( '打开摄像头和话筒时出现错误，无法进行直播' );
             }
@@ -309,8 +324,7 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
             scope._video = video;
         });
 
-        easyrtc.setOnStreamClosed( function ( easyrtcid ) {
-        } );
+        easyrtc.setOnStreamClosed( function ( easyrtcid ) {} );
 
         this.callAnchor_( callee );
 
@@ -354,6 +368,10 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
         this.app.on( 'watch:living', function ( event ) {
             var arg = event.argument;
             this.watchLiving_( arg.video, arg.callee );
+        }, this );
+
+        this.app.on( 'disconnect:living', function ( event ) {
+            easyrtc.hangupAll();
         }, this );
 
     };

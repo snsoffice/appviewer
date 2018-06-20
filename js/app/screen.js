@@ -104,6 +104,18 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
             this._element.querySelector( _HANGUP_BUTTON_SELECTOR ).style.display = 'block';
         }, this );
 
+
+        this.app.on( 'living:disconnected', function ( e ) {
+            this._element.querySelector( _CLOSE_BUTTON_SELECTOR ).style.display = 'block';
+            this._element.querySelector( _HANGUP_BUTTON_SELECTOR ).style.display = 'none';
+            this.closeScreen_();
+        }, this );
+
+        this.app.on( 'marker:changed', function ( e ) {
+            var arg = e.argument;
+            this.changeMarker_( arg.name, arg.coordinate, arg.direction );
+        }, this );
+
         // 内部事件绑定
         var scope = this;
 
@@ -128,6 +140,8 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
      */
     Screen.prototype.openScreen_ = function ( house ) {
 
+        this._direction = undefined;
+
         if ( this._map === null )
             this.initMap_();
 
@@ -135,6 +149,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
             this.initVideo_();
 
         if ( this._house && this._house.url === house.url ) {
+            this._house = house;
             this.dispatchEvent( new ifuture.Event( 'screen:opened' ) );
             return;
         }
@@ -201,9 +216,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
      * @private
      */
     Screen.prototype.hangup_ = function () {
-        this._element.querySelector( _CLOSE_BUTTON_SELECTOR ).style.display = 'block';
-        this._element.querySelector( _HANGUP_BUTTON_SELECTOR ).style.display = 'none';
-        this.closeScreen_();
+        this.dispatchEvent( new ifuture.Event( 'disconnect:living' ) );
     };
 
     /**
@@ -385,6 +398,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
      * @private
      */
     Screen.prototype.changeMarker_ = function ( name, coordinate, direction ) {
+
         var marker = this._map.getOverlayById( name );
         var element = marker.getElement();
         if ( marker ) {
