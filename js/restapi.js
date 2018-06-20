@@ -398,6 +398,8 @@ define( [ 'config', 'utils' ], function ( config, utils ) {
 
         queryHouses: _queryHouses,
 
+        queryHouseConfig: _queryHouseConfig,
+
     }
 
 } );

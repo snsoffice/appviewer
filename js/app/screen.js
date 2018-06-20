@@ -1,4 +1,4 @@
-define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, logger, ol ) {
+define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifuture, config, logger, ol, dialog ) {
 
     var _SELECTOR = '.dx-screen';
     var _CLOSE_BUTTON_SELECTOR = '.dx-toolbar button:nth-of-type(1)';
@@ -79,7 +79,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, log
 
         this.app.on( 'open:screen', function ( e ) {
             var arg = e.argument;
-            this.openScreen_( arg.url, arg.view, arg.callee );
+            this.openScreen_( arg.url, arg.views, arg.callee );
         }, this );
 
         this.app.on( 'screen:opend', function ( e ) {
@@ -122,7 +122,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, log
      *
      * @private
      */
-    Screen.prototype.openScreen_ = function ( url, view, callee ) {
+    Screen.prototype.openScreen_ = function ( url, views, callee ) {
 
         if ( this._map === null )
             this.initMap_();
@@ -134,7 +134,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, log
             this.dispatchEvent( new ifuture.Event( 'screen:opened' ) );
         }
         else {
-            this.buildHouseMap_( view );
+            this.buildHouseMap_( views );
             this._url = url;
         }
 
@@ -221,7 +221,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, log
             target: element,
             interactions: [],
             controls: [],
-            overlays: [ marker ];
+            overlays: [ marker ],
         } );
 
         this._map.on( 'singleclick', this.onTouchMap_, this );
@@ -234,13 +234,15 @@ define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, log
      *
      * @private
      */
-    Screen.prototype.buildHouseMap_ = function ( view ) {
+    Screen.prototype.buildHouseMap_ = function ( views ) {
+
+        var view = views[ 0 ];
 
         var fmt = new ol.format.WKT();
         var geometry = fmt.readGeometry( view.geometry );
         var extent = geometry.getExtent();
 
-        var size = this.map.getSize();
+        var size = this._map.getSize();
         if ( size === undefined )
             size = _DEFAULT_MAP_SIZE;
 
@@ -277,6 +279,8 @@ define( [ 'ifuture', 'config', 'logger', 'ol' ], function ( ifuture, config, log
                     break;
 
                     case 'error':
+                    logger.log( 'Load static image to map failed: ' + e );
+                    dialog.info( '无法打开房屋的结构图' );
                     break;
 
                 }

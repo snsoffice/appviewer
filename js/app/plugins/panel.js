@@ -1,4 +1,4 @@
-define( [ 'ifuture', 'config', 'utils', 'app/dialog' ], function ( ifuture, config, utils, dialog ) {
+define( [ 'ifuture', 'config', 'utils', 'restapi', 'logger', 'app/dialog' ], function ( ifuture, config, utils, restapi, logger, dialog ) {
 
     var _TEMPLATE = '                                                                 \
         <div data-view="panel" class="dx-tab bg-light ">                              \
@@ -44,10 +44,10 @@ define( [ 'ifuture', 'config', 'utils', 'app/dialog' ], function ( ifuture, conf
 
         /**
          * 远程主播
-         * @public
+         * @private
          * @type {String}
          */
-        this.callee = null;
+        this._callee = null;
 
         /**
          * 父视图的选择符
@@ -71,6 +71,13 @@ define( [ 'ifuture', 'config', 'utils', 'app/dialog' ], function ( ifuture, conf
         this._url = null;
 
         /**
+         * 直播需要的数据，主要是房屋的视图
+         * @private
+         * @type {Object}
+         */
+        this._data = null;
+
+        /**
          * 直播房间名称
          * @private
          * @type {String}
@@ -85,23 +92,22 @@ define( [ 'ifuture', 'config', 'utils', 'app/dialog' ], function ( ifuture, conf
      *
      * @public
      */
-    View.prototype.open = function ( url ) {
+    View.prototype.open = function ( url, data, callee ) {
 
         if ( this._element === null )
             this.buildView_();
 
         this._element.style.display = 'block';
 
-        if ( this._url === url ) {
-            return;
-        }
-
-        this._room = ( config.userId + '.' + url.split( '/' ).slice( -1 ) ).slice( 0, 32 );
-        this._url = url;
+        // this._room = ( config.userId + '.' + url.split( '/' ).slice( -1 ) ).slice( 0, 32 );
 
         var base = config.portalBaseUrl + '/' + config.portalSiteName + '/' + config.appBaseUrl;
-        var paras =  HOUSE_URL + '=' + encodeURIComponent( url ) + '&' + HOUSE_LIVING + '=' + this._room;
+        var paras =  HOUSE_URL + '=' + encodeURIComponent( url ) + '&' + HOUSE_LIVING + '=' + config.userId;
         this._element.querySelector( _URL_INPUT_SELECTOR ).value = base + '?' + paras;
+
+        this._callee = callee;
+        this._data = data;
+        this._url = url;
 
     };
 
@@ -113,7 +119,6 @@ define( [ 'ifuture', 'config', 'utils', 'app/dialog' ], function ( ifuture, conf
     View.prototype.close = function () {
 
         this._element.style.display = 'none';
-        this._url = null;
 
     }
 
@@ -158,10 +163,23 @@ define( [ 'ifuture', 'config', 'utils', 'app/dialog' ], function ( ifuture, conf
      */
     View.prototype.watchLiving_ = function () {
 
-        if ( this.callee === null ) {
-            dialog.info( '当前房屋没有直播信号' );
+        if ( this._callee === null ) {
+            dialog.info( '无法观看直播，当前房屋没有直播信号' );
             return ;
         }
+
+        if ( this._data === null || ! this._data.views ) {
+            dialog.info( '无法观看直播，没有当前房屋的数据' );
+            return ;
+        }
+
+        var argument = {
+            url: this._url,
+            views: this._data.views,
+            callee: this._callee,
+        };
+
+        this.dispatchEvent( new ifuture.Event( 'open:screen', argument ) );
 
     };
 

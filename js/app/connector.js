@@ -55,12 +55,10 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
 
         easyrtc.setSocketUrl( _EASYRTC_SERVER );
         easyrtc.usernameRegExp = new RegExp( _USER_NAME_REGEXP );
-        easyrtc.setUsername( config.userName === null ? '用户' : config.userName );
         easyrtc.setPeerListener( this.peerListener_.bind( this ) );
         easyrtc.setPeerClosedListener( this.peerClosedListener_.bind( this ) );
         easyrtc.setAcceptChecker( this.acceptChecker_.bind( this ) );
         easyrtc.setOnError( this.onEasyrtcError_.bind( this ) );
-
 
         easyrtc.connect(
             _EASYRTC_APPKEY,
@@ -282,7 +280,12 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
         easyrtc.setOnStreamClosed( function ( easyrtcid ) {
         } );
 
-        this.callAnchor_( callee );
+        var other = this.userNameToEasyrtcid_( callee );
+        if ( other === undefined ) {
+            dialog.info( '呼叫用户 ' + callee + '失败，没有在线' );
+            return;
+        }
+        this.callAnchor_( other );
 
     };
 
@@ -332,9 +335,9 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
             this.sendPeerMessage_( arg.msgType, arg.msgData );
         }, this );
 
-        this.app.on( 'user:changed', function ( event ) {
-            if( ! easyrtc.setUsername( config.userName ) ) {
-                logger.log( '设置用户名称失败' );
+        this.app.on( 'user:login', function ( event ) {
+            if( ! easyrtc.setUsername( config.userId ) ) {
+                logger.log( 'Easyrtc 设置用户名称失败' );
             }
         }, this );
 

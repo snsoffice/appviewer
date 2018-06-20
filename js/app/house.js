@@ -1,8 +1,10 @@
-define( [ 'ifuture', 'config', 'restapi',
+define( [ 'ifuture', 'config', 'restapi', 'logger',
           'app/plugins/info', 'app/plugins/frame', 'app/plugins/photo',
           'app/plugins/location', 'app/plugins/feature', 'app/plugins/panel' ],
-function ( ifuture, config, restapi,
+function ( ifuture, config, restapi, logger,
            HouseInfo, HouseFrame, HousePhoto, HouseLocation, HouseFeature, HousePanel ) {
+
+    var _HOUSE_CONFIG_FILE = 'config.json';
 
     var _SELECTOR = '.dx-viewer';
 
@@ -53,6 +55,20 @@ function ( ifuture, config, restapi,
         this._url = null;
 
         /**
+         * 房屋的配置数据
+         * @private
+         * @type {Object}
+         */
+        this._data = null;
+
+        /**
+         * 房屋的主播
+         * @private
+         * @type {Object}
+         */
+        this._callee = undefined;
+
+        /**
          * 所有的视图
          * @private
          * @type {Object}
@@ -85,17 +101,13 @@ function ( ifuture, config, restapi,
                 this.buildHouseViewer_();
             else
                 this.show_();
-            this.openHouse_( e.argument );
+
+            this.openHouse_( e.argument.url, e.argument.options );
 
         }, this );
 
         this.app.on( 'close:house', function ( e ) {
             this.closeHouse_();
-        }, this );
-
-        this.app.on( 'view:panel', function ( e ) {
-            this.showView_( 'panel' );
-            this._view.panel.callee = e.argument;
         }, this );
 
     };
@@ -123,16 +135,37 @@ function ( ifuture, config, restapi,
      *
      * @private
      */
-    House.prototype.openHouse_ = function ( url ) {
+    House.prototype.openHouse_ = function ( url, options ) {
 
         if ( this._url === url ) {
             this.dispatchEvent( new ifuture.Event( 'house:opened' ) );
             return;
         }
 
-        this._url = url;
-        this.showView_( 'info' );
-        this.dispatchEvent( new ifuture.Event( 'house:opened' ) );
+        var scope = this;
+        restapi.queryHouseConfig( url + '/' + _HOUSE_CONFIG_FILE )
+
+            .then( function ( data ) {
+                scope._data = data;
+                scope._url = url;                
+                if ( options === undefined ) {
+                    scope._callee = undefined;
+                    scope.showView_( 'info' );
+                }
+                else {
+                    scope._callee = options.callee;
+                    scope.showView_( options.view );
+                }
+                scope.dispatchEvent( new ifuture.Event( 'house:opened' ) );
+            } )
+
+            .catch( function ( err ) {
+                logger.log( err );
+                scope._data = null;
+                scope._url = null;
+                scope._callee = null;
+                dialog.info( '无法打开房屋，读取房屋数据失败' );
+            } );
 
     };
 
@@ -171,6 +204,7 @@ function ( ifuture, config, restapi,
 
         Array.prototype.forEach.call( element.querySelectorAll( _NAVBAR_MENUITEM_SELECTOR ), function ( m ) {
                 m.addEventListener( 'click', function ( e ) {
+                    e.preventDefault();
                     scope.showView_( e.currentTarget.getAttribute( 'data-view' ) );
                 }, false );
         } );
@@ -195,7 +229,7 @@ function ( ifuture, config, restapi,
             this._views.current.close();
 
         this._element.querySelector( _NAVBAR_TITLE_SELECTOR ).textContent = view.title;
-        view.open( this._url );
+        view.open( this._url, this._data, this._callee );
         this._views.current = view;
 
     };

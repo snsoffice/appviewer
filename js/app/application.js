@@ -60,6 +60,7 @@ function( ifuture, config, restapi, logger, utils,
     Application.prototype.run = function () {
         if ( config.userId !== null )
             this.dispatchEvent( new ifuture.Event( 'user:login' ) );
+        this.connector.start();
         this.finder.startup();
     };
 
@@ -90,10 +91,14 @@ function( ifuture, config, restapi, logger, utils,
 
         var options = configFromURL();
         if ( options[ HOUSE_URL ] ) {
-            this.dispatchEvent( new ifuture.Event( 'open:house', options[ HOUSE_URL ] ) );
+            var argument = { url: options[ HOUSE_URL ] };
             if ( options[ HOUSE_LIVING ] ) {
-                this.dispatchEvent( new ifuture.Event( 'view:panel', options[ HOUSE_LIVING ] ) );
+                argument.options = {
+                    view: 'panel',
+                    callee: options[ HOUSE_LIVING ]
+                };
             }
+            this.dispatchEvent( new ifuture.Event( 'open:house', argument ) );
         }
 
     };
