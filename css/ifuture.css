@@ -150,11 +150,11 @@
 }
 
 .dx-messagebox > .alert {
-    z-index: 1080;    
+    z-index: 1080;
 }
 
 .dx-three {
-    z-index: 1;    
+    z-index: 1;
 }
 
 .dx-login {
@@ -343,6 +343,58 @@
     max-width: 18rem;
 }
 
+
+/*
+ *
+ * Part: House Location
+ *
+ */
+
+.dx-house-locator {
+    position: relative;
+    width: 3.0rem;
+    height: 3.0rem;
+}
+
+.dx-house-locator > span {
+    position: absolute;
+    top: 1.2rem;
+    left: 1.2rem;
+    width: .6rem;
+    height: .6rem;
+    opacity: 0.6;
+    z-index: -1;
+}
+
+.dx-house-locator > img {
+    opacity: 1.0;
+    animation: show8 6.1s infinite linear;
+}
+
+@-webkit-keyframes show8 {
+    0% {
+        opacity: .3
+    }
+    50% {
+        opacity: 1.0
+    }
+    100% {
+        opacity: .3
+    }
+}
+
+@keyframes show8 {
+    0% {
+        opacity: .3
+    }
+    50% {
+        opacity: 1.0
+    }
+    100% {
+        opacity: .3
+    }
+}
+
 /*
  *
  * Polyfills
@@ -371,6 +423,10 @@
 .dx-toolbar button.btn-outline-secondary.active,
 .dx-view-tool button.btn-outline-secondary.active {
     background-color: #6c757d;
+}
+
+.dx-view-tool button.btn-outline-secondary:hover {
+    color: #6c757d;
 }
 
 /* #footbar > button.btn-outline-secondary, */

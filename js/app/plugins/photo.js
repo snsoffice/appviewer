@@ -1,7 +1,7 @@
-define( [ 'ifuture', 'config', 'ol', 'pannellum', 'carousel' ], function ( ifuture, config, ol, pannellum, Carousel ) {
+define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery' ], function ( ifuture, config, ol, pannellum, jquery ) {
 
     var _TEMPLATE = '                                                                    \
-        <div class="dx-tab bg-secondary">                                                \
+        <div class="dx-tab bg-dark">                                                     \
          <div class="dx-view-tool mx-3 mb-2">                                            \
            <button class="btn btn-sm btn-outline-secondary border-0 rounded-circle mr-2" \
                    type="button">                                                        \
@@ -31,13 +31,13 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'carousel' ], function ( ifutu
 
     var _THUMBNAIL_TEMPLATE = '                                                  \
         <img class="img-fluid p-1" src="%POSTER%" alt="%TITLE%" data-src="%SRC%" \
-             data-coordinate="%COORDINATE%" data-direction="%DIRECTION">';
+             data-coordinate="%COORDINATE%" data-direction="%DIRECTION%">';
 
-    var _IMAGE_TEMPLATE = '                                                      \
-        <img class="img-fluid h-100 w-100" src="%SRC%" alt="%TITLE%">';
+    var _IMAGE_TEMPLATE = '<img class="img-fluid" src="%SRC%" alt="%TITLE%">';
 
     var _MINIMAP_SELECTOR = '.dx-overview';
     var _GALARY_SELECTOR = '.dx-galary';
+    var _PANORAMA_SELECTOR = '.dx-panorama';
 
     var _TOGGLE_MINIMAP_SELECTOR = 'div.dx-view-tool > button:nth-of-type(1)';
     var _TOGGLE_GALARY_SELECTOR = 'div.dx-view-tool > button:nth-of-type(2)';
@@ -108,7 +108,7 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'carousel' ], function ( ifutu
 
         // 全景照片角度发生变化之后的事件
         app.on( 'helper:changed', function ( e ) {
-            this.changeMarker_( _MARKER_ID, e.arguments.position, e.arguments.yaw );
+            this.changeMarker_( _MARKER_ID, e.argument.position, e.argument.yaw );
         }, this );
 
     }
@@ -140,7 +140,7 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'carousel' ], function ( ifutu
         this._url = url;
 
         this.buildView_();
-        this.buildMinimap();
+        this.buildMinimap_();
         this.buildPanorama_();
         this.buildGalary_();
 
@@ -194,7 +194,7 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'carousel' ], function ( ifutu
     View.prototype.buildPanorama_ = function () {
 
         var container = document.createElement( 'div' );
-        container.className = "w-100 h-100 dx-panorama";
+        container.className = "dx-page dx-panorama";
         this._element.appendChild( container );
 
         var toCoordinate = function ( str ) {
@@ -215,11 +215,13 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'carousel' ], function ( ifutu
                     coordinate: toCoordinate( feature.coordinate ),
                     direction: feature.angle,
                 };
+                if ( firstScene === undefined )
+                    firstScene = scenes[ feature.name ];
             }
         } );
 
         if ( firstScene === undefined ) {
-            container.innerHTML = '<p mx-auto mt-5>房屋还没有全景照片</p>';
+            container.innerHTML = '<p class="text-center mt-5">房屋没有全景照片</p>';
             this._panorama = null;
             return;
         }
@@ -228,10 +230,13 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'carousel' ], function ( ifutu
             autoLoad: true,
             application: this.app,
             scenes: scenes,
-            'default': { firstScene: firstScene }
+            'default': {
+                firstScene: firstScene.name,
+            }
         };
 
         this._panorama = {
+            current: firstScene.name,
             scenes: scenes,
             viewer: pannellum.viewer( container, options ),
         };
@@ -248,7 +253,7 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'carousel' ], function ( ifutu
     View.prototype.buildGalary_ = function () {
 
         var container = document.createElement( 'div' );
-        container.className = "w-100 h-100 dx-galary";
+        container.className = "w-100 h-100 d-flex justify-content-center align-items-center dx-galary";
         this._element.appendChild( container );
 
         var images = [];
@@ -263,13 +268,17 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'carousel' ], function ( ifutu
             }
         } );
 
-        var galary = document.createElement( 'div' );
-        galary.innerHTML = _GALARY_DIALOG_TEMPLATE.replace( '%IMAGES%', images );
-        this._element.appendChild( galary.firstElementChild );
+        var element = document.createElement( 'div' );
+        element.innerHTML = _GALARY_DIALOG_TEMPLATE.replace( '%IMAGES%', images.join( '' ) );
+        element = element.firstElementChild
+        this._element.appendChild( element );
 
-        Array.prototype.forEach.call( galary.querySelectorAll( 'img' ), function ( img ) {
-            this.selectPhoto_( img );
-        }.bind( this ) );
+        var scope = this;
+        Array.prototype.forEach.call( element.querySelectorAll( 'img' ), function ( img ) {
+            img.addEventListener( 'click', function ( e ) {
+                scope.selectPhoto_( e.currentTarget );
+            }, false );
+        } );
 
     };
 
@@ -348,11 +357,16 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'carousel' ], function ( ifutu
      */
     View.prototype.selectPanorama_ = function ( evt ) {
 
+        if ( this._panorama === null )
+            return;
+
         var scene;
         var x = evt.coordinate[ 0 ], y = evt.coordinate[ 1 ];
         var d = Infinity;
+        var scenes = this._panorama.scenes;
 
-        this._panorama.scenes.getOwnPropertyNames.forEach( function ( pano ) {
+        Object.getOwnPropertyNames( this._panorama.scenes ).forEach( function ( name ) {
+            var pano = scenes[ name ];
             if ( pano.coordinate ) {
                 var x0 = pano.coordinate[ 0 ], y0 = pano.coordinate[ 1 ];
                 var d0 = ( x - x0 ) * ( x - x0 ) + ( y - y0 ) * ( y - y0 );
@@ -363,11 +377,14 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'carousel' ], function ( ifutu
             }
         } );
 
+        if ( scene.name !== this._panorama.current ) {
+            this._panorama.viewer.loadScene( scene.name );
+            this._panorama.current = scene.name;
+            this.changeMarker_( _MARKER_ID, scene.coordinate, scene.direction );
+        }
+
         this._element.querySelector( _GALARY_SELECTOR ).style.display = 'none';
         this._element.querySelector( _PANORAMA_SELECTOR ).style.display = 'block';
-        this._panorama.viewer.loadScene( scene.name );
-
-        this.changeMarker_( _MARKER_ID, scene.coordinate, scene.direction );
 
     };
 
@@ -378,10 +395,12 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'carousel' ], function ( ifutu
      */
     View.prototype.selectPhoto_ = function ( img ) {
 
+        jquery( 'div.modal.fade', this._element ).modal( 'hide' );
+
         var galary = this._element.querySelector( _GALARY_SELECTOR );
         galary.innerHTML = _IMAGE_TEMPLATE
-            .replace( '%TITLE', img.getAttribute( 'alt' ) )
-            .replace( '%SRC', img.getAttribute( 'data-src' ) );
+            .replace( '%TITLE%', img.getAttribute( 'alt' ) )
+            .replace( '%SRC%', img.getAttribute( 'data-src' ) );
 
         galary.style.display = 'block';
         this._element.querySelector( _PANORAMA_SELECTOR ).style.display = 'none';
