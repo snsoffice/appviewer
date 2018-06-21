@@ -178,6 +178,7 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery' ], function ( ifuture
 
             var m = scope._element.querySelector( _MINIMAP_SELECTOR );
             m.style.display = m.style.display === 'none' ? 'block' : 'none';
+            m.querySelector( 'canvas' ).style.display = m.style.display;
 
         }, false );
 

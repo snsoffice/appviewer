@@ -1,13 +1,15 @@
 define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
 
+    var _PADDING_TOP = 56;
+
     var _TEMPLATE = '                                                                \
       <div class="dx-tab bg-secondary ">                                             \
         <div class="dx-frame w-100 h-100">                                           \
         </div>                                                                       \
          <ol class="carousel-indicators">                                            \
-           <li data-slide-to="0"></li>                                               \
            <li data-slide-to="1"></li>                                               \
            <li data-slide-to="2"></li>                                               \
+           <li data-slide-to="3"></li>                                               \
          </ol>                                                                       \
       </div>';
 
@@ -24,6 +26,8 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
     var _MARKER_INDICATOR_SELECTOR = 'span';
 
     var _HOUSE_MARKER_ID = 'myhouse';
+
+    var _BINGS_MAP_KEY = 'AtHtvweLfmjJag2BTGXsX0kW-2ExduYJXOU-78cgNz4Y_m7UylYgMmfbEwlYyPPb';
 
     View = function ( app, target ) {
 
@@ -71,6 +75,17 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
          */
         this._map = null;
 
+        /**
+         * 动画设置的数据信息
+         * @private
+         * @type {Array.<Object>}
+         */
+        this._animations = null;
+
+
+        // Resize map
+        window.addEventListener( 'resize', this.onResize_.bind( this ), false );
+
     }
     ifuture.inherits( View, ifuture.Component );
 
@@ -91,12 +106,12 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         if ( this._element !== null )
             this._element.remove();
 
-        this.dispatchEvent( new ifuture.Event( 'show:loader' ) );
+        // this.dispatchEvent( new ifuture.Event( 'show:loader' ) );
 
-        this._element.style.display = 'block';
         this.buildView_();
         this.buildMap_();
 
+        this._element.style.display = 'block';
         this._url = url;
 
     };
@@ -128,17 +143,7 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         var scope = this;
         Array.prototype.forEach.call( element.querySelectorAll( _INDICATOR_SELECTOR ), function ( li ) {
             li.addEventListener( 'click', function ( e ) {
-                switch( e.currentTarget.getAttribute( 'data-slide-to' ) ) {
-                case '0':
-                    scope.animateBuilding_();
-                    break;
-                case '2':
-                    scope.animateRegion_();
-                    break;
-                default:
-                    scope.showHouse_();
-                    break;
-                }
+                scope.animateHouse_( parseInt( e.currentTarget.getAttribute( 'data-slide-to' ) ) );
             }, false );
         } );
 
@@ -149,14 +154,17 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
      *
      * @private
      */
-    Screen.prototype.buildMap_ = function () {
+    View.prototype.buildMap_ = function () {
 
-        var src;
-        var coordinate;
-        var extent;
+        var size = [ window.innerWidth, window.innerHeight - _PADDING_TOP ];
+        var fmt = new ol.format.WKT();
+
+        var view = this._data.views[ 0 ];
+        var geometry = fmt.readGeometry( view.geometry );
+        var extent = geometry.getExtent();
 
         var element = document.createElement( 'div' );
-        element.innerHTML = _MARKER_TEMPLATE.replace( '%SRC%', src ).replace( '%TITLE%', title );
+        element.innerHTML = _MARKER_TEMPLATE.replace( '%SRC%', view.url ).replace( '%TITLE%', view.name );
         element = element.firstElementChild;
         var marker = new ol.Overlay({
             id: _HOUSE_MARKER_ID,
@@ -164,57 +172,121 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
             positioning: 'center-center',
             stopEvent: false,
         });
+        element.style.display = 'none';
+        marker.setPosition( ol.extent.getCenter( extent ) );
+
+        var layers = [];
+        layers.push( this.buildImageLayer_( view.url, extent ) );
+
+        if ( this._data.locations && this._data.locations.length ) {
+            this._data.locations.forEach( function ( building ) {
+                view = building.views[ 0 ];
+                geometry = fmt.readGeometry( view.geometry );
+                extent = geometry.getExtent();
+                layers.push( this.buildImageLayer_( view.url, extent ) );
+            }, this );
+        }
+
+        layers.push(
+            new ol.layer.Tile( {
+                preload: Infinity,
+                source: new ol.source.BingMaps( {
+                    key: _BINGS_MAP_KEY,
+                    imagerySet: 'Aerial',
+                    // use maxZoom 19 to see stretched tiles instead of the BingMaps
+                    // "no photos at this zoom level" tiles
+                    maxZoom: 19
+                } )
+            } ) );
+        layers.reverse();
 
         var target = this._element.querySelector( _FRAME_SELECTOR );
         this._map = new ol.Map( {
             target: target,
-            interactions: [],
+            layers: layers,
+            // interactions: [],
             controls: [],
             overlays: [ marker ],
         } );
 
-        var view = new ol.View();
-        this._map.setView( view );
+        this._map.setSize( size );
+        this._map.setView( new ol.View( {
+            enableRotation: false,
+        } ) );
 
-        marker.setPosition( coordinate );
+        this._map.getView().fit( extent, {
+            padding: [ 16, 0, 16, 0 ],
+        } );
+
     };
 
     /**
-     * 动画方式显示房子在建筑物和小区中的位置
+     * 创建静态图片的图层
      *
      * @private
      */
-    View.prototype.animateBuilding_ = function () {
-        this.select_( 1 );
+    View.prototype.buildImageLayer_ = function ( src, extent ) {
+
+        var loadImage = function ( image, src ) {
+            image.getImage().src = src;
+        };
+
+        var source = new ol.source.ImageStatic( {
+            crossOrigin: 'anonymous',
+            imageExtent: extent,
+            url: src,
+            imageLoadFunction: loadImage,
+        } );
+
+        return new ol.layer.Image( {
+            extent: extent,
+            source: source,
+        } );
+
     };
 
     /**
-     * 动画方式显示小区在城市和国家中位置
+     * 动画方式显示房子在建筑物、小区以及省、国家等大区域的位置
+     *
      *
      * @private
      */
-    View.prototype.animateRegion_ = function () {
-        this.select_( 2 );
+    View.prototype.animateHouse_ = function ( index ) {
+
+        this.select_( index );
+
+        if ( index === 2 ) {
+            this.showHouse_();
+            return;
+        }
+
+        var marker = this._map.getOverlayById( _HOUSE_MARKER_ID );
+        marker.getElement().style.display = 'none';
+
+        
     };
 
     /**
-     * 显示当前房子的信息
+     * 默认在小区中显示房子的位置
      *
      * @private
      */
     View.prototype.showHouse_ = function () {
 
-        if ( this._map === null )
+        if ( this._map === null || this._animations === null )
             return;
 
-        var view = this._map.getView();
-        view.animate(
-            {},
-            {},
-            function () {
-                this.select_( 2 );
-            }.bind( this )
-        );
+        var marker = this._map.getOverlayById( _HOUSE_MARKER_ID );
+        marker.getElement().style.display = 'block';
+
+        var center = this._animations[ 1 ].center;
+        var resolution = this._animations[ 1 ].resolution;
+
+        this._map.getView().animate( {
+            center: center,
+            resolution: resolution,
+            duration: 100,
+        } );
 
     };
 
@@ -228,8 +300,20 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         Array.prototype.forEach.call( this._element.querySelectorAll( _INDICATOR_SELECTOR ), function ( li ) {
             li.className = '';
         } );
-
         this._element.querySelector( _INDICATOR_SELECTOR + ':nth-of-type(' + index + ')' ).className = 'active';
+
+    };
+
+    /**
+     * 选中指示器
+     *
+     * @private
+     */
+    View.prototype.onResize_ = function ( e ) {
+
+        if ( this._map === null )
+            return;
+        this._map.setSize( [ window.innerWidth, window.innerHeight - _PADDING_TOP ] );
 
     };
 
