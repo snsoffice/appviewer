@@ -378,11 +378,11 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery' ], function ( ifuture
         } );
 
         if ( scene.name !== this._panorama.current ) {
-            this._panorama.viewer.loadScene( scene.name );
             this._panorama.current = scene.name;
-            this.changeMarker_( _MARKER_ID, scene.coordinate, scene.direction );
+            this._panorama.viewer.loadScene( scene.name );
         }
 
+        this.changeMarker_( _MARKER_ID, scene.coordinate, scene.direction );
         this._element.querySelector( _GALARY_SELECTOR ).style.display = 'none';
         this._element.querySelector( _PANORAMA_SELECTOR ).style.display = 'block';
 
