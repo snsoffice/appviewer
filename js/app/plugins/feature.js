@@ -15,7 +15,7 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         </div>';
 
     var _BACKDROP_TEMPLATE = '                                                                                                  \
-           <div class="modal-backdrop fade show">                                                                               \
+           <div class="dx-page dx-catalog fade show">                                                                           \
              <div class="d-flex flex-column justify-content-end h-100">                                                         \
                <div class="mb-5 px-3">                                                                                          \
                  <button type="button" data-action="show" class="btn btn-sm btn-outline-secondary m-2">全部显示</button>        \

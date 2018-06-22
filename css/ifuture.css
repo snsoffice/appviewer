@@ -172,6 +172,12 @@
 .dx-finder {
 }
 
+.dx-catalog {
+    background: rgba(0, 0, 0, 0.1);
+    z-index: 1040;
+    opacity: 0;
+}
+
 /*
  *
  * Part 3.1: explorer
