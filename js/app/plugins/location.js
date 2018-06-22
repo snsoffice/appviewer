@@ -33,10 +33,9 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
     var _MID_INDEX = 2;
     var _MAX_INDEX = 3;
 
-    var _HOUSE_EXTENT_RATIO = 0.6;
     var _DEFAULT_EXTENT_RATIO = 0.8;
     var _FADE_EXTENT_RATIO = 0.6;
-    var _HIDE_EXTENT_RATION = 0.2;
+    var _HIDE_EXTENT_RATIO = 0.2;
 
     var _TOP_VIEW_RESOLUTION = 3000;
 
@@ -166,13 +165,13 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
      * @private
      */
 
-    View.prototype.getViewData_ = function ( data, name ) {
+    View.prototype.getViewData_ = function ( data ) {
 
         var views = data.views;
         if ( views && views.length ) {
             for ( var i = 0; i < views.length; i ++ ) {
-                if ( views[ i ].name === name )
-                    return view;
+                if ( views[ i ].name === 'solid' )
+                    return views[ i ];
             }
             return views[ 0 ];
         }
@@ -302,15 +301,11 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         this.select_( index );
 
         var view = this._map.getView();
-        if ( index === _MIN_INDEX ) {
-            this.setMarkerVisible_( false, false );
-            view.animate.apply( view, this.buildAnimate_( index ) );
-        }
+        if ( view.getAnimating() )
+            view.cancelAnimations();
 
-        else {
-            this.setMarkerVisible_( false, true );
-            view.animate.apply( view, this.buildAnimate_( index ) );
-        }
+        this.setMarkerVisible_( false, true );
+        view.animate.apply( view, this.buildAnimate_( index ) );
 
     };
 
@@ -332,14 +327,17 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         if ( view.getAnimating() )
             view.cancelAnimations();
 
-        // 只显示小区图
+        // 显示小区图
         var layers = this._map.getLayers();
         layers.forEach( function ( layer ) {
             layer.setOpacity( 0 );
         } );
         layers.item( 1 ).setOpacity( 1 );
 
-        view.fit( this._extents.slice( -1 )[ 0 ] );
+        var extent = this._extents.slice( -1 )[ 0 ];
+        var resolution = view.getResolutionForExtent( extent ) / _DEFAULT_EXTENT_RATIO;
+        view.setCenter( ol.extent.getCenter( extent ) );
+        view.setResolution( resolution );
 
     };
 
@@ -402,16 +400,84 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
      */
     View.prototype.buildAnimate_ = function ( index ) {
 
+        var view = this._map.getView();
+
         if ( index === _MIN_INDEX ) {
+
+            var animations = [];
+            var layers = this._map.getLayers();
+            var j = layers.getLength() - 1;
+
+            var extent = this._extents[ 0 ];
+            var resolution = view.getResolutionForExtent( extent );
+
+            layers.item( 0 ).setOpacity( 0 );
+            layers.item( j ).setOpacity( 1 );
+
+            animations.push( {
+                center: ol.extent.getCenter( extent ),
+                resolution: resolution / _DEFAULT_EXTENT_RATIO,
+                duration: 2000,
+            } );
+
+            animations.push( {
+                resolution: resolution / _FADE_EXTENT_RATIO,
+                duration: 2000,
+            } );
+
+            animations.push( {
+                resolution: resolution / _HIDE_EXTENT_RATIO,
+                duration: 2000,
+                easing: function ( t ) {
+                    layers.item( 2 ).setOpacity( t );
+                    layers.item( j ).setOpacity( 1 - t );
+                    return  ol.easing.inAndOut( t );
+                }
+            } );
+
+            extent = this._extents.slice( -2 )[ 0 ];
+            resolution = view.getResolutionForExtent( extent );
+            animations.push( {
+                center: ol.extent.getCenter( extent ),
+                resolution: resolution / _DEFAULT_EXTENT_RATIO,
+                duration: 2000,
+            } );
+            animations.push( {
+                resolution: resolution / _FADE_EXTENT_RATIO,
+                duration: 2000,
+                easing: function ( t ) {
+                    layers.item( 1 ).setOpacity( t );
+                    return  ol.easing.inAndOut( t );
+                },
+            } );
+            animations.push( {
+                resolution: resolution / _HIDE_EXTENT_RATIO,
+                duration: 2000,
+                easing: function ( t ) {
+                    layers.item( 2 ).setOpacity( 1 - t );
+                    return  ol.easing.inAndOut( t );
+                },
+            } );
+
+            extent = this._extents.slice( -1 )[ 0 ];
+            resolution = view.getResolutionForExtent( extent ) / _DEFAULT_EXTENT_RATIO;
+            animations.push( {
+                center: ol.extent.getCenter( extent ),
+                resolution: resolution,
+                duration: 3000,
+            } );
+
+            animations.push( this.showHouse_.bind( this ) );
+            return animations;
+
         }
 
         else if ( index === _MAX_INDEX ) {
-            var view = this._map.getView();
             var extent = this._extents.slice( -1 )[ 0 ];
             var resolution = view.getResolutionForExtent( extent );
             var resolution1 = resolution / _DEFAULT_EXTENT_RATIO;
             var resolution2 = resolution / _FADE_EXTENT_RATIO;
-            var resolution3 = resolution / _HIDE_EXTENT_RATION;
+            var resolution3 = resolution / _HIDE_EXTENT_RATIO;
 
             var layer = this._map.getLayers().item( 0 );
             layer.setMinResolution( resolution1 );
