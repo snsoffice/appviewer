@@ -76,7 +76,7 @@ define( [ 'ifuture' ], function( ifuture ) {
             if ( result )
                 this.dispatchEvent( new ifuture.Event( _SLIDE_EVENT_NAME, {
                     direction: direction,
-                    touches: n,
+                    fingers: n,
                 } ) );
 
         }

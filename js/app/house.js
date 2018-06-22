@@ -275,16 +275,18 @@ function ( ifuture, config, restapi, logger, dialog, Slider,
             return;
 
         var view = this._views[ index ];
-        if ( typeof view.onSlideView !== 'function' || ! view.onSlideView( direction, n ) ) {
-            var direction = event.argument.direction;
+        var direction = event.argument.direction;
+        var fingers = event.argument.fingers;
+
+        if ( typeof view.onSlideView !== 'function' || ! view.onSlideView( direction, fingers ) ) {
             if ( direction > 0 && index > 0 ) {
                 this.showView_( index - 1 );
             }
             else if ( direction < 0 && index < this._views.length - 1 ) {
                 this.showView_( index + 1 );
-            }            
+            }
         }
-        
+
     };
 
     return House;

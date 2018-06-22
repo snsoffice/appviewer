@@ -236,6 +236,12 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
 
         }
 
+        else if ( msgType === 'view' ) {
+
+            this.dispatchEvent( new ifuture.Event( 'view:changed', msgData ) );
+
+        }
+
         else
             logger.log('Peer message: ' + msgType + ' from ' + who);
     };

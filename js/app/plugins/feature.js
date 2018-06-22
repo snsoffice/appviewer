@@ -1,36 +1,12 @@
 define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
 
-    var _TEMPLATE = '                                                                     \
-        <div class="dx-tab bg-secondary">                                                 \
-         <div class="dx-view-tool mx-3 mb-2">                                             \
-           <button class="btn btn-sm btn-outline-secondary border-0 rounded-circle mr-2"  \
-                   type="button">                                                         \
-             <i class="far fa-map fa-lg"></i>                                             \
-           </button>                                                                      \
-           <button class="btn btn-sm btn-outline-secondary border-0 rounded-circle mr-2"  \
-                   data-toggle="modal" data-target="#house-feature-dialog" type="button"> \
-             <i class="fas fa-th fa-lg"></i>                                              \
-           </button>                                                                      \
-         </div>                                                                           \
-         <div class="modal fade" id="house-feature-dialog" tabindex="-1" role="dialog"    \
-              aria-hidden="true">                                                         \
-           <div class="modal-dialog modal-dialog-centered" role="document">               \
-             <div class="text-center mx-auto">                                            \
-               <div class="p-3 border-bottom border-dark">                                \
-                 <button type="button" class="btn btn-default mx-3">全部显示</button>     \
-                 <button type="button" class="btn btn-default mx-3">全部隐藏</button>     \
-               </div>                                                                     \
-               <div class="p-3">                                                          \
-                 <button type="button" class="btn btn-default mx-auto my-2">交通</button> \
-                 <button type="button" class="btn btn-default mx-auto my-2">饮食</button> \
-                 <button type="button" class="btn btn-default mx-auto my-2">超市</button> \
-                 <button type="button" class="btn btn-default mx-auto my-2">学校</button> \
-                 <button type="button" class="btn btn-default mx-auto my-2">医院</button> \
-                 <button type="button" class="btn btn-default mx-auto my-2">政府</button> \
-               </div>                                                                     \
-             </div>                                                                       \
-           </div>                                                                         \
-         </div>                                                                           \
+    var _TEMPLATE = '                                                             \
+        <div class="dx-tab bg-secondary">                                         \
+         <div class="dx-view-tool mx-3 mb-2">                                     \
+           <button class="btn btn-outline-secondary border-0 mr-2" type="button"> \
+             <i class="fas fa-th fa-lg"></i>                                      \
+           </button>                                                              \
+         </div>                                                                   \
        </div>';
 
     var _MARKER_TEMPLATE = '                                         \
@@ -38,10 +14,25 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
           <span class="bg-danger rounded-circle border-dark"></span> \
         </div>';
 
+    var _BACKDROP_TEMPLATE = '                                                                                                  \
+           <div class="modal-backdrop fade show">                                                                               \
+             <div class="d-flex flex-column justify-content-end h-100">                                                         \
+               <div class="mb-5 px-3">                                                                                          \
+                 <button type="button" data-action="show" class="btn btn-sm btn-outline-secondary m-2">全部显示</button>        \
+                 <button type="button" data-action="hide" class="btn btn-sm btn-outline-secondary m-2">全部隐藏</button>        \
+                 <button type="button" data-catalog="transport" class="btn btn-sm btn-outline-secondary m-2">交通出行</button>  \
+                 <button type="button" data-catalog="food" class="btn btn-sm btn-outline-secondary m-2">饭店美食</button>       \
+                 <button type="button" data-catalog="shopping" class="btn btn-sm btn-outline-secondary m-2">超市商店</button>   \
+                 <button type="button" data-catalog="school" class="btn btn-sm btn-outline-secondary m-2">学校教育</button>     \
+                 <button type="button" data-catalog="hospital" class="btn btn-sm btn-outline-secondary m-2">医院卫生</button>   \
+                 <button type="button" data-catalog="goverment" class="btn btn-sm btn-outline-secondary m-2">政府机关</button>  \
+               </div>                                                                                                           \
+             </div>                                                                                                             \
+           </div>';
+
     var _MARKER_ID = 'marker';
 
-    var _MINIMAP_SELECTOR = '.dx-overview';
-    var _TOGGLE_MINIMAP_SELECTOR = 'div.dx-view-tool > button:nth-of-type(1)';
+    var _TOGGLE_CATALOG_SELECTOR = 'div.dx-view-tool > button:nth-of-type(1)';
 
     View = function ( app, target ) {
 
@@ -117,9 +108,9 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
             this.buildView_();
 
         if ( this._map === null )
-            this.initMap_();
+            this.buildMap_();
 
-        this.resetMap_();
+        this.buildHouseFeature_();
 
         this._url = url;
         this._element.style.display = 'block';
@@ -184,15 +175,7 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         document.querySelector( this._target ).appendChild( element );
         this._element = element;
 
-        var scope = this;
-
-        this._element.querySelector( _TOGGLE_MINIMAP_SELECTOR ).addEventListener( 'click', function ( e ) {
-
-            var m = scope._element.querySelector( _MINIMAP_SELECTOR );
-            m.style.display = m.style.display === 'none' ? 'block' : 'none';
-            m.querySelector( 'canvas' ).style.display = m.style.display;
-
-        }, false );
+        this._element.querySelector( _TOGGLE_CATALOG_SELECTOR ).addEventListener( 'click', this.showCatalog_.bind( this ), false );
 
     };
 
@@ -201,7 +184,7 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
      *
      * @private
      */
-    View.prototype.initMap_ = function () {
+    View.prototype.buildMap_ = function () {
 
         var element = document.createElement( 'DIV' );
         element.className = 'dx-page';
@@ -227,28 +210,6 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
             overlays: [ marker ],
         } );
 
-        var element = document.createElement( 'DIV' );
-        element.className = 'dx-overview dx-mini border border-secondary';
-        this._element.appendChild( element );
-
-        var div = document.createElement( 'DIV' );
-        div.innerHTML = _MARKER_TEMPLATE;
-        var marker = new ol.Overlay({
-            id: _MARKER_ID,
-            element: div.firstElementChild,
-            positioning: 'center-center',
-            stopEvent: false,
-        });
-
-        this._minimap = new ol.PluggableMap( {
-            target: element,
-            interactions: [],
-            controls: [],
-            overlays: [],
-            overlays: [ marker ],
-        } );
-        this._minimap.setLayerGroup( this._map.getLayerGroup() );
-
     };
 
     /**
@@ -256,7 +217,7 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
      *
      * @private
      */
-    View.prototype.resetMap_ = function () {
+    View.prototype.buildHouseFeature_ = function () {
 
         var view = this._data.locations.slice( -1 )[ 0 ].views[ 0 ];
         var fmt = new ol.format.WKT();
@@ -271,14 +232,6 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
             extent: extent,
         } ) );
 
-        size = [ 200, 150 ];
-        resolution = Math.max( ol.extent.getWidth( extent ) / size[ 0 ], ol.extent.getHeight( extent ) / size[ 1 ] );
-        this._minimap.setView( new ol.View( {
-            center: ol.extent.getCenter( extent ),
-            resolution: resolution * 2.7,
-            extent: extent,
-        } ) );
-
         var toCoordinate = function ( str ) {
             var result = [];
             str.split( ',' ).forEach( function ( a ) {
@@ -289,7 +242,30 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
 
         var center = toCoordinate( this._data.coordinate );
         this._map.getOverlayById( _MARKER_ID ).setPosition( center );
-        this._minimap.getOverlayById( _MARKER_ID ).setPosition( center );
+
+    };
+
+    /**
+     * 显示分类对话框
+     *
+     * @private
+     */
+    View.prototype.showCatalog_ = function () {
+
+        var backdrop = document.createElement( 'DIV' );
+        backdrop.innerHTML = _BACKDROP_TEMPLATE;
+        backdrop = backdrop.firstElementChild;
+        this._element.appendChild( backdrop );
+
+        Array.prototype.forEach.call( backdrop.querySelectorAll( 'button' ), function ( button ) {
+            button.addEventListener( 'click', function ( e ) {
+                e.stopPropagation();
+            }, false );
+        } );
+
+        backdrop.addEventListener( 'click', function ( e ) {
+            backdrop.remove();
+        }, false );
 
     };
 
