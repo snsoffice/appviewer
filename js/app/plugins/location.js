@@ -13,10 +13,10 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
          </ol>                                                                       \
       </div>';
 
-    var _MARKER_TEMPLATE = '                                                                  \
-        <div class="dx-house-locator">                                                        \
-          <img class="border border-info rounded-circle img-fluid" src="%SRC%" alt="%TITLE%"> \
-          <span class="bg-danger rounded-circle border-dark"></span>                          \
+    var _MARKER_TEMPLATE = '                                                                     \
+        <div class="dx-house-locator">                                                           \
+          <img class="border border-primary rounded-circle img-fluid" src="%SRC%" alt="%TITLE%"> \
+          <span class="bg-danger rounded-circle border-dark"></span>                             \
         </div>';
 
     var _FRAME_SELECTOR = 'div.dx-frame';
@@ -28,6 +28,17 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
     var _HOUSE_MARKER_ID = 'myhouse';
 
     var _BINGS_MAP_KEY = 'AtHtvweLfmjJag2BTGXsX0kW-2ExduYJXOU-78cgNz4Y_m7UylYgMmfbEwlYyPPb';
+
+    var _MIN_INDEX = 1;
+    var _MID_INDEX = 2;
+    var _MAX_INDEX = 3;
+
+    var _HOUSE_EXTENT_RATIO = 0.6;
+    var _DEFAULT_EXTENT_RATIO = 0.8;
+    var _FADE_EXTENT_RATIO = 0.4;
+    var _HIDE_EXTENT_RATION = 0.2;
+
+    var _TOP_VIEW_RESOLUTION = 8000;
 
     View = function ( app, target ) {
 
@@ -76,11 +87,11 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         this._map = null;
 
         /**
-         * 动画设置的数据信息
+         * 各层的区域
          * @private
-         * @type {Array.<Object>}
+         * @type {Array.<ol.Extent>}
          */
-        this._animations = null;
+        this._extents = null;
 
 
         // Resize map
@@ -150,16 +161,35 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
     };
 
     /**
+     * 得到对应的视图，
+     *
+     * @private
+     */
+
+    View.prototype.getViewData_ = function ( data, name ) {
+
+        var views = data.views;
+        if ( views && views.length ) {
+            for ( var i = 0; i < views.length; i ++ ) {
+                if ( views[ i ].name === name )
+                    return view;
+            }
+            return views[ 0 ];
+        }
+
+    };
+
+    /**
      * 创建地图对象
      *
      * @private
      */
     View.prototype.buildMap_ = function () {
 
+        var view = this.getViewData_( this._data );
+
         var size = [ window.innerWidth, window.innerHeight - _PADDING_TOP ];
         var fmt = new ol.format.WKT();
-
-        var view = this._data.views[ 0 ];
         var geometry = fmt.readGeometry( view.geometry );
         var extent = geometry.getExtent();
 
@@ -172,18 +202,26 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
             positioning: 'center-center',
             stopEvent: false,
         });
-        element.style.display = 'none';
         marker.setPosition( ol.extent.getCenter( extent ) );
+
+        this._extents = [];
+        this._extents.push( this.zoomExtent_( extent, _HOUSE_EXTENT_RATIO ) );
 
         var layers = [];
         layers.push( this.buildImageLayer_( view.url, extent ) );
 
         if ( this._data.locations && this._data.locations.length ) {
             this._data.locations.forEach( function ( building ) {
-                view = building.views[ 0 ];
+
+                view = this.getViewData_( building );
+                if ( view === undefined )
+                    return;
+
                 geometry = fmt.readGeometry( view.geometry );
                 extent = geometry.getExtent();
                 layers.push( this.buildImageLayer_( view.url, extent ) );
+                this._extents.push( this.zoomExtent_( extent ) );
+
             }, this );
         }
 
@@ -214,9 +252,7 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
             enableRotation: false,
         } ) );
 
-        this._map.getView().fit( extent, {
-            padding: [ 16, 0, 16, 0 ],
-        } );
+        this.showHouse_();
 
     };
 
@@ -253,17 +289,26 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
      */
     View.prototype.animateHouse_ = function ( index ) {
 
-        this.select_( index );
+        if ( this._map === null || this._extents === null || index < _MIN_INDEX || index > _MAX_INDEX )
+            return;
 
-        if ( index === 2 ) {
+        if ( index === _MID_INDEX ) {
             this.showHouse_();
             return;
         }
 
-        var marker = this._map.getOverlayById( _HOUSE_MARKER_ID );
-        marker.getElement().style.display = 'none';
+        this.select_( index );
 
-        
+        if ( index === _MIN_INDEX ) {
+            this.setMarkerVisible_( false, false );
+            this._map.getView().animate.apply( this, this.buildAnimate_( index ) );
+        }
+
+        else {
+            this.setMarkerVisible_( false, true );
+            this._map.getView().animate.apply( this, this.buildAnimate_( index ) );
+        }
+
     };
 
     /**
@@ -273,21 +318,28 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
      */
     View.prototype.showHouse_ = function () {
 
-        if ( this._map === null || this._animations === null )
+        this.select_( _MID_INDEX );
+
+        if ( this._map === null || this._extents === null )
             return;
 
-        var marker = this._map.getOverlayById( _HOUSE_MARKER_ID );
-        marker.getElement().style.display = 'block';
+        this.setMarkerVisible_( true, false );
 
-        var center = this._animations[ 1 ].center;
-        var resolution = this._animations[ 1 ].resolution;
-
-        this._map.getView().animate( {
-            center: center,
-            resolution: resolution,
+        this._map.getView().fit( this._extents.slice( -1 )[ 0 ], {
             duration: 100,
         } );
 
+    };
+
+    /**
+     * 显示房子的不同图标
+     *
+     * @private
+     */
+    View.prototype.setMarkerVisible_ = function ( big, small ) {
+        var element = this._map.getOverlayById( _HOUSE_MARKER_ID ).getElement();
+        element.querySelector( _MARKER_IMAGE_SELECTOR ).style.display = big ? 'block' : 'none';
+        element.querySelector( _MARKER_INDICATOR_SELECTOR ).style.display = small ? 'block' : 'none';
     };
 
     /**
@@ -305,7 +357,7 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
     };
 
     /**
-     * 选中指示器
+     * 屏幕尺寸发生变化
      *
      * @private
      */
@@ -314,6 +366,68 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         if ( this._map === null )
             return;
         this._map.setSize( [ window.innerWidth, window.innerHeight - _PADDING_TOP ] );
+
+    };
+
+
+    /**
+     * 缩放区域
+     *
+     * @private
+     */
+    View.prototype.zoomExtent_ = function ( extent, ratio ) {
+        var r = ratio === undefined ? _DEFAULT_EXTENT_RATIO : ratio;
+        var center = ol.extent.getCenter( extent );
+        var dx = ol.extent.getWidth( extent ) * r;
+        var dy = ol.extent.getHeight( extent ) * r;
+        return [ center[ 0 ] - dx, center[ 1 ] - dy, center[ 0 ] + dx, center[ 1 ] + dy ];
+    };
+
+    /**
+     * 创建动画演示方式
+     *
+     * @private
+     */
+    View.prototype.buildAnimate_ = function ( index ) {
+
+        if ( index === _MIN_INDEX ) {
+        }
+
+        else if ( index === _MAX_INDEX ) {
+            var extent = this._extents.slice( -1 )[ 0 ];
+            var center = ol.extent.getCenter( extent );
+
+            var extent1 = this.zoomExtent_( extent );
+            var extent2 = this.zoomExtent_( extent, _FADE_EXTENT_RATIO );
+            var extent3 = this.zoomExtent_( extent, _HIDE_EXTENT_RATION );
+
+            var view = this._map.getView();
+            var resolution1 = view.getResolutionForExtent( extent1 );
+            var resolution2 = view.getResolutionForExtent( extent2 );
+            var resolution3 = view.getResolutionForExtent( extent3 );
+            
+            var layers = this._map.getLayers();
+            layers.item( 0 ).setMinResolution( resolution2 );
+
+            var animation1 = {
+                center: center,
+                resolution: resolution1,
+                duration: 10,
+            };
+
+            var animation2 = {
+                resolution: resolution2,
+                duration: 2000,
+            };
+
+            var animation3 = {
+                center: center,
+                resolution: resolution3,
+                duration: 1000,
+            };
+
+            return [ animation1, animation2, animation3 ];
+        }
 
     };
 
