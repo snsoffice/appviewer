@@ -249,6 +249,7 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         this._map.setSize( size );
         this._map.setView( new ol.View( {
             enableRotation: false,
+            extent: this._extents[ 0 ],
         } ) );
 
         // 没有这一行地图显示不出来，不知道原因，必须使用 padding 选项
