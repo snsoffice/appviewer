@@ -115,10 +115,23 @@ define( [ 'ifuture', 'config', 'restapi', 'logger', 'app/dialog' ], function ( i
      */
     View.prototype.close = function () {
 
-        this._element.style.display = 'none';
+        this._url = null;
+        this._data = null;
+        this._callee = null;
+        this._room = null;
 
     }
 
+    /**
+     * 隐藏直播控制面板
+     *
+     * @public
+     */
+    View.prototype.hide = function () {
+
+        this._element.style.display = 'none';
+
+    }
     /**
      * 创建页面对象
      *

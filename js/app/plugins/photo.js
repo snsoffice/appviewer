@@ -155,6 +155,33 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery' ], function ( ifuture
      */
     View.prototype.close = function () {
 
+        if ( this._element !== null ) {
+            this._element.remove();
+            this._element = null;
+        }
+
+        if ( this._panorama !== null && this._panorama.viewer ) {
+            this._panorama.viewer.destroy();
+            this._panorama = null;
+        }
+
+        if ( this._carousel !== null ) {
+            this._carousel.destroy();
+            this._carousel = null;
+        }
+
+        this._url = null;
+        this._data = null;
+
+    }
+
+    /**
+     * 隐藏照片和全景窗口
+     *
+     * @public
+     */
+    View.prototype.hide = function () {
+
         this._element.style.display = 'none';
 
     }

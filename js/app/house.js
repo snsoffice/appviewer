@@ -5,6 +5,8 @@ function ( ifuture, config, restapi, logger, dialog, Slider,
            HouseInfo, HouseFrame, HousePhoto, HouseLocation, HouseFeature, HousePanel ) {
 
     var _HOUSE_CONFIG_FILE = 'config.json';
+    var _SLIDE_EVENT_NAME = 'slide:view';
+    var _PANEL_VIEW_INDEX = 5;
 
     var _SELECTOR = '.dx-viewer';
 
@@ -25,12 +27,12 @@ function ( ifuture, config, restapi, logger, dialog, Slider,
             </button>                                                                            \
             <div class="collapse navbar-collapse" id="menu-viewer">                              \
               <div class="navbar-nav ml-auto text-center">                                       \
-                <a class="nav-item nav-link" data-view="info" href="#">基本信息</a>              \
-                <a class="nav-item nav-link" data-view="frame" href="#">房屋结构</a>             \
-                <a class="nav-item nav-link" data-view="photo" href="#">照片全景</a>             \
-                <a class="nav-item nav-link" data-view="location" href="#">位置风水</a>          \
-                <a class="nav-item nav-link" data-view="feature" href="#">周边设施</a>           \
-                <a class="nav-item nav-link" data-view="panel" href="#">直播看房</a>             \
+                <a class="nav-item nav-link" data-index="0" href="#">基本信息</a>                \
+                <a class="nav-item nav-link" data-index="1" href="#">房屋结构</a>                \
+                <a class="nav-item nav-link" data-index="2" href="#">照片全景</a>                \
+                <a class="nav-item nav-link" data-index="3" href="#">位置风水</a>                \
+                <a class="nav-item nav-link" data-index="4" href="#">周边设施</a>                \
+                <a class="nav-item nav-link" data-index="5" href="#">直播看房</a>                \
               </div>                                                                             \
             </div>                                                                               \
           </nav>                                                                                 \
@@ -78,17 +80,23 @@ function ( ifuture, config, restapi, logger, dialog, Slider,
         /**
          * 所有的视图
          * @private
-         * @type {Object}
+         * @type {Array.<HouseView>}
          */
-        this._views = {
-            current: null,
-            info: new HouseInfo( app, _SELECTOR ),
-            frame: new HouseFrame( app, _SELECTOR ),
-            location: new HouseLocation( app, _SELECTOR ),
-            photo: new HousePhoto( app, _SELECTOR ),
-            feature: new HouseFeature( app, _SELECTOR ),
-            panel: new HousePanel( app, _SELECTOR ),
-        };
+        this._views = [
+            new HouseInfo( app, _SELECTOR ),
+            new HouseFrame( app, _SELECTOR ),
+            new HousePhoto( app, _SELECTOR ),
+            new HouseLocation( app, _SELECTOR ),
+            new HouseFeature( app, _SELECTOR ),
+            new HousePanel( app, _SELECTOR ),
+        ];
+
+        /**
+         * 当前视图的索引
+         * @private
+         * @type {number}
+         */
+        this._index = -1;
 
     }
     ifuture.inherits( House, ifuture.Component );
@@ -145,7 +153,7 @@ function ( ifuture, config, restapi, logger, dialog, Slider,
      *
      * @private
      */
-    House.prototype.openHouse_ = function ( url, view, options ) {
+    House.prototype.openHouse_ = function ( url, name, options ) {
 
         if ( this._element === null )
             this.buildHouseViewer_();
@@ -156,6 +164,10 @@ function ( ifuture, config, restapi, logger, dialog, Slider,
             return;
         }
 
+        this._views.forEach( function ( view ) {
+            view.close();
+        } );
+
         var scope = this;
         restapi.queryHouseConfig( url + '/' + _HOUSE_CONFIG_FILE )
 
@@ -165,7 +177,7 @@ function ( ifuture, config, restapi, logger, dialog, Slider,
                 scope._options = options;
 
                 scope.show_();
-                scope.showView_( view === undefined ? 'info' : view );
+                scope.showView_( name === 'panel' ? _PANEL_VIEW_INDEX : 0 );
                 scope.dispatchEvent( new ifuture.Event( 'house:opened' ) );
             } )
 
@@ -218,11 +230,11 @@ function ( ifuture, config, restapi, logger, dialog, Slider,
         Array.prototype.forEach.call( element.querySelectorAll( _NAVBAR_MENUITEM_SELECTOR ), function ( m ) {
                 m.addEventListener( 'click', function ( e ) {
                     e.preventDefault();
-                    scope.showView_( e.currentTarget.getAttribute( 'data-view' ) );
+                    scope.showView_( parseInt( e.currentTarget.getAttribute( 'data-index' ) ) );
                 }, false );
         } );
 
-        this._slider.on( 'slide:view', this.onSlideEvent_, this );
+        this._slider.on( _SLIDE_EVENT_NAME, this.onSlideEvent_, this );
 
     };
 
@@ -231,19 +243,19 @@ function ( ifuture, config, restapi, logger, dialog, Slider,
      *
      * @private
      */
-    House.prototype.showView_ = function ( name ) {
+    House.prototype.showView_ = function ( index ) {
 
-        var view = this._views[ name ];
-
-        if ( this._views.current === view )
+        if ( this._index === index )
             return;
 
-        if ( this._views.current !== null )
-            this._views.current.close();
+        var view = this._views[ index ];
+
+        if ( this._index !== -1 )
+            this._views[ this._index ].hide();
 
         this._element.querySelector( _NAVBAR_TITLE_SELECTOR ).textContent = view.title;
         view.open( this._url, this._data, this._options );
-        this._views.current = view;
+        this._index = index;
 
     };
 
@@ -258,15 +270,19 @@ function ( ifuture, config, restapi, logger, dialog, Slider,
      */
     House.prototype.onSlideEvent_ = function ( event ) {
 
-        var direction = event.argument.direction;
-        var n = event.argument.touches;
-        
-        var view = this._views.current;
-        if ( view === null )
+        var index = this._index;
+        if ( index === -1 )
             return;
 
+        var view = this._views[ index ];
         if ( typeof view.onSlideView !== 'function' || ! view.onSlideView( direction, n ) ) {
-            // Slide view
+            var direction = event.argument.direction;
+            if ( direction > 0 && index > 0 ) {
+                this.showView_( index - 1 );
+            }
+            else if ( direction < 0 && index < this._views.length - 1 ) {
+                this.showView_( index + 1 );
+            }            
         }
         
     };

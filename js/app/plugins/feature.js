@@ -133,9 +133,43 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
      */
     View.prototype.close = function () {
 
+        if ( this._element !== null ) {
+            this._element.remove();
+            this._element = null;
+        }
+        this._url = null;
+        this._data = null;
+        this._map = null;
+        this._minimap = null;
+
+    }
+
+    /**
+     * 隐藏周边设施窗口
+     *
+     * @public
+     */
+    View.prototype.hide = function () {
+
         this._element.style.display = 'none';
 
     }
+
+    /**
+     * 处理左右滑动切换视图事件
+     *
+     * @param {number} direction < 0 表示向左滑动，> 0 表示向右滑动
+     * @param {number} fingers   触点数目
+     *
+     * @return {boolean} true 事件已经处理； false 事件没有处理
+     *
+     * @public
+     */
+    View.prototype.onSlideView = function ( direction, fingers ) {
+        if ( fingers === 1 ) {
+            return true;
+        }
+    };
 
     /**
      * 创建页面对象

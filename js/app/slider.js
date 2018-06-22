@@ -1,6 +1,7 @@
 define( [ 'ifuture' ], function( ifuture ) {
 
     var _SLIDE_THRESOLD = Math.min( 80, Math.min( window.innerWidth, window.innerHeight ) / 4 );
+    var _SLIDE_EVENT_NAME = 'slide:view';
 
     Slider = function ( target ) {
 
@@ -27,8 +28,8 @@ define( [ 'ifuture' ], function( ifuture ) {
          */
         this._touches = null;
 
-        target.addEventListener( 'touchstart', this.onTouchStart_, this );
-        target.addEventListener( 'touchend', this.onTouchEnd_, this );
+        target.addEventListener( 'touchstart', this.onTouchStart_.bind( this ), false );
+        target.addEventListener( 'touchend', this.onTouchEnd_.bind( this ), false );
 
     }
     ifuture.inherits( Slider, ifuture.Component );
@@ -42,7 +43,7 @@ define( [ 'ifuture' ], function( ifuture ) {
      */
     Slider.prototype.onTouchStart_ = function ( e ) {
 
-        this._touches = e._touches;
+        this._touches = e.touches;
         return true;            // 否则会破坏事件
 
     };
@@ -56,7 +57,7 @@ define( [ 'ifuture' ], function( ifuture ) {
      */
     Slider.prototype.onTouchEnd_ = function ( e ) {
 
-        var touches = e.touches;
+        var touches = e.changedTouches;
 
         if ( this._touches.length === touches.length ) {
 
@@ -73,7 +74,7 @@ define( [ 'ifuture' ], function( ifuture ) {
             }
 
             if ( result )
-                this.dispatchEvent( new ifuture.Event( 'slide:view', {
+                this.dispatchEvent( new ifuture.Event( _SLIDE_EVENT_NAME, {
                     direction: direction,
                     touches: n,
                 } ) );

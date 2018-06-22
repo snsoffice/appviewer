@@ -133,6 +133,24 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
      */
     View.prototype.close = function () {
 
+        if ( this._element !== null ) {
+            this._element.remove();
+            this._element = null;
+        }
+        this._url = null;
+        this._data = null;
+        this._map = null;
+        this._extents = null;
+
+    }
+
+    /**
+     * 隐藏房屋地理位置窗口
+     *
+     * @public
+     */
+    View.prototype.hide = function () {
+
         this._element.style.display = 'none';
 
     }

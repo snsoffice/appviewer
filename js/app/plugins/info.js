@@ -89,6 +89,22 @@ define( [ 'ifuture', 'config', 'restapi' ], function ( ifuture, config, restapi 
      */
     View.prototype.close = function () {
 
+        if ( this._element !== null ) {
+            this._element.remove();
+            this._element = null;
+        }
+        this._url = null;
+        this._data = null;
+
+    }
+
+    /**
+     * 隐藏房屋基本信息窗口
+     *
+     * @public
+     */
+    View.prototype.hide = function () {
+
         this._element.style.display = 'none';
 
     }
