@@ -170,7 +170,7 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         var views = data.views;
         if ( views && views.length ) {
             for ( var i = 0; i < views.length; i ++ ) {
-                if ( views[ i ].name === 'solid' )
+                if ( views[ i ].type === 'solid' )
                     return views[ i ];
             }
             return views[ 0 ];
@@ -417,7 +417,7 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
             animations.push( {
                 center: ol.extent.getCenter( extent ),
                 resolution: resolution / _DEFAULT_EXTENT_RATIO,
-                duration: 2000,
+                duration: 3000,
             } );
 
             animations.push( {
@@ -475,47 +475,37 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         else if ( index === _MAX_INDEX ) {
             var extent = this._extents.slice( -1 )[ 0 ];
             var resolution = view.getResolutionForExtent( extent );
-            var resolution1 = resolution / _DEFAULT_EXTENT_RATIO;
-            var resolution2 = resolution / _FADE_EXTENT_RATIO;
-            var resolution3 = resolution / _HIDE_EXTENT_RATIO;
 
             var layer = this._map.getLayers().item( 0 );
-            layer.setMinResolution( resolution1 );
+            layer.setMinResolution( resolution / _DEFAULT_EXTENT_RATIO );
             layer.setOpacity( 0 );
-
-            var fadein = function ( t ) {
-                layer.setOpacity( t );
-                return  ol.easing.inAndOut( t );
-            };
 
             var animation1 = {
                 center: ol.extent.getCenter( extent ),
-                resolution: resolution1,
+                resolution: resolution / _DEFAULT_EXTENT_RATIO,
                 duration: 100,
             };
 
-            var animation1a = {
-                resolution: resolution1 + 1,
-                easing: fadein,
-                duration: 3000,
-            };
-
             var animation2 = {
-                resolution: resolution2,
-                duration: 3000,
+                resolution: resolution / _FADE_EXTENT_RATIO,
+                duration: 5000,
+                easing: function ( t ) {
+                    layer.setOpacity( t );
+                    return  ol.easing.inAndOut( t );
+                }
             };
 
             var animation3 = {
-                resolution: resolution3,
-                duration: 3000,
+                resolution: resolution / _HIDE_EXTENT_RATIO,
+                duration: 5000,
             };
 
             var animation4 = {
                 resolution: _TOP_VIEW_RESOLUTION,
-                duration: 5000,
+                duration: 8000,
             };
 
-            return [ animation1, animation1a, animation2, animation3, animation4 ];
+            return [ animation1, animation2, animation3, animation4 ];
         }
 
     };
