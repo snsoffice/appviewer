@@ -35,10 +35,10 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
 
     var _HOUSE_EXTENT_RATIO = 0.6;
     var _DEFAULT_EXTENT_RATIO = 0.8;
-    var _FADE_EXTENT_RATIO = 0.4;
+    var _FADE_EXTENT_RATIO = 0.6;
     var _HIDE_EXTENT_RATION = 0.2;
 
-    var _TOP_VIEW_RESOLUTION = 8000;
+    var _TOP_VIEW_RESOLUTION = 3000;
 
     View = function ( app, target ) {
 
@@ -205,7 +205,7 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         marker.setPosition( ol.extent.getCenter( extent ) );
 
         this._extents = [];
-        this._extents.push( this.zoomExtent_( extent, _HOUSE_EXTENT_RATIO ) );
+        this._extents.push( extent );
 
         var layers = [];
         layers.push( this.buildImageLayer_( view.url, extent ) );
@@ -220,7 +220,7 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
                 geometry = fmt.readGeometry( view.geometry );
                 extent = geometry.getExtent();
                 layers.push( this.buildImageLayer_( view.url, extent ) );
-                this._extents.push( this.zoomExtent_( extent ) );
+                this._extents.push( extent );
 
             }, this );
         }
@@ -252,6 +252,8 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
             enableRotation: false,
         } ) );
 
+        // 没有这一行地图显示不出来，不知道原因，必须使用 padding 选项
+        this._map.getView().fit( extent, { padding: [ 0, 0, 0, 0 ] } );
         this.showHouse_();
 
     };
@@ -299,14 +301,15 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
 
         this.select_( index );
 
+        var view = this._map.getView();
         if ( index === _MIN_INDEX ) {
             this.setMarkerVisible_( false, false );
-            this._map.getView().animate.apply( this, this.buildAnimate_( index ) );
+            view.animate.apply( view, this.buildAnimate_( index ) );
         }
 
         else {
             this.setMarkerVisible_( false, true );
-            this._map.getView().animate.apply( this, this.buildAnimate_( index ) );
+            view.animate.apply( view, this.buildAnimate_( index ) );
         }
 
     };
@@ -325,9 +328,18 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
 
         this.setMarkerVisible_( true, false );
 
-        this._map.getView().fit( this._extents.slice( -1 )[ 0 ], {
-            duration: 100,
+        var view = this._map.getView();
+        if ( view.getAnimating() )
+            view.cancelAnimations();
+
+        // 只显示小区图
+        var layers = this._map.getLayers();
+        layers.forEach( function ( layer ) {
+            layer.setOpacity( 0 );
         } );
+        layers.item( 1 ).setOpacity( 1 );
+
+        view.fit( this._extents.slice( -1 )[ 0 ] );
 
     };
 
@@ -394,39 +406,50 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         }
 
         else if ( index === _MAX_INDEX ) {
-            var extent = this._extents.slice( -1 )[ 0 ];
-            var center = ol.extent.getCenter( extent );
-
-            var extent1 = this.zoomExtent_( extent );
-            var extent2 = this.zoomExtent_( extent, _FADE_EXTENT_RATIO );
-            var extent3 = this.zoomExtent_( extent, _HIDE_EXTENT_RATION );
-
             var view = this._map.getView();
-            var resolution1 = view.getResolutionForExtent( extent1 );
-            var resolution2 = view.getResolutionForExtent( extent2 );
-            var resolution3 = view.getResolutionForExtent( extent3 );
-            
-            var layers = this._map.getLayers();
-            layers.item( 0 ).setMinResolution( resolution2 );
+            var extent = this._extents.slice( -1 )[ 0 ];
+            var resolution = view.getResolutionForExtent( extent );
+            var resolution1 = resolution / _DEFAULT_EXTENT_RATIO;
+            var resolution2 = resolution / _FADE_EXTENT_RATIO;
+            var resolution3 = resolution / _HIDE_EXTENT_RATION;
+
+            var layer = this._map.getLayers().item( 0 );
+            layer.setMinResolution( resolution1 );
+            layer.setOpacity( 0 );
+
+            var fadein = function ( t ) {
+                layer.setOpacity( t );
+                return  ol.easing.inAndOut( t );
+            };
 
             var animation1 = {
-                center: center,
+                center: ol.extent.getCenter( extent ),
                 resolution: resolution1,
-                duration: 10,
+                duration: 100,
+            };
+
+            var animation1a = {
+                resolution: resolution1 + 1,
+                easing: fadein,
+                duration: 3000,
             };
 
             var animation2 = {
                 resolution: resolution2,
-                duration: 2000,
+                duration: 3000,
             };
 
             var animation3 = {
-                center: center,
                 resolution: resolution3,
-                duration: 1000,
+                duration: 3000,
             };
 
-            return [ animation1, animation2, animation3 ];
+            var animation4 = {
+                resolution: _TOP_VIEW_RESOLUTION,
+                duration: 5000,
+            };
+
+            return [ animation1, animation1a, animation2, animation3, animation4 ];
         }
 
     };
