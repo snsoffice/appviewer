@@ -362,8 +362,8 @@
     left: 1.2rem;
     width: .6rem;
     height: .6rem;
-    opacity: 0.6;
-    z-index: -1;
+    opacity: 0.8;
+    z-index: 1;
 }
 
 .dx-house-locator > img {
