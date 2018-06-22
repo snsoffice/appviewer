@@ -149,6 +149,10 @@ define( [ 'ifuture', 'jquery', 'db', 'config' ], function ( ifuture, $, db, conf
         var dialog = createDialog( template.replace( '%MESSAGE%', msg ) );
         $( dialog ).modal( 'show' );
 
+        $( '.modal-content', dialog ).on( 'click', function () {
+            $( dialog ).modal( 'hide' );
+        } );
+
     };
 
     var warning = function ( msg ) {
@@ -162,6 +166,10 @@ define( [ 'ifuture', 'jquery', 'db', 'config' ], function ( ifuture, $, db, conf
 
         var dialog = createDialog( template.replace( '%MESSAGE%', msg ) );
         $( dialog ).modal( 'show' );
+
+        $( '.modal-content', dialog ).on( 'click', function () {
+            $( dialog ).modal( 'hide' );
+        } );
 
     };
 
@@ -224,7 +232,7 @@ define( [ 'ifuture', 'jquery', 'db', 'config' ], function ( ifuture, $, db, conf
         } );
 
         var hide = function () {
-            $( dialog ).off( 'hidden.bs.modal' ).modal('hide'); 
+            $( dialog ).off( 'hidden.bs.modal' ).modal('hide');
         };
         var feedback = function ( msg ) {
             $( dialog ).off( 'hidden.bs.modal' );

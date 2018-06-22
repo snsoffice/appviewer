@@ -1,7 +1,7 @@
-define( [ 'ifuture', 'config', 'restapi', 'logger', 'app/dialog',
+define( [ 'ifuture', 'config', 'restapi', 'logger', 'app/dialog', 'app/slider',
           'app/plugins/info', 'app/plugins/frame', 'app/plugins/photo',
           'app/plugins/location', 'app/plugins/feature', 'app/plugins/panel' ],
-function ( ifuture, config, restapi, logger, dialog,
+function ( ifuture, config, restapi, logger, dialog, Slider,
            HouseInfo, HouseFrame, HousePhoto, HouseLocation, HouseFeature, HousePanel ) {
 
     var _HOUSE_CONFIG_FILE = 'config.json';
@@ -67,6 +67,13 @@ function ( ifuture, config, restapi, logger, dialog,
          * @type {Object}
          */
         this._options = undefined;
+
+        /**
+         * 在手机左右滑动切换视图的控件
+         * @private
+         * @type {ifuture.Slider}
+         */
+        this._slider = null;
 
         /**
          * 所有的视图
@@ -194,6 +201,9 @@ function ( ifuture, config, restapi, logger, dialog,
         element = element.firstElementChild;
         document.body.appendChild( element );
 
+        this._element = element;
+        this._slider = new Slider( element );
+
         var scope = this;
 
         element.querySelector( _NAVBAR_BRAND_SELECTOR ).addEventListener( 'click', function ( e ) {
@@ -212,7 +222,7 @@ function ( ifuture, config, restapi, logger, dialog,
                 }, false );
         } );
 
-        this._element = element;
+        this._slider.on( 'slide:view', this.onSlideEvent_, this );
 
     };
 
@@ -237,6 +247,31 @@ function ( ifuture, config, restapi, logger, dialog,
 
     };
 
+    /**
+     * 左右滑动切换视图事件，事件参数包括两个属性
+     *
+     *     direction > 0 向右滑动，< 0 向左滑动
+     *     touches   触动时候的手指数目
+     *
+     * @param {ifutre.Event} event
+     * @private
+     */
+    House.prototype.onSlideEvent_ = function ( event ) {
+
+        var direction = event.argument.direction;
+        var n = event.argument.touches;
+        
+        var view = this._views.current;
+        if ( view === null )
+            return;
+
+        if ( typeof view.onSlideView !== 'function' || ! view.onSlideView( direction, n ) ) {
+            // Slide view
+        }
+        
+    };
+
     return House;
 
+this.onSlideEvent_
 } );
