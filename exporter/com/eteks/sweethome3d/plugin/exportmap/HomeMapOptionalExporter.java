@@ -93,7 +93,7 @@ public class HomeMapOptionalExporter extends PlanComponent {
         this.homeName = homeName;
         this.homeStructure = homeStructure;
         this.flags = flags;
-        this.referencedContents = new HashSet<Content>();        
+        this.referencedContents = new HashSet<Content>();
         this.exportedContents = new HashMap<String, Content>();
         this.resolution = 0.02f;
         this.solidResolution = 0.02f;
@@ -288,7 +288,7 @@ public class HomeMapOptionalExporter extends PlanComponent {
     public void writeHome(OutputStreamWriter writer, Home home) throws IOException {
         Rectangle2D itemBounds = getItemsBounds(getGraphics(), getSelectableViewableItems(home));
 
-        File tempPlanFile = OperatingSystem.createTemporaryFile("plane_house", ".png"); 
+        File tempPlanFile = OperatingSystem.createTemporaryFile("plane_house", ".png");
         float planScale = 1 / this.resolution / 100;
         String planFilename = "views/plane/plane_house.png";
         String imageType = "PNG";
@@ -296,10 +296,10 @@ public class HomeMapOptionalExporter extends PlanComponent {
         exportToPNG(home, tempPlanFile.getAbsolutePath(), planScale, imageType);
         this.exportedContents.put(planFilename, new URLContent(tempPlanFile.toURI().toURL()));
 
-        File tempSolidFile = OperatingSystem.createTemporaryFile("solid_house", ".jpg"); 
-        String solidFilename = "views/solid/solid_house.jpg";        
+        File tempSolidFile = OperatingSystem.createTemporaryFile("solid_house", ".jpg");
+        String solidFilename = "views/solid/solid_house.jpg";
         imageType = "JPG";
-        makePhoto(home, itemBounds, this.solidResolution * 100, tempSolidFile, imageType);
+        makePhoto(home, itemBounds, tempSolidFile, imageType);
         this.exportedContents.put(solidFilename, new URLContent(tempSolidFile.toURI().toURL()));
 
         writer.write(String.format("{%n  \"name\": \"%s\",%n", homeName == null ? "house" : homeName));
@@ -380,8 +380,8 @@ public class HomeMapOptionalExporter extends PlanComponent {
      * 素代表 0.02 米，所以 1米需要 50 个像素
      *
      */
-    private  void makePhoto(Home home, Rectangle2D itemBounds, double resolution,
-                            File output, String imageType) throws IOException {
+    private void makePhoto(Home home, Rectangle2D itemBounds, double resolution,
+                           File output, String imageType) throws IOException {
         double pitch = Math.PI / 2;
         double fov = Math.PI / 180 * 63;
         int margin = (int)(home.getWallHeight() * Math.tan(fov / 2) / resolution );
@@ -407,6 +407,48 @@ public class HomeMapOptionalExporter extends PlanComponent {
         Rectangle itemRect = new Rectangle(x0, y0, x1 - x0, y1 - y0);
         int width = itemRect.width;
         int height = itemRect.height;
+
+        PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.HIGH);
+        BufferedImage photo = new BufferedImage(width, height, itype);
+        renderer.render(photo, camera, null);
+        ImageIO.write(photo, imageType, output);
+    }
+
+    /**
+     * itemBounds 的单位为 米
+     *
+     * 像素的最大尺寸为 512
+     *
+     */
+    private  void makePhoto(Home home, Rectangle2D itemBounds, File output, String imageType) throws IOException {
+        int itype = imageType.equalsIgnoreCase("PNG") ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
+        double pitch = Math.PI / 2;
+        double fov = Math.PI / 180 * 63;
+
+        double cx = itemBounds.getCenterX();
+        double cy = itemBounds.getCenterY();
+        double cz = Math.max(itemBounds.getWidth(), itemBounds.getHeight()) / 2 / Math.tan(fov - 0.2) + home.getWallHeight();
+
+        Camera camera = home.getTopCamera();
+        camera.setX((float)cx);
+        camera.setY((float)cy);
+        camera.setZ((float)cz);
+        camera.setYaw((float)Math.PI); // 默认上方为北
+        camera.setPitch((float)pitch);
+        camera.setFieldOfView((float)fov);
+
+        // 计算像素坐标，最大不超过 512
+        int MAX_SIZE = 512;
+        int width, height;
+
+        if (itemBounds.getWidth() > itemBounds.getHeight()) {
+            width = MAX_SIZE;
+            height = (int)(MAX_SIZE * itemBounds.getHeight() / itemBounds.getWidth());
+        }
+        else {
+            height = MAX_SIZE;
+            width = (int)(MAX_SIZE * itemBounds.getWidth() / itemBounds.getHeight());
+        }
 
         PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.HIGH);
         BufferedImage photo = new BufferedImage(width, height, itype);

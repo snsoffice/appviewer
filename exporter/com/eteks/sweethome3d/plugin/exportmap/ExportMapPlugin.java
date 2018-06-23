@@ -17,6 +17,8 @@ import java.net.URLEncoder;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -119,13 +121,30 @@ public class ExportMapPlugin extends Plugin {
           resource.getString("exportMapDialog.title"), 
           ContentManager.ContentType.USER_DEFINED, getHome().getName());
       if (exportedFile != null) {
-        // Export to HTML5 in a threaded task
+
+          // ExecutorService photoCreationExecutor = Executors.newSingleThreadExecutor();
+          // photoCreationExecutor.execute(new Runnable() {
+          //         public void run() {
+          //             Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+          //             try {
+          //                 exportHomeToMap(getHome().clone(), new File(exportedFile));
+          //                 homeView.showMessage( "导出成功" );
+          //             }
+          //             catch ( RecorderException ex ) {
+          //                 homeView.showMessage( "导出失败!" );
+          //             }
+          //         }
+          //     });
+
+        // Export to snsoffice in a threaded task
         Callable<Void> exportToObjTask = new Callable<Void>() {
           public Void call() throws RecorderException {
-              exportHomeToMap(getHome().clone(), new File(exportedFile));
+              Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
+              exportHomeToMap(getHome().clone(), new File(exportedFile));              
               return null;
           }
         };
+
         ThreadedTaskController.ExceptionHandler exceptionHandler = 
             new ThreadedTaskController.ExceptionHandler() {
           public void handleException(Exception ex) {
