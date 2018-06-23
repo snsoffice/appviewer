@@ -75,12 +75,52 @@ require.config( {
 
 } );
 
-requirejs.onError = function ( err ) {
-    console.log( err.requireType );
-    if ( err.requireType === 'timeout' ) {
-        console.log( 'Timeout when loading modules: ' + err.requireModules );
+// 
+// 调试模式，在手机上调试的时候，如果出现没有捕获的异常，直接在页面上显示
+//
+var debugMode = true;
+var showDebugMessage = function ( msg ) {
+    var element = document.querySelector( '.dx-error' );
+    if ( ! element ) {
+        element = document.createElement( 'DIV' );
+        element.innerHTML = '<div class="p-3 bg-warning text-dark">' + msg + '</div>';
+        element.className = 'dx-page dx-error';
+        element.style.zIndex = 8096;
+        document.body.appendChild( element );
+        element.addEventListener( 'click', function ( e ) {
+            e.stopPropagation();
+            element.remove();
+        }, false );
     }
-    throw err;
+    else {
+        var div = document.createElement( 'DIV' );
+        div.innerHTML = '<p>' + msg;
+        element.querySelector( 'div.bg-warning' ).appendChild( div );
+    }
 };
+
+if ( debugMode ) {
+
+    requirejs.onError = function ( err ) {
+        var msg = '<p>RequireJS 异常：' +
+            '<p>requireType:    ' + err.requireType +
+            '<p>requireModules: ' + err.requireModules +
+            '<p>' + err.stack;
+        showDebugMessage( msg );
+        throw err;
+    };
+
+    window.onerror = function ( message, source, lineno, colno, error ) { 
+        var msg = '<p>没有捕获的异常:</p>' +
+            '<p>message: ' + message +
+            '<p>source:  ' + source +
+            '<p>lineno:  ' + lineno +
+            '<p>colno:   ' + colno +
+            '<p' + error;
+        showDebugMessage( msg );
+    };  
+
+}
+
 
 requirejs( [ 'fontawesome', 'jquery', 'bootstrap', 'app/main' ] );
