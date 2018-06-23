@@ -57,8 +57,10 @@ define( [ 'ifuture' ], function( ifuture ) {
      */
     Slider.prototype.onTouchEnd_ = function ( e ) {
 
-        var touches = e.changedTouches;
+        if ( this._lastTouches === null )
+            return true;
 
+        var touches = e.changedTouches;
         if ( this._lastTouches.length >= touches.length ) {
 
             var n = touches.length;
@@ -81,6 +83,7 @@ define( [ 'ifuture' ], function( ifuture ) {
 
         }
 
+        this._lastTouches = null;
         return true;
 
     };
