@@ -36,17 +36,17 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
             <div class="">                                                                    \
               <div class="d-flex flex-column justify-content-end h-100">                      \
                 <div class="mb-5 px-3">                                                       \
-                  <button class="btn btn-sm btn-outline-secondary m-2">                       \
+                  <button class="btn btn-sm btn-outline-secondary m-2"                        \
                           type="button" view-type="plane" view-index="0">房屋平面图</button>  \
-                  <button class="btn btn-sm btn-outline-secondary m-2">                       \
+                  <button class="btn btn-sm btn-outline-secondary m-2"                        \
                           type="button" view-type="solid" view-index="0">房屋立体图</button>  \
-                  <button class="btn btn-sm btn-outline-secondary m-2">                       \
+                  <button class="btn btn-sm btn-outline-secondary m-2"                        \
                           type="button" view-type="plane" view-index="2">楼层平面图</button>  \
-                  <button class="btn btn-sm btn-outline-secondary m-2">                       \
+                  <button class="btn btn-sm btn-outline-secondary m-2"                        \
                           type="button" view-type="solid" view-index="2">楼层立体图</button>  \
                   <button class="btn btn-sm btn-outline-secondary m-2"                        \
                           type="button" view-type="plane" view-index="1">小区平面图</button>  \
-                  <button class="btn btn-sm btn-outline-secondary m-2">                       \
+                  <button class="btn btn-sm btn-outline-secondary m-2"                        \
                           type="button" view-type="solid" view-index="1">小区立体图</button>  \
                 </div>                                                                        \
               </div>                                                                          \

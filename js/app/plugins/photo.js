@@ -187,6 +187,22 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery' ], function ( ifuture
     }
 
     /**
+     * 处理左右滑动切换视图事件
+     *
+     * @param {number} direction < 0 表示向左滑动，> 0 表示向右滑动
+     * @param {number} fingers   触点数目
+     *
+     * @return {boolean} true 事件已经处理； false 事件没有处理
+     *
+     * @public
+     */
+    View.prototype.onSlideView = function ( direction, fingers ) {
+        if ( fingers === 1 ) {
+            return true;
+        }
+    };
+
+    /**
      * 创建页面对象
      *
      * @private
