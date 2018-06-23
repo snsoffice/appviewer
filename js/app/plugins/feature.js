@@ -158,9 +158,6 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
      * @public
      */
     View.prototype.onSlideView = function ( direction, fingers ) {
-        if ( fingers === 1 ) {
-            return true;
-        }
     };
 
     /**

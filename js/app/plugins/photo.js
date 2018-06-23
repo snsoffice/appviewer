@@ -1,4 +1,6 @@
-define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery' ], function ( ifuture, config, ol, pannellum, jquery ) {
+define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery', 'app/slider' ],
+
+function ( ifuture, config, ol, pannellum, jquery, Slider ) {
 
     var _TEMPLATE = '                                                                    \
         <div class="dx-tab bg-dark">                                                     \
@@ -31,13 +33,14 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery' ], function ( ifuture
 
     var _THUMBNAIL_TEMPLATE = '                                                  \
         <img class="img-fluid p-1" src="%POSTER%" alt="%TITLE%" data-src="%SRC%" \
-             data-coordinate="%COORDINATE%" data-direction="%DIRECTION%">';
+             data-index="%INDEX%" data-coordinate="%COORDINATE%" data-direction="%DIRECTION%">';
 
-    var _IMAGE_TEMPLATE = '<img class="img-fluid" src="%SRC%" alt="%TITLE%">';
+    var _IMAGE_TEMPLATE = '<img class="img-fluid" src="%SRC%" alt="%TITLE%" data-index="%INDEX%">';
 
     var _MINIMAP_SELECTOR = '.dx-overview';
     var _GALARY_SELECTOR = '.dx-galary';
     var _PANORAMA_SELECTOR = '.dx-panorama';
+    var _THUMBNAIL_SELECTOR = '.dx-photo-list img[data-index="%INDEX%"]';
 
     var _TOGGLE_MINIMAP_SELECTOR = 'div.dx-view-tool > button:nth-of-type(1)';
     var _TOGGLE_GALARY_SELECTOR = 'div.dx-view-tool > button:nth-of-type(2)';
@@ -106,10 +109,12 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery' ], function ( ifuture
          */
         this._minimap = null;
 
-        // 全景照片角度发生变化之后的事件
-        app.on( 'helper:changed', function ( e ) {
-            this.changeMarker_( _MARKER_ID, e.argument.position, e.argument.yaw );
-        }, this );
+        /**
+         * 在手机左右滑动切换图片的控件
+         * @private
+         * @type {ifuture.Slider}
+         */
+        this._slider = null;
 
     }
     ifuture.inherits( View, ifuture.Component );
@@ -187,19 +192,27 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery' ], function ( ifuture
     }
 
     /**
-     * 处理左右滑动切换视图事件
+     * 左右滑动切换视图事件，事件参数包括两个属性
      *
-     * @param {number} direction < 0 表示向左滑动，> 0 表示向右滑动
-     * @param {number} fingers   触点数目
+     *     direction > 0 向右滑动，< 0 向左滑动
+     *     fingers   触动时候的手指数目
      *
-     * @return {boolean} true 事件已经处理； false 事件没有处理
-     *
-     * @public
+     * @param {ifutre.Event} event
+     * @private
      */
-    View.prototype.onSlideView = function ( direction, fingers ) {
+    View.prototype.onSlideEvent_ = function ( event ) {
+
+        var direction = event.argument.direction;
+        var fingers = event.argument.fingers;
         if ( fingers === 1 ) {
-            return true;
+            var img = this._element.querySelector( _GALARY_SELECTOR + ' > img ' );
+            var index = parseInt( img.getAttribute( 'data-index' ) );
+            index = direction > 0 ? index - 1 : index + 1;
+            img = this._element.querySelector( _THUMBNAIL_SELECTOR.replace( '%INDEX%', index ) );
+            if ( img )
+                this.selectPhoto_( img );
         }
+
     };
 
     /**
@@ -227,6 +240,10 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery' ], function ( ifuture
 
         this._element.querySelector( _TOGGLE_GALARY_SELECTOR ).addEventListener( 'click', function ( e ) {
         }, false );
+
+        this.app.on( 'helper:changed', function ( e ) {
+            this.changeMarker_( _MARKER_ID, e.argument.position, e.argument.yaw );
+        }, this );
 
     };
 
@@ -301,6 +318,7 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery' ], function ( ifuture
         this._element.appendChild( container );
 
         var images = [];
+        var index = 0;
         this._data.features.forEach( function ( feature ) {
             if ( feature.phase_type === 'photo' ) {
                 images.push( _THUMBNAIL_TEMPLATE
@@ -308,7 +326,8 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery' ], function ( ifuture
                              .replace( '%SRC%', feature.url )
                              .replace( '%TITLE%', feature.name )
                              .replace( '%COORDINATE%', feature.coordinate )
-                             .replace( '%DIRECTION%', feature.angle ) );
+                             .replace( '%DIRECTION%', feature.angle ) 
+                             .replace( '%INDEX%', index ++ ) );
             }
         } );
 
@@ -323,6 +342,9 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery' ], function ( ifuture
                 scope.selectPhoto_( e.currentTarget );
             }, false );
         } );
+
+        this._slider = new Slider( element );
+        this._slider.on( Slider.SLIDE_EVENT_NAME, this.onSlideEvent_, this );
 
     };
 
@@ -444,7 +466,8 @@ define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery' ], function ( ifuture
         var galary = this._element.querySelector( _GALARY_SELECTOR );
         galary.innerHTML = _IMAGE_TEMPLATE
             .replace( '%TITLE%', img.getAttribute( 'alt' ) )
-            .replace( '%SRC%', img.getAttribute( 'data-src' ) );
+            .replace( '%SRC%', img.getAttribute( 'data-src' ) )
+            .replace( '%INDEX%', img.getAttribute( 'data-index' ) );
 
         galary.style.display = 'block';
         this._element.querySelector( _PANORAMA_SELECTOR ).style.display = 'none';

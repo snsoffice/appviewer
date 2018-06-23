@@ -1,4 +1,4 @@
-define( [ 'ifuture', 'config' ], function ( ifuture, config ) {
+define( [ 'ifuture', 'config', 'app/slider' ], function ( ifuture, config, Slider ) {
 
     var _TEMPLATE = '                     \
       <div class="dx-tab bg-secondary ">  \
@@ -67,6 +67,13 @@ define( [ 'ifuture', 'config' ], function ( ifuture, config ) {
          */
         this._data = null;
 
+        /**
+         * 在手机左右滑动切换不同房屋结构的控件
+         * @private
+         * @type {ifuture.Slider}
+         */
+        this._slider = null;
+
     }
     ifuture.inherits( View, ifuture.Component );
 
@@ -106,6 +113,7 @@ define( [ 'ifuture', 'config' ], function ( ifuture, config ) {
             this._element.remove();
             this._element = null;
         }
+        this._slider = null;
         this._url = null;
         this._data = null;
 
@@ -123,16 +131,18 @@ define( [ 'ifuture', 'config' ], function ( ifuture, config ) {
     }
 
     /**
-     * 处理左右滑动切换视图事件
+     * 左右滑动切换视图事件，事件参数包括两个属性
      *
-     * @param {number} direction < 0 表示向左滑动，> 0 表示向右滑动
-     * @param {number} fingers   触点数目
+     *     direction > 0 向右滑动，< 0 向左滑动
+     *     fingers   触动时候的手指数目
      *
-     * @return {boolean} true 事件已经处理； false 事件没有处理
-     *
-     * @public
+     * @param {ifutre.Event} event
+     * @private
      */
-    View.prototype.onSlideView = function ( direction, fingers ) {
+    View.prototype.onSlideEvent_ = function ( event ) {
+        
+        var direction = event.argument.direction;
+        var fingers = event.argument.fingers;
 
         if ( fingers === 1 ) {
             var indicator = this._element.querySelector( _CURRENT_INDICATOR_SELECTOR );
@@ -185,6 +195,9 @@ define( [ 'ifuture', 'config' ], function ( ifuture, config ) {
                 scope.select_( parseInt( e.currentTarget.getAttribute( 'data-slide-to' ) ) );
             }, false );
         } );
+
+        this._slider = new Slider( element );
+        this._slider.on( Slider.SLIDE_EVENT_NAME, this.onSlideEvent_, this );
 
     };
 

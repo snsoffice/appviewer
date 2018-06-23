@@ -35,6 +35,12 @@ define( [ 'ifuture' ], function( ifuture ) {
     ifuture.inherits( Slider, ifuture.Component );
 
     /**
+     * 类常量
+     * @public
+     */
+    Slider.SLIDE_EVENT_NAME = _SLIDE_EVENT_NAME;
+
+    /**
      *
      * 触摸开始事件
      *

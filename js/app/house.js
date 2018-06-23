@@ -5,7 +5,6 @@ function ( ifuture, config, restapi, logger, dialog, Slider,
            HouseInfo, HouseFrame, HousePhoto, HouseLocation, HouseFeature, HousePanel ) {
 
     var _HOUSE_CONFIG_FILE = 'config.json';
-    var _SLIDE_EVENT_NAME = 'slide:view';
     var _PANEL_VIEW_INDEX = 5;
 
     var _SELECTOR = '.dx-viewer';
@@ -212,9 +211,7 @@ function ( ifuture, config, restapi, logger, dialog, Slider,
         element.innerHTML = _TEMPLATE;
         element = element.firstElementChild;
         document.body.appendChild( element );
-
         this._element = element;
-        this._slider = new Slider( element );
 
         var scope = this;
 
@@ -234,7 +231,8 @@ function ( ifuture, config, restapi, logger, dialog, Slider,
                 }, false );
         } );
 
-        this._slider.on( _SLIDE_EVENT_NAME, this.onSlideEvent_, this );
+        this._slider = new Slider( element.querySelector( 'nav.navbar' ) );
+        this._slider.on( Slider.SLIDE_EVENT_NAME, this.onSlideEvent_, this );
 
     };
 
@@ -263,7 +261,7 @@ function ( ifuture, config, restapi, logger, dialog, Slider,
      * 左右滑动切换视图事件，事件参数包括两个属性
      *
      *     direction > 0 向右滑动，< 0 向左滑动
-     *     touches   触动时候的手指数目
+     *     fingers   触动时候的手指数目
      *
      * @param {ifutre.Event} event
      * @private
@@ -278,13 +276,11 @@ function ( ifuture, config, restapi, logger, dialog, Slider,
         var direction = event.argument.direction;
         var fingers = event.argument.fingers;
 
-        if ( typeof view.onSlideView !== 'function' || ! view.onSlideView( direction, fingers ) ) {
-            if ( direction > 0 && index > 0 ) {
-                this.showView_( index - 1 );
-            }
-            else if ( direction < 0 && index < this._views.length - 1 ) {
-                this.showView_( index + 1 );
-            }
+        if ( direction > 0 && index > 0 ) {
+            this.showView_( index - 1 );
+        }
+        else if ( direction < 0 && index < this._views.length - 1 ) {
+            this.showView_( index + 1 );
         }
 
     };
