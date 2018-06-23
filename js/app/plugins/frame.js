@@ -17,7 +17,15 @@ define( [ 'ifuture', 'config' ], function ( ifuture, config ) {
           </div>                                                                     \
         </div>';
 
+    var _THREE_TEMPLATE = '                                                           \
+        <div class="dx-frame w-100 h-100" style="display:none;">                      \
+          <div class="d-flex w-100 h-100 justify-content-center align-items-center">  \
+            <div data-src="%SRC%" class="text-white">点击打开三维模型</div>           \
+          </div>                                                                      \
+        </div>';
+
     var _INDICATOR_SELECTOR = 'ol.carousel-indicators > li';
+    var _CURRENT_INDICATOR_SELECTOR = 'ol.carousel-indicators > li.active';
     var _FRAME_SELECTOR = 'div.dx-frame';
 
     View = function ( app, target ) {
@@ -125,9 +133,22 @@ define( [ 'ifuture', 'config' ], function ( ifuture, config ) {
      * @public
      */
     View.prototype.onSlideView = function ( direction, fingers ) {
+
         if ( fingers === 1 ) {
-            return true;
+            var indicator = this._element.querySelector( _CURRENT_INDICATOR_SELECTOR );
+            if ( indicator ) {
+                var index = parseInt( indicator.getAttribute( 'data-slide-to' ) );
+                if ( direction > 0 && index > 0 ) {
+                    this.select_( index - 1 );
+                    return true;
+                }
+                else if ( direction < 0 && index < this._data.views.length - 1 ) {
+                    this.select_( index + 1 );
+                    return true;
+                }
+            }
         }
+
     };
 
     /**
@@ -144,7 +165,10 @@ define( [ 'ifuture', 'config' ], function ( ifuture, config ) {
         var results = [];
         for ( var i = 0; i < views.length; i ++ ) {
             indicators.push( _INDICATOR_TEMPLATE.replace( '%INDEX%', i.toString() ) );
-            results.push( _FRAME_TEMPLATE.replace( '%SRC%', views[ i ].url ).replace( '%TITLE%', views[ i ].name ) );
+            if ( views[ i ].type === 'three' )
+                results.push( _THREE_TEMPLATE.replace( '%SRC%', views[ i ].url ).replace( '%TITLE%', views[ i ].name ) );
+            else
+                results.push( _FRAME_TEMPLATE.replace( '%SRC%', views[ i ].url ).replace( '%TITLE%', views[ i ].name ) );
         }
 
         element.innerHTML = _TEMPLATE
