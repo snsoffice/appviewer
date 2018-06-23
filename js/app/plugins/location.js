@@ -259,7 +259,7 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         this._map = new ol.Map( {
             target: target,
             layers: layers,
-            // interactions: [],
+            interactions: [],
             controls: [],
             overlays: [ marker ],
         } );

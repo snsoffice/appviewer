@@ -1,6 +1,6 @@
 define( [ 'ifuture' ], function( ifuture ) {
 
-    var _SLIDE_THRESOLD = Math.min( 80, Math.min( window.innerWidth, window.innerHeight ) / 4 );
+    var _SLIDE_THRESOLD = Math.min( 30, Math.min( window.innerWidth, window.innerHeight ) / 4 );
     var _SLIDE_EVENT_NAME = 'slide:view';
 
     Slider = function ( target ) {
@@ -75,11 +75,12 @@ define( [ 'ifuture' ], function( ifuture ) {
                 }
             }
 
-            if ( result )
+            if ( result ) {
                 this.dispatchEvent( new ifuture.Event( _SLIDE_EVENT_NAME, {
                     direction: direction,
                     fingers: this._lastTouches.length,
                 } ) );
+            }
 
         }
 
