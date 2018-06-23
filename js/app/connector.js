@@ -1,11 +1,17 @@
 define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
-        function( ifuture, easyrtc, config, utils, logger, dialog ) {
+        
+function( ifuture, easyrtc, config, utils, logger, dialog ) {
 
     var _EASYRTC_SERVER = 'http://snsoffice.com:9090';
     var _EASYRTC_APPKEY = 'snsoffice.ifuture.sky';
 
     var _USER_NAME_REGEXP = '[_a-zA-Z0-9\s\u4E00-\u9FA5\uF900-\uFA2D]+';
 
+    var _MESSAGE_TYPE = {
+        ANCHOR: 'anchor',
+        VIEW: 'view',
+    };
+            
     /**
      * @classdesc
      *
@@ -230,15 +236,15 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
         if ( who === this._easyrtcid )
             return;
 
-        if ( msgType === 'anchor' ) {
+        if ( msgType === _MESSAGE_TYPE.ANCHOR ) {
 
-            this.dispatchEvent( new ifuture.Event( 'marker:changed', msgData ) );
+            this.dispatchEvent( new ifuture.Event( 'remote:marker:changed', msgData ) );
 
         }
 
-        else if ( msgType === 'view' ) {
+        else if ( msgType === _MESSAGE_TYPE.VIEW ) {
 
-            this.dispatchEvent( new ifuture.Event( 'view:changed', msgData ) );
+            this.dispatchEvent( new ifuture.Event( 'remote:view:changed', msgData ) );
 
         }
 
@@ -358,8 +364,11 @@ define( [ 'ifuture', 'easyrtc', 'config', 'utils', 'logger', 'app/dialog' ],
     Connector.prototype.bindFutureEvent = function () {
 
         this.app.on( 'send:anchor', function ( event ) {
-            var arg = event.argument;
-            this.sendPeerMessage_( arg.msgType, arg.msgData );
+            this.sendPeerMessage_( _MESSAGE_TYPE.ANCHOR, event.argument );
+        }, this );
+
+        this.app.on( 'send:view', function ( event ) {
+            this.sendPeerMessage_( _MESSAGE_TYPE.VIEW, event.argument );
         }, this );
 
         this.app.on( 'screen:closed', function ( event ) {

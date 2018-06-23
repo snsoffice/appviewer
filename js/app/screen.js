@@ -9,6 +9,53 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
           <video autoplay="autoplay"></video>                          \
         </div>';
 
+    var _TEMPLATE = '                                                                      \
+        <div class="dx-toolbar">                                                           \
+          <button type="button" class="btn btn-outline-secondary border-0 mx-3 my-2">      \
+            <i class="fas fa-times fa-2x"></i>                                             \
+          </button>                                                                        \
+          <button type="button" class="btn btn-outline-secondary border-0 mx-3 my-2 fa-2x" \
+                  style="display: none; opacity: 0.8;">                                    \
+            <span class="fa-layers fa-fw text-danger">                                     \
+              <i class="fas fa-phone"></i>                                                 \
+              <i class="fas fa-times" data-fa-transform="shrink-8 up-4 left-4"></i>        \
+            </span>                                                                        \
+          </button>                                                                        \
+        </div>                                                                             \
+        <div class="dx-view-tool mx-3 mb-2">                                               \
+          <button class="btn btn-outline-secondary border-0 mr-2" type="button"            \
+                  data-toggle="modal" data-target="#screen-frame-dialog">                  \
+            <i class="fas fa-th fa-lg"></i>                                                \
+          </button>                                                                        \
+        </div>';
+
+    var _FRAME_DIALOG_TEMPLATE = '                                                            \
+        <div class="modal fade dx-modal-container" id="screen-frame-dialog"                   \
+            tabindex="-1" role="dialog" aria-hidden="true">                                   \
+          <div class="modal-dialog modal-dialog-centered" role="document">                    \
+            <div class="">                                                                    \
+              <div class="d-flex flex-column justify-content-end h-100">                      \
+                <div class="mb-5 px-3">                                                       \
+                  <button class="btn btn-sm btn-outline-secondary m-2">                       \
+                          type="button" view-type="plane" view-index="0">房屋平面图</button>  \
+                  <button class="btn btn-sm btn-outline-secondary m-2">                       \
+                          type="button" view-type="solid" view-index="0">房屋立体图</button>  \
+                  <button class="btn btn-sm btn-outline-secondary m-2">                       \
+                          type="button" view-type="plane" view-index="2">楼层平面图</button>  \
+                  <button class="btn btn-sm btn-outline-secondary m-2">                       \
+                          type="button" view-type="solid" view-index="2">楼层立体图</button>  \
+                  <button class="btn btn-sm btn-outline-secondary m-2"                        \
+                          type="button" view-type="plane" view-index="1">小区平面图</button>  \
+                  <button class="btn btn-sm btn-outline-secondary m-2">                       \
+                          type="button" view-type="solid" view-index="1">小区立体图</button>  \
+                </div>                                                                        \
+              </div>                                                                          \
+            </div>                                                                            \
+          </div>                                                                              \
+        </div>';
+
+    var _FRAME_BUTTONS_SELECTOR = 'div.modal-dialog button';
+
     var _LOCATION_MARKER_URL = 'images/location_marker.png';
     var _LOCATION_MARKER_HEADING_URL = 'images/location_marker_heading.png';
 
@@ -26,7 +73,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
          * @private
          * @type {HTMLDivElement}
          */
-        this._element = document.querySelector( _SELECTOR );
+        this._element = null;
 
         /**
          * 当前直播房子的数据
@@ -111,25 +158,15 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
             this.closeScreen_();
         }, this );
 
-        this.app.on( 'marker:changed', function ( e ) {
+        this.app.on( [ 'marker:changed', 'remoate:marker:changed' ], function ( e ) {
             var arg = e.argument;
             this.changeMarker_( arg.name, arg.coordinate, arg.direction );
         }, this );
 
-        // 内部事件绑定
-        var scope = this;
-
-        this._sensor.on( 'error', function () {
-            logger.log( 'geolocation error' );
-        } );
-
-        this._element.querySelector( _CLOSE_BUTTON_SELECTOR ).addEventListener( 'click', function ( e ) {
-            scope.closeScreen_();
-        }, false );
-
-        this._element.querySelector( _HANGUP_BUTTON_SELECTOR ).addEventListener( 'click', function ( e ) {
-            scope.hangup_();
-        }, false );
+        this.app.on( [ 'remoate:view:changed' ], function ( e ) {
+            var arg = e.argument;
+            this.changeView_( arg.url, arg.extent, arg.title );
+        }, this );
 
     };
 
@@ -141,6 +178,9 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
     Screen.prototype.openScreen_ = function ( house ) {
 
         this._direction = undefined;
+
+        if ( this._element === null )
+            this.buildView_();
 
         if ( this._map === null )
             this.initMap_();
@@ -217,6 +257,41 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
      */
     Screen.prototype.hangup_ = function () {
         this.dispatchEvent( new ifuture.Event( 'disconnect:living' ) );
+    };
+
+    /**
+     * 创建页面对象
+     *
+     * @private
+     */
+    Screen.prototype.buildView_ = function () {
+
+        this._element = document.querySelector( _SELECTOR );
+        this._element.innerHTML = _TEMPLATE;
+
+        var div = document.createElement( 'DIV' );
+        div.innerHTML = _FRAME_DIALOG_TEMPLATE;
+        this._element.appendChild( div.firstElementChild );
+
+        // 内部事件绑定
+        var scope = this;
+
+        this._sensor.on( 'error', function () {
+            logger.log( 'geolocation error' );
+        } );
+
+        this._element.querySelector( _CLOSE_BUTTON_SELECTOR ).addEventListener( 'click', function ( e ) {
+            scope.closeScreen_();
+        }, false );
+
+        this._element.querySelector( _HANGUP_BUTTON_SELECTOR ).addEventListener( 'click', function ( e ) {
+            scope.hangup_();
+        }, false );
+
+        Array.prototype.forEach.call( this._element.querySelectorAll( _FRAME_BUTTONS_SELECTOR ), function ( button ) {
+            button.addEventListener( 'click', scope.onChangeView_.bind( scope ), false );
+        } );
+
     };
 
     /**
@@ -340,15 +415,12 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
         var marker = this._map.getOverlayById( _MARKER_ID );
         marker.setPosition( evt.coordinate );
 
-        var argument = {
-            msgType: 'anchor',
-            msgData: {
-                name: _MARKER_ID,
-                coordinate: evt.coordinate,
-                direction: this._direction,
-            }
+        var data = {
+            name: _MARKER_ID,
+            coordinate: evt.coordinate,
+            direction: this._direction,
         };
-        this.dispatchEvent( new ifuture.Event( 'send:anchor', argument ) );
+        this.dispatchEvent( new ifuture.Event( 'send:anchor', data ) );
 
     };
 
@@ -377,15 +449,12 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
         element.style.mozTransform = rotate;
         element.style.msTransform = rotate;
 
-        var argument = {
-            msgType: 'anchor',
-            msgData: {
-                name: 'marker',
-                coordinate: marker.getPostion(),
-                direction: direction,
-            }
+        var data = {
+            name: 'marker',
+            coordinate: marker.getPostion(),
+            direction: direction,
         };
-        this.dispatchEvent( new ifuture.Event( 'send:anchor', argument ) );
+        this.dispatchEvent( new ifuture.Event( 'send:anchor', data ) );
 
     };
 
@@ -416,6 +485,82 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
                 element.style.msTransform = rotate;
             }
         }
+    };
+
+    /**
+     * 导航视图发生了变化
+     *
+     * @param {URL} src 导航视图对应的图片地址
+     * @param {Array.<number>} extent 图片对应的区域
+     * @param {String|undefined} title 导航视图标题
+     * @private
+     */
+    Screen.prototype.changeView_ = function ( url, extent, title ) {
+
+        var loadImage = function ( image, src ) {
+            image.getImage().src = src;
+        };
+
+        var source = new ol.source.ImageStatic( {
+            crossOrigin: 'anonymous',
+            imageExtent: extent,
+            url: url,
+            imageLoadFunction: loadImage,
+        } );
+
+        var layer = new ol.layer.Image( {
+            extent: extent,
+            source: source,
+        } );
+        this._map.setLayerGroup( new ol.layer.Group( { layers: [ layer ] } ) );
+
+        this.dispatchEvent( new ifuture.Event( 'show:loader' ) );
+        source.on( 'imageloadend', function ( e ) {
+            this.dispatchEvent( new ifuture.Event( 'hide:loader' ) );
+        }, this );
+
+        source.on( 'imageloaderror', function ( e ) {
+            this.dispatchEvent( new ifuture.Event( 'hide:loader' ) );
+            logger.log( 'Load static image to map failed: ' + e );
+            dialog.info( '无法打开导航图' );
+        }, this );
+
+    };
+
+    /**
+     * 切换到其他视图
+     *
+     * @private
+     */
+    Screen.prototype.onChangeView_ = function ( e ) {
+
+        var button = e.currentTarget;
+        var type = button.getAttribute( 'view-type' );
+        var index = parseInt( button.getAttribute( 'view-index' ) );
+
+        var view;
+        var fmt = new ol.format.WKT();
+        if ( index === 0 ) {
+            view = this._data.views[ 0 ];
+        }
+        else if ( this._data.locations && this._data.locations.length && this._data.locations.length >= index ) {
+            view = this._data.locations.slice( - index )[ 0 ].views[ 0 ];
+        }
+
+        if ( view ) {
+            var geometry = fmt.readGeometry( view.geometry );
+            var extent = geometry.getExtent();
+            var url = view.url;
+            this.changeView_( url, extent );
+            this.dispatchEvent( new ifuture.Event( 'send:view', {
+                src: url,
+                extent: extent,
+            } ) );
+        }
+        else {
+            dialog.info( '打开导航视图失败' );
+        }
+
     };
 
     return Screen;
