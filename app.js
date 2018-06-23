@@ -94,8 +94,8 @@ var showDebugMessage = function ( msg ) {
     }
     else {
         var div = document.createElement( 'DIV' );
-        div.innerHTML = '<p>' + msg;
-        element.querySelector( 'div.bg-warning' ).appendChild( div );
+        div.innerHTML = '<div class="p-3 bg-warning text-dark mt-3">' + msg + '</div>';
+        element.appendChild( div );
     }
 };
 
