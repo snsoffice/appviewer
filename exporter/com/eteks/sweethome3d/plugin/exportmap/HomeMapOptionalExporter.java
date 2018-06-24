@@ -411,6 +411,7 @@ public class HomeMapOptionalExporter extends PlanComponent {
         PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.HIGH);
         BufferedImage photo = new BufferedImage(width, height, itype);
         renderer.render(photo, camera, null);
+        renderer.dispose();
         ImageIO.write(photo, imageType, output);
     }
 
@@ -421,13 +422,23 @@ public class HomeMapOptionalExporter extends PlanComponent {
      *
      */
     private  void makePhoto(Home home, Rectangle2D itemBounds, File output, String imageType) throws IOException {
-        int itype = imageType.equalsIgnoreCase("PNG") ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
+        // 计算像素坐标，最大不超过 512
+        int MAX_SIZE = 256;       
+        int width, height;
+        double ratio = itemBounds.getWidth() / itemBounds.getHeight();
+
+        height = ratio < 1.0 ? MAX_SIZE : (int)(MAX_SIZE / ratio);
+        width = (int)(height * ratio);
+
         double pitch = Math.PI / 2;
         double fov = Math.PI / 180 * 63;
+        int itype = imageType.equalsIgnoreCase("PNG") ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
 
         double cx = itemBounds.getCenterX();
         double cy = itemBounds.getCenterY();
-        double cz = Math.max(itemBounds.getWidth(), itemBounds.getHeight()) / 2 / Math.tan(fov - 0.2) + home.getWallHeight();
+
+        double r = Math.max(itemBounds.getWidth(), itemBounds.getHeight());        
+        double cz = r / 2 / Math.tan(fov / 2 - ( r > 300.0 ? 0.05 : 0 ) );
 
         Camera camera = home.getTopCamera();
         camera.setX((float)cx);
@@ -436,23 +447,51 @@ public class HomeMapOptionalExporter extends PlanComponent {
         camera.setYaw((float)Math.PI); // 默认上方为北
         camera.setPitch((float)pitch);
         camera.setFieldOfView((float)fov);
-
-        // 计算像素坐标，最大不超过 512
-        int MAX_SIZE = 512;
-        int width, height;
-
-        if (itemBounds.getWidth() > itemBounds.getHeight()) {
-            width = MAX_SIZE;
-            height = (int)(MAX_SIZE * itemBounds.getHeight() / itemBounds.getWidth());
-        }
-        else {
-            height = MAX_SIZE;
-            width = (int)(MAX_SIZE * itemBounds.getWidth() / itemBounds.getHeight());
-        }
+        // 2017-11-04 PM 5:00 室内有灯光，也不太暗
+        // camera.setTime(1509814800689L); 
 
         PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.HIGH);
         BufferedImage photo = new BufferedImage(width, height, itype);
         renderer.render(photo, camera, null);
         ImageIO.write(photo, imageType, output);
+        renderer.dispose();
     }
+
+    /**
+     * 为保存的所有相机生成对应的图片
+     *
+     * 像素的最大尺寸为 512
+     *
+     */
+    private  void makePhotos(Home home, Rectangle2D itemBounds, File output, String imageType) throws IOException {
+        // 计算像素坐标，最大不超过 512
+        int MAX_SIZE = 256;
+        int width, height;
+        double ratio = itemBounds.getWidth() / itemBounds.getHeight();
+
+        height = ratio < 1.0 ? MAX_SIZE : (int)(MAX_SIZE / ratio);
+        width = (int)(height * ratio);
+
+        int itype = imageType.equalsIgnoreCase("PNG") ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
+        Camera camera = null;
+        List<Camera> cameras = home.getStoredCameras();
+
+        PhotoRenderer renderer = new PhotoRenderer(home, PhotoRenderer.Quality.HIGH);
+        for (int i = 0; i < cameras.size(); i ++) {
+            camera = cameras.get(i);
+            BufferedImage photo = new BufferedImage(width, height, itype);
+            renderer.render(photo, camera, null);
+            ImageIO.write(photo, imageType, output);
+        }
+        renderer.dispose();
+    }
+
+    public void placeCameraAt(Camera camera, float x, float y, float distanceToCenter) {
+      float z = 0;
+      double distanceToCenterAtGroundLevel = distanceToCenter * Math.cos(camera.getPitch());
+      camera.setX(x + (float)(Math.sin(camera.getYaw()) * distanceToCenterAtGroundLevel));
+      camera.setY(y - (float)(Math.cos(camera.getYaw()) * distanceToCenterAtGroundLevel));
+      camera.setZ(z + (float)Math.sin(camera.getPitch()) * distanceToCenter);
+    }
+
 }

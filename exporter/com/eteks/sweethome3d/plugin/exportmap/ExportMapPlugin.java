@@ -68,6 +68,7 @@ public class ExportMapPlugin extends Plugin {
      * Exports edited home.
      */
     public void execute() {
+      // getHomeController().createPhoto();
       final ResourceBundle resource = ResourceBundle.getBundle(this.resourceBaseName, 
           Locale.getDefault(), getPluginClassLoader());
       final HomeView homeView = getHomeController().getView();

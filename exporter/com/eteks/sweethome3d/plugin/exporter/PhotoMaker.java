@@ -63,6 +63,7 @@ import com.eteks.sweethome3d.model.Selectable;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 
+import com.eteks.sweethome3d.swing.HomeComponent3D;
 import com.eteks.sweethome3d.j3d.PhotoRenderer;
 
 
@@ -306,6 +307,37 @@ public class PhotoMaker {
         }
     }
 
+    public static void makeOffscreenImage(File homeFile, File outputFile,
+                                          int width, int height, String imageType) throws RecorderException {
+        
+        DefaultHomeInputStream in = null;
+        Home home;
+        try {
+            // If preferences are not null replace home content by the one in preferences when it's the same
+            in = new DefaultHomeInputStream(homeFile, ContentRecording.INCLUDE_ALL_CONTENT, null, null, false);
+            home = in.readHome();
+            // Compute 3D view offscreen image
+            HomeComponent3D homeComponent3D = new HomeComponent3D(home);
+            BufferedImage image = homeComponent3D.getOffScreenImage(width, height);
+            homeComponent3D.endOffscreenImagesCreation();
+            System.out.println("Write image to " + outputFile.getName());
+            ImageIO.write(image, imageType, outputFile);
+        } catch (IOException ex) {
+            throw new RecorderException("Offscreen image failed", ex);
+        } catch (ClassNotFoundException ex) {
+            // Shouldn't happen
+            throw new RecorderException("Couldn't render home to image", ex);
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+    }
+
     public static void main(String[] args) {
 
         int n = args.length;
@@ -365,7 +397,8 @@ public class PhotoMaker {
 
         System.out.println("Render image from home: " + args[i]);
         try {
-            makePhoto(new File(args[i]), new File(outputFilename), imageWidth, imageHeight, imageType, cameraName, cameraVision);
+            // makePhoto(new File(args[i]), new File(outputFilename), imageWidth, imageHeight, imageType, cameraName, cameraVision);
+            makeOffscreenImage(new File(args[i]), new File(outputFilename), imageWidth, imageHeight, imageType);
         } catch ( RecorderException ex ) {
             System.out.println(ex);
         } finally {

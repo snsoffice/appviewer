@@ -204,13 +204,13 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
 
         var direction = event.argument.direction;
         var fingers = event.argument.fingers;
-        if ( fingers === 1 ) {
-            var img = this._element.querySelector( _GALARY_SELECTOR + ' > img ' );
+        var img = this._element.querySelector( _GALARY_SELECTOR + ' img ' );
+        if ( img ) {            
             var index = parseInt( img.getAttribute( 'data-index' ) );
             index = direction > 0 ? index - 1 : index + 1;
-            img = this._element.querySelector( _THUMBNAIL_SELECTOR.replace( '%INDEX%', index ) );
-            if ( img )
-                this.selectPhoto_( img );
+            var newimg = this._element.querySelector( _THUMBNAIL_SELECTOR.replace( '%INDEX%', index ) );
+            if ( newimg )
+                this.selectPhoto_( newimg );
         }
 
     };
@@ -317,6 +317,9 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
         container.className = "w-100 h-100 d-flex justify-content-center align-items-center dx-galary";
         this._element.appendChild( container );
 
+        this._slider = new Slider( container );
+        this._slider.on( Slider.SLIDE_EVENT_NAME, this.onSlideEvent_, this );
+
         var images = [];
         var index = 0;
         this._data.features.forEach( function ( feature ) {
@@ -342,9 +345,6 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
                 scope.selectPhoto_( e.currentTarget );
             }, false );
         } );
-
-        this._slider = new Slider( element );
-        this._slider.on( Slider.SLIDE_EVENT_NAME, this.onSlideEvent_, this );
 
     };
 

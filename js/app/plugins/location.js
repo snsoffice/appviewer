@@ -110,6 +110,7 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
 
         if ( this._url === url ) {
             this._element.style.display = 'block';
+            this._map.render();
             return ;
         }
 
