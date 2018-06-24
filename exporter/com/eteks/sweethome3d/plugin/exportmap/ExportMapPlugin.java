@@ -4,6 +4,9 @@
  */
 package com.eteks.sweethome3d.plugin.exportmap;
 
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -37,6 +40,7 @@ import com.eteks.sweethome3d.plugin.Plugin;
 import com.eteks.sweethome3d.plugin.PluginAction;
 import com.eteks.sweethome3d.plugin.exportmap.HomeMapFileRecorder;
 import com.eteks.sweethome3d.swing.FileContentManager;
+import com.eteks.sweethome3d.swing.HomeComponent3D;
 import com.eteks.sweethome3d.swing.SwingViewFactory;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.viewcontroller.ContentManager;
@@ -68,7 +72,6 @@ public class ExportMapPlugin extends Plugin {
      * Exports edited home.
      */
     public void execute() {
-      // getHomeController().createPhoto();
       final ResourceBundle resource = ResourceBundle.getBundle(this.resourceBaseName, 
           Locale.getDefault(), getPluginClassLoader());
       final HomeView homeView = getHomeController().getView();
@@ -122,6 +125,9 @@ public class ExportMapPlugin extends Plugin {
           resource.getString("exportMapDialog.title"), 
           ContentManager.ContentType.USER_DEFINED, getHome().getName());
       if (exportedFile != null) {
+
+          // 离线快速生成当前三维视图的照片
+          // makePhoto((new File(exportedFile)).getParent());
 
           // ExecutorService photoCreationExecutor = Executors.newSingleThreadExecutor();
           // photoCreationExecutor.execute(new Runnable() {
@@ -204,6 +210,26 @@ public class ExportMapPlugin extends Plugin {
           homeFile.delete();
         }
       }    
+    }
+
+    /**
+     * Make photo from HomeController3D
+     */
+    private void makePhoto(String path) {
+        Home home = getHome().clone();
+        BufferedImage image = null;
+        String imageType = "JPG";
+        File outputFile = new File(path + File.separator + "house.jpg");
+        int imageWidth = 512;
+        int imageHeight = 512;
+        try {
+            HomeComponent3D component = new HomeComponent3D(home, getHomeController().getHomeController3D());
+            image = component.getOffScreenImage(imageWidth, imageHeight);
+            ImageIO.write(image, imageType, outputFile);
+        } catch (IOException ex) {
+            getHomeController().getView().showMessage("Couldn't save " + outputFile.getName());
+        } finally {
+        }    
     }
     
     private void writeZipEntry(ZipOutputStream zipOut, String entryName, 
