@@ -3,7 +3,7 @@ define( [ 'ifuture', 'jquery', 'db', 'config' ], function ( ifuture, $, db, conf
     function createDialog( template ) {
 
         Array.prototype.forEach.call( document.querySelectorAll( '.dx-modal-container' ), function ( dialog ) {
-            document.body.removeChild( dialog );
+            dialog.remove();
         } );
 
         // <div class="modal fade dx-modal-container" tabindex="-1" role="dialog" aria-hidden="true">

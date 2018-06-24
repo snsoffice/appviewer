@@ -186,6 +186,7 @@ define( [ 'ifuture', 'config', 'restapi', 'logger', 'app/dialog' ], function ( i
         var argument = {
             url: this._url,
             views: this._data.views,
+            locations: this._data.locations,
             callee: this._callee,
         };
 
@@ -213,6 +214,7 @@ define( [ 'ifuture', 'config', 'restapi', 'logger', 'app/dialog' ], function ( i
         var argument = {
             url: this._url,
             views: this._data.views,
+            locations: this._data.locations,
         };
 
         this.dispatchEvent( new ifuture.Event( 'open:screen', argument ) );

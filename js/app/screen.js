@@ -30,13 +30,13 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
         </div>';
 
     var _FRAME_DIALOG_TEMPLATE = '                                                            \
-        <div class="modal fade dx-modal-container" id="screen-frame-dialog"                   \
-            tabindex="-1" role="dialog" aria-hidden="true">                                   \
+        <div class="modal fade" id="screen-frame-dialog"                                      \
+             tabindex="-1" role="dialog" aria-hidden="true">                                  \
           <div class="modal-dialog modal-dialog-centered" role="document">                    \
-            <div class="">                                                                    \
-              <div class="d-flex flex-column justify-content-end h-100">                      \
-                <div class="mb-5 px-3">                                                       \
-                  <button class="btn btn-sm btn-outline-secondary m-2"                        \
+            <div class="modal-content" style="background: transparent;">                      \
+              <div class="d-flex flex-column justify-content-center align-items-center">      \
+                <div class="p-0">                                                             \
+                  <button class="btn btn-sm btn-outline-secondary m-2" data-dismiss="dialog"  \
                           type="button" view-type="plane" view-index="0">房屋平面图</button>  \
                   <button class="btn btn-sm btn-outline-secondary m-2"                        \
                           type="button" view-type="solid" view-index="0">房屋立体图</button>  \
@@ -50,11 +50,11 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
                           type="button" view-type="solid" view-index="1">小区立体图</button>  \
                 </div>                                                                        \
               </div>                                                                          \
-            </div>                                                                            \
+           </div> \
           </div>                                                                              \
         </div>';
 
-    var _FRAME_BUTTONS_SELECTOR = 'div.modal-dialog button';
+    var _FRAME_BUTTONS_SELECTOR = 'div.modal button';
 
     var _LOCATION_MARKER_URL = 'images/location_marker.png';
     var _LOCATION_MARKER_HEADING_URL = 'images/location_marker_heading.png';
@@ -78,7 +78,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
         /**
          * 当前直播房子的数据
          * @private
-         * @type {Object} 属性包括 url, views, callee
+         * @type {Object} 属性包括 url, views, locations, callee
          */
         this._house = null;
 
@@ -517,6 +517,11 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
         this.dispatchEvent( new ifuture.Event( 'show:loader' ) );
         source.on( 'imageloadend', function ( e ) {
             this.dispatchEvent( new ifuture.Event( 'hide:loader' ) );
+            var view = this._map.getView();
+            var resolution = view.getResolutionForExtent( extent );
+            var center = ol.extent.getCenter( extent );
+            view.setCenter( center );
+            view.setResolution( resolution );
         }, this );
 
         source.on( 'imageloaderror', function ( e ) {
@@ -534,17 +539,27 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
      */
     Screen.prototype.onChangeView_ = function ( e ) {
 
+        var getViewData = function ( views, type ) {
+            for ( var i = 0; i < views.length; i ++ ) {
+                if ( views[ i ].type === type )
+                    return views[ i ];
+            }
+            return views[ 0 ];
+        };
+
         var button = e.currentTarget;
         var type = button.getAttribute( 'view-type' );
         var index = parseInt( button.getAttribute( 'view-index' ) );
 
         var view;
+        var house = this._house;
+        var locations = house.locations;
         var fmt = new ol.format.WKT();
         if ( index === 0 ) {
-            view = this._data.views[ 0 ];
+            view = getViewData( this._house.views, type );
         }
-        else if ( this._data.locations && this._data.locations.length && this._data.locations.length >= index ) {
-            view = this._data.locations.slice( - index )[ 0 ].views[ 0 ];
+        else if ( locations && locations.length && locations.length >= index ) {
+            view = getViewData( locations.slice( - index )[ 0 ].views, type );
         }
 
         if ( view ) {
