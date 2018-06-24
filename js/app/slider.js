@@ -16,10 +16,10 @@ define( [ 'ifuture' ], function( ifuture ) {
 
         /**
          *
-         * @private
+         * @public
          * @type {boolean}
          */
-        this._enabled = true;
+        this.enabled = true;
 
         /**
          *
@@ -49,7 +49,8 @@ define( [ 'ifuture' ], function( ifuture ) {
      */
     Slider.prototype.onTouchStart_ = function ( e ) {
 
-        this._lastTouches = e.touches;
+        if ( this.enabled )
+            this._lastTouches = e.touches;
         return true;            // 否则会破坏事件
 
     };
@@ -62,8 +63,8 @@ define( [ 'ifuture' ], function( ifuture ) {
      * @api
      */
     Slider.prototype.onTouchEnd_ = function ( e ) {
-
-        if ( this._lastTouches === null )
+        
+        if ( this._lastTouches === null || ! this.enabled )
             return true;
 
         var touches = e.changedTouches;

@@ -100,8 +100,7 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         this._data = data;
 
         if ( this._url === url ) {
-            this._element.style.display = 'block';
-            this._map.render();
+            this.show_();
             return ;
         }
 
@@ -144,6 +143,24 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
     View.prototype.hide = function () {
 
         this._element.style.display = 'none';
+
+    }
+
+    /**
+     * 显示地理位置窗口
+     *
+     * @private
+     */
+    View.prototype.show_ = function () {
+
+        this._element.style.display = 'block';
+
+        if ( this._map ) {
+            var size = this._map.getSize();
+            if ( size === undefined || size[ 0 ] === 0 || size[ 1 ] === 0 ) {
+                this._map.updateSize();
+            }
+        }
 
     }
 

@@ -50,7 +50,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
                           type="button" view-type="solid" view-index="1">小区立体图</button>  \
                 </div>                                                                        \
               </div>                                                                          \
-           </div> \
+           </div>                                                                             \
           </div>                                                                              \
         </div>';
 

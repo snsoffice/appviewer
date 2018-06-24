@@ -2699,6 +2699,14 @@ this.destroy = function() {
     container.classList.remove('pnlm-grabbing');
 }
 
+// Jondy: resize viewer if container is resized when it's hidden
+this.resizeOnDemand = function () {
+    var canvas = renderer.getCanvas();
+    if (canvas.width === 0 || canvas.height === 0) {
+        onFullScreenChange();
+    }
+};
+
 }
 
 return {

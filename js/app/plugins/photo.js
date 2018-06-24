@@ -21,9 +21,9 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
          <div class="modal fade" id="house-galary-dialog" tabindex="-1" role="dialog" \
               aria-hidden="true">                                                     \
            <div class="modal-dialog modal-dialog-centered" role="document">           \
-             <div class="modal-content bg-light">                                     \
+             <div class="modal-content bg-secondary">                                 \
                <div class="dx-photo-list">                                            \
-                 <div class="d-flex h-100">                                           \
+                 <div class="d-flex justify-content-center">                          \
                    %IMAGES%                                                           \
                  </div>                                                               \
                </div>                                                                 \
@@ -32,10 +32,10 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
          </div>';
 
     var _THUMBNAIL_TEMPLATE = '                                                  \
-        <img class="img-fluid p-1" src="%POSTER%" alt="%TITLE%" data-src="%SRC%" \
+        <img class="p-1" src="%POSTER%" alt="%TITLE%" data-src="%SRC%"           \
              data-index="%INDEX%" data-coordinate="%COORDINATE%" data-direction="%DIRECTION%">';
 
-    var _IMAGE_TEMPLATE = '<img class="img-fluid" src="%SRC%" alt="%TITLE%" data-index="%INDEX%">';
+    var _IMAGE_TEMPLATE = '<img class="%CLASS%" src="%SRC%" alt="%TITLE%" data-index="%INDEX%">';
 
     var _MINIMAP_SELECTOR = '.dx-overview';
     var _GALARY_SELECTOR = '.dx-galary';
@@ -91,7 +91,7 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
         /**
          * 全景照片显示组件
          * @private
-         * @type {Object} 包括 pannellum.Viewer 和 scenes
+         * @type {Object} 包括 pannellum.Viewer 和 scenes 和 visible
          */
         this._panorama = null;
 
@@ -129,7 +129,7 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
         this._data = data;
 
         if ( this._url === url ) {
-            this._element.style.display = 'block';
+            this.show_();
             return ;
         }
 
@@ -192,6 +192,28 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
     }
 
     /**
+     * 显示照片和全景窗口，主要是处理窗口大小发生变化之后，全景浏览器和地图不可见问题
+     *
+     * @private
+     */
+    View.prototype.show_ = function () {
+
+        this._element.style.display = 'block';
+
+        if ( this._panorama && this._panorama.viewer ) {
+            this._panorama.viewer.resizeOnDemand();
+        }
+
+        if ( this._minimap ) {
+            var size = this._minimap.getSize();
+            if ( size === undefined || size[ 0 ] === 0 || size[ 1 ] === 0 ) {
+                this._minimap.updateSize();
+            }
+        }
+
+    }
+
+    /**
      * 左右滑动切换视图事件，事件参数包括两个属性
      *
      *     direction > 0 向右滑动，< 0 向左滑动
@@ -204,8 +226,8 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
 
         var direction = event.argument.direction;
         var fingers = event.argument.fingers;
-        var img = this._element.querySelector( _GALARY_SELECTOR + ' img ' );
-        if ( img ) {            
+        var img = this._element.querySelector( _GALARY_SELECTOR + ' img.contain' );
+        if ( img ) {
             var index = parseInt( img.getAttribute( 'data-index' ) );
             index = direction > 0 ? index - 1 : index + 1;
             var newimg = this._element.querySelector( _THUMBNAIL_SELECTOR.replace( '%INDEX%', index ) );
@@ -314,7 +336,7 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
     View.prototype.buildGalary_ = function () {
 
         var container = document.createElement( 'div' );
-        container.className = "w-100 h-100 d-flex justify-content-center align-items-center dx-galary";
+        container.className = "w-100 h-100 d-flex justify-content-center dx-galary";
         this._element.appendChild( container );
 
         this._slider = new Slider( container );
@@ -324,12 +346,13 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
         var index = 0;
         this._data.features.forEach( function ( feature ) {
             if ( feature.phase_type === 'photo' ) {
+                var poster = feature.url + '/@@images/image/mini';
                 images.push( _THUMBNAIL_TEMPLATE
-                             .replace( '%POSTER%', feature.url )
+                             .replace( '%POSTER%', poster )
                              .replace( '%SRC%', feature.url )
                              .replace( '%TITLE%', feature.name )
                              .replace( '%COORDINATE%', feature.coordinate )
-                             .replace( '%DIRECTION%', feature.angle ) 
+                             .replace( '%DIRECTION%', feature.angle )
                              .replace( '%INDEX%', index ++ ) );
             }
         } );
@@ -449,8 +472,12 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
         }
 
         this.changeMarker_( _MARKER_ID, scene.coordinate, scene.direction );
-        this._element.querySelector( _GALARY_SELECTOR ).style.display = 'none';
-        this._element.querySelector( _PANORAMA_SELECTOR ).style.display = 'block';
+
+        if ( ! this._panorama.visible ) {
+            this._element.querySelector( _PANORAMA_SELECTOR ).style.visibility = 'visible';
+            this._panorama.viewer.resizeOnDemand();
+            this._panorama.visible = true;
+        }
 
     };
 
@@ -465,12 +492,15 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
 
         var galary = this._element.querySelector( _GALARY_SELECTOR );
         galary.innerHTML = _IMAGE_TEMPLATE
+            .replace( '%CLASS%', 'contain' )
             .replace( '%TITLE%', img.getAttribute( 'alt' ) )
             .replace( '%SRC%', img.getAttribute( 'data-src' ) )
             .replace( '%INDEX%', img.getAttribute( 'data-index' ) );
 
-        galary.style.display = 'block';
-        this._element.querySelector( _PANORAMA_SELECTOR ).style.display = 'none';
+        if ( this._panorama ) {
+            this._element.querySelector( _PANORAMA_SELECTOR ).style.visibility = 'hidden';
+            this._panorama.visible = false;
+        }
 
         var direction = parseFloat( img.getAttribute( 'data-direction' ) );
         var coordinate = [];

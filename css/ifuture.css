@@ -50,15 +50,30 @@
 }
 
 .dx-photo-list {
+    position: relative;
     max-width: 100%;
-    height: 160px;
     overflow-x: auto;
     overflow-y: hidden;
 }
 
-.dx-galary {
-    max-width: 100%;
+.dx-photo-list img {
+    max-width: 128px;
+    max-height: 128px;
 }
+
+.dx-galary {
+    overflow: hidden;
+}
+
+.dx-galary img {
+    object-fit: contain;
+}
+
+.dx-galary img.opened {
+    object-fit: none;
+    overflow: auto;
+}
+
 
 /*
  *
