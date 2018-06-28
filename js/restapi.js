@@ -7,9 +7,9 @@ define( [ 'config', 'utils' ], function ( config, utils ) {
         return new Promise( function ( resolve, reject ) {
 
             // DEBUG:
-            resolve( 'ATokenForTestItIsNotReallyTokenJustForDebug' );
-            if ( true )
-                return;
+            // resolve( 'ATokenForTestItIsNotReallyTokenJustForDebug' );
+            // if ( true )
+            //     return;
 
             var url = baseurl + '/@login';
             var xhr = new XMLHttpRequest();
@@ -42,8 +42,8 @@ define( [ 'config', 'utils' ], function ( config, utils ) {
         return new Promise( function ( resolve, reject ) {
 
             // DEBUG:
-            resolve();
-            return;
+            // resolve();
+            // return;
 
             var url = baseurl + '/@logout';
             var xhr = new XMLHttpRequest();
@@ -318,42 +318,42 @@ define( [ 'config', 'utils' ], function ( config, utils ) {
 
         var url = baseurl + '/@search?' + query;
         // DEBUG: for local debug
-        url = '/data/villages';
+        // url = '/data/villages';
 
         return new Promise( function ( resolve, reject ) {
 
             var xhr = new XMLHttpRequest();
             xhr.onloadend = function( e ) {
                 // DEBUG: for local debug
-                resolve( {
-                    items_total: 3,
-                    items: [
-                        {
-                            '@id': '/data/villages/greenland/building/1701',
-                            house_location: '绿地世纪城A区 - 11号楼',
-                            title: '1701',
-                            house_area: 69.56,
-                            house_type: '一室两厅',
-                            Creator: 'zhaojunde',
-                        },
-                        {
-                            '@id': '/data/villages/greenland/building/1701',
-                            house_location: '绿地世纪城A区 - 11号楼',
-                            title: '1701',
-                            house_area: 69.56,
-                            house_type: '一室两厅',
-                            Creator: 'zhaojunde',
-                        },
-                        {
-                            '@id': '/data/villages/greenland/building/1701',
-                            house_location: '绿地世纪城A区 - 11号楼',
-                            title: '1701',
-                            house_area: 69.56,
-                            house_type: '一室两厅',
-                            Creator: 'zhaojunde',
-                        }
-                    ] } );
-                return;
+                // resolve( {
+                //     items_total: 3,
+                //     items: [
+                //         {
+                //             '@id': '/data/villages/greenland/building/1701',
+                //             house_location: '绿地世纪城A区 - 11号楼',
+                //             title: '1701',
+                //             house_area: 69.56,
+                //             house_type: '一室两厅',
+                //             Creator: 'zhaojunde',
+                //         },
+                //         {
+                //             '@id': '/data/villages/greenland/building/1701',
+                //             house_location: '绿地世纪城A区 - 11号楼',
+                //             title: '1701',
+                //             house_area: 69.56,
+                //             house_type: '一室两厅',
+                //             Creator: 'zhaojunde',
+                //         },
+                //         {
+                //             '@id': '/data/villages/greenland/building/1701',
+                //             house_location: '绿地世纪城A区 - 11号楼',
+                //             title: '1701',
+                //             house_area: 69.56,
+                //             house_type: '一室两厅',
+                //             Creator: 'zhaojunde',
+                //         }
+                //     ] } );
+                // return;
 
                 if (xhr.status != 200) {
                     console.log( 'Query houses return ' + xhr.status + ' : ' + e );

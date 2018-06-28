@@ -9,8 +9,8 @@
 define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, config, utils ) {
 
     // DEBUG:
-    Dexie.delete('ifuture');
-    Dexie.delete('anonymous');
+    // Dexie.delete('ifuture');
+    // Dexie.delete('anonymous');
 
     var _db = new Dexie( 'ifuture' );
 
@@ -255,7 +255,7 @@ define( [ 'dexie', 'restapi', 'config', 'utils' ], function ( Dexie, restapi, co
     //
 
     // 网络连接从离线到在线
-    window.addEventListener( 'online', synchornizeHandler, false );
+    // window.addEventListener( 'online', synchornizeHandler, false );
 
     // 登录成功之后进行数据同步操作
     // document.addEventListener( 'login', synchronizeHandler, false );

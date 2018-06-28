@@ -99,7 +99,7 @@ define( [ 'ol' ], function ( ol ) {
 
     Component.prototype.dispatchEvent = function ( e ) {
         // DEBUG:
-        console.log( e.type );
+        // console.log( e.type );
         ol.Object.prototype.dispatchEvent.call( this.app === undefined ? this : this.app, e );
     };
 

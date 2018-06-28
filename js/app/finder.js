@@ -334,7 +334,7 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
                         );
             } );
 
-            var orig = moreFlag : houselist.querySelector( 'div.card-group' ).innerHTML : '';
+            var orig = moreFlag ? houselist.querySelector( 'div.card-group' ).innerHTML : '';
             houselist.innerHTML = _HOUSE_LIST_TEMPLATE.replace( '%HOUSES%', orig + arr.join( '' ) );
 
             var scope = this;
