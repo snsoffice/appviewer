@@ -25,31 +25,31 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
           <div class="form-group form-row">                                                           \
             <label for="select-house-scope" class="col-2 col-form-label">空间</label>                 \
             <div class="col-10">                                                                      \
-              <select class="form-control" id="select-house-scope">                                   \
+              <select class="form-control" id="searchHouseScope">                                     \
                 <option value="public">公共空间</option>                                              \
                 <option value="private">我的空间</option>                                             \
               </select>                                                                               \
             </div>                                                                                    \
           </div>                                                                                      \
           <div class="form-group form-row">                                                           \
-            <label for="inputVillage" class="col-2 col-form-label">小区</label>                       \
+            <label for="searchHouseVillage" class="col-2 col-form-label">小区</label>                 \
             <div class="col-10">                                                                      \
-              <input type="text" class="form-control" id="inputVillage" placeholder="小区名称">       \
+              <input type="text" class="form-control" id="searchHouseVillage" placeholder="小区名称"> \
             </div>                                                                                    \
           </div>                                                                                      \
           <div class="form-group form-row">                                                           \
-            <label for="inputHouseType" class="col-2 col-form-label">户型</label>                     \
+            <label for="searchHouseType" class="col-2 col-form-label">户型</label>                    \
             <div class="col-10">                                                                      \
-              <input type="text" class="form-control" id="inputHouseType" placeholder="户型">         \
+              <input type="text" class="form-control" id="searchHouseType" placeholder="户型">        \
             </div>                                                                                    \
           </div>                                                                                      \
           <div class="form-group form-row">                                                           \
             <label for="inputHouseArea1" class="col-2 col-form-label">面积</label>                    \
             <div class="col-5">                                                                       \
-              <input type="text" class="form-control" id="inputHouseArea1" placeholder="最小值">      \
+              <input type="text" class="form-control" id="searchHouseArea1" placeholder="最小值">     \
             </div>                                                                                    \
             <div class="col-5">                                                                       \
-              <input type="text" class="form-control" id="inputHouseArea2" placeholder="最大值">      \
+              <input type="text" class="form-control" id="searchHouseArea2" placeholder="最大值">     \
             </div>                                                                                    \
           </div>                                                                                      \
           <button type="text" class="btn btn-link" style="visibility: hidden;">上次搜索结果</button>  \
@@ -78,6 +78,24 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
             </div>                                                                                      \
           </div>                                                                                        \
         </div>';
+
+    var _HOUSE_QUERY_METADATA = 'metadata_fields=house_location&metadata_fields=house_area&metadata_fields=house_type&metadata_fields=Creator&metadata_fields=modified';
+
+    var _PUBLIC_HOUSE_QUERY = [
+        'portal_type=House',
+        'review_state=published',
+        'sort_on=last_modified',
+        'sort_order=descending',
+        _HOUSE_QUERY_METADATA
+    ].join( '&' );
+
+    var _MY_HOUSE_QUERY = [
+        'portal_type=House',
+        'Creator=%USERID%',
+        'sort_on=last_modified',
+        'sort_order=descending',
+        _HOUSE_QUERY_METADATA
+    ].join( '&' );
 
     Finder = function ( app, opt_options ) {
 
@@ -162,7 +180,8 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
     Finder.prototype.startup = function () {
 
         var scope = this;
-        restapi.queryHouses().then( function ( result ) {
+
+        restapi.queryHouses( _PUBLIC_HOUSE_QUERY ).then( function ( result ) {
 
             scope.buildHouseList_( result );
             scope.showHouseList_();
@@ -194,6 +213,10 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
         this.app.on( 'search:house', this.searchHouse_, this );
         this.app.on( 'show:searchform', this.showSearchForm_, this );
         this.app.on( [ 'user:login', 'user:logout' ], this.resetMenuitems_, this );
+
+        this.app.on( 'search:myhouse', function () {
+            this.searchHouse_( _MY_HOUSE_QUERY.replace( '%USERID%', config.userId ) );
+        }, this );
 
         this.app.on( 'house:opened', function () {
             this.hide_();
@@ -249,18 +272,21 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
     /**
      * 搜索房子
      *
+     * query 是字符串格式的搜索条件，如果没有定义，则默认为查询所有公共房子
+     *
      * @private
      */
-    Finder.prototype.searchHouse_ = function () {
+    Finder.prototype.searchHouse_ = function ( query ) {
 
         var scope = this;
         this.dispatchEvent( new ifuture.Event( 'show:loader' ) );
 
-        restapi.queryHouses().then( function ( result ) {
+        query = ! query ? _PUBLIC_HOUSE_QUERY : query;
+        restapi.queryHouses( query ).then( function ( result ) {
 
             scope._element.querySelector( _SEARCH_FORM_SELECTOR + ' ' + _LAST_SEARCH_SELECTOR ).style.visibility = 'visible';
             scope.buildHouseList_( result );
-            scope.showHouseList_();            
+            scope.showHouseList_();
 
         } ).catch( function ( err ) {
 
@@ -280,6 +306,11 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
      * @private
      */
     Finder.prototype.buildHouseList_ = function ( result ) {
+
+        // 判断是否是加载下一页生成的结果，如果这样的话，要保留上一次的搜索结果
+        var moreFlag = this._searchResults !== null && this._searchResults.hasOwnProperty( 'batching' ) 
+            && result !== null && result.hasOwnProperty( 'batching' ) 
+            && result.batching[ '@id' ] === this._searchResults.batching.next;
 
         this._searchResults = result;
 
@@ -302,9 +333,9 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
                           .replace( '%USER%', item.Creator ? item.Creator : '公共' )
                         );
             } );
-            houselist.innerHTML = _HOUSE_LIST_TEMPLATE.replace( '%HOUSES%', arr.join( '' ) );
 
-            houselist.querySelector( _LOAD_MORE_SELECTOR )
+            var orig = moreFlag : houselist.querySelector( 'div.card-group' ).innerHTML : '';
+            houselist.innerHTML = _HOUSE_LIST_TEMPLATE.replace( '%HOUSES%', orig + arr.join( '' ) );
 
             var scope = this;
             Array.prototype.forEach.call( houselist.querySelectorAll( _LOAD_HOUSE_SELECTOR ), function ( a ) {
@@ -326,7 +357,7 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
                 loadmore.style.display = 'none';
             }
         }
-        
+
     };
 
     /**
@@ -354,8 +385,45 @@ define( [ 'ifuture', 'config', 'restapi', 'utils', 'db', 'logger' ], function ( 
 
         searchform.querySelector( _SEARCH_BUTTON_SELECTOR ).addEventListener( 'click', function ( e ) {
             e.preventDefault();
-            scope.searchHouse_();
+            doSearch();
         }, false );
+
+        var doSearch = function () {
+
+            query = [ 'portal_type=House' ];
+
+            var searchScope = searchform.querySelector( '#searchHouseScope' ).value.trim();
+            var searchTitle = searchform.querySelector( '#searchHouseVillage' ).value.trim();
+            var searchType = searchform.querySelector( '#searchHouseType' ).value.trim();
+            var searchMinArea = searchform.querySelector( '#searchHouseArea1' ).value.trim();
+            var searchMaxArea = searchform.querySelector( '#searchHouseArea2' ).value.trim();
+
+            if ( searchScope === 'private' && config.userId !== null ) {
+                query.push( 'Creator=' + config.userId );
+            }
+            else {
+                query.push( 'review_state=published' );
+            }
+            if ( searchTitle )
+                query.push( 'Title=' + searchTitle );
+
+            if ( searchMaxArea && searchMinArea ) {
+                query.push( 'house_area.query=[' + searchMinArea + ',' + searchMaxArea + ']' );
+                query.push( 'house_area.range=min:max' );
+
+            }
+            else if ( searchMinArea ) {
+                query.push( 'house_area.query=' + searchMinArea );
+                query.push( 'house_area.range=min' );
+
+            }
+            else if ( searchMaxArea ) {
+                query.push( 'house_area.query=' + searchMaxArea );
+                query.push( 'house_area.range=max' );
+            }
+            scope.searchHouse_( query.join( '&' ) );
+
+        };
 
     };
 
