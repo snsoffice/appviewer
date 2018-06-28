@@ -1,4 +1,4 @@
-define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
+define( [ 'ifuture', 'config', 'ol', 'app/dialog' ], function ( ifuture, config, ol, dialog ) {
 
     var _TEMPLATE = '                                                             \
         <div class="dx-tab bg-secondary">                                         \
@@ -14,21 +14,15 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
           <span class="bg-danger rounded-circle border-dark"></span> \
         </div>';
 
-    var _BACKDROP_TEMPLATE = '                                                                                                  \
-           <div class="dx-page dx-catalog fade show">                                                                           \
-             <div class="d-flex flex-column justify-content-end h-100">                                                         \
-               <div class="mb-5 px-3">                                                                                          \
-                 <button type="button" data-action="show" class="btn btn-sm btn-outline-secondary m-2">全部显示</button>        \
-                 <button type="button" data-action="hide" class="btn btn-sm btn-outline-secondary m-2">全部隐藏</button>        \
-                 <button type="button" data-catalog="transport" class="btn btn-sm btn-outline-secondary m-2">交通出行</button>  \
-                 <button type="button" data-catalog="food" class="btn btn-sm btn-outline-secondary m-2">饭店美食</button>       \
-                 <button type="button" data-catalog="shopping" class="btn btn-sm btn-outline-secondary m-2">超市商店</button>   \
-                 <button type="button" data-catalog="school" class="btn btn-sm btn-outline-secondary m-2">学校教育</button>     \
-                 <button type="button" data-catalog="hospital" class="btn btn-sm btn-outline-secondary m-2">医院卫生</button>   \
-                 <button type="button" data-catalog="goverment" class="btn btn-sm btn-outline-secondary m-2">政府机关</button>  \
-               </div>                                                                                                           \
-             </div>                                                                                                             \
-           </div>';
+    var _CATALOG_TEMPLATE = '                                                                                          \
+        <button type="button" data-action="show" class="btn btn-sm btn-outline-light m-2">全部显示</button>        \
+        <button type="button" data-action="hide" class="btn btn-sm btn-outline-light m-2">全部隐藏</button>        \
+        <button type="button" data-catalog="transport" class="btn btn-sm btn-outline-light m-2">交通出行</button>  \
+        <button type="button" data-catalog="food" class="btn btn-sm btn-outline-light m-2">饭店美食</button>       \
+        <button type="button" data-catalog="shopping" class="btn btn-sm btn-outline-light m-2">超市商店</button>   \
+        <button type="button" data-catalog="school" class="btn btn-sm btn-outline-light m-2">学校教育</button>     \
+        <button type="button" data-catalog="hospital" class="btn btn-sm btn-outline-light m-2">医院卫生</button>   \
+        <button type="button" data-catalog="goverment" class="btn btn-sm btn-outline-light m-2">政府机关</button>';
 
     var _MARKER_ID = 'marker';
 
@@ -234,7 +228,7 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
      */
     View.prototype.buildHouseFeature_ = function () {
 
-        var view = this._data.locations.slice( -1 )[ 0 ].views[ 0 ];
+        var view = this._data.locations.slice( -1 )[ 0 ].frames[ 0 ];
         var fmt = new ol.format.WKT();
         var geometry = fmt.readGeometry( view.geometry );
         var extent = geometry.getExtent();
@@ -266,22 +260,9 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
      * @private
      */
     View.prototype.showCatalog_ = function () {
-
-        var backdrop = document.createElement( 'DIV' );
-        backdrop.innerHTML = _BACKDROP_TEMPLATE;
-        backdrop = backdrop.firstElementChild;
-        this._element.appendChild( backdrop );
-
-        Array.prototype.forEach.call( backdrop.querySelectorAll( 'button' ), function ( button ) {
-            button.addEventListener( 'click', function ( e ) {
-                e.stopPropagation();
-            }, false );
-        } );
-
-        backdrop.addEventListener( 'click', function ( e ) {
-            backdrop.remove();
-        }, false );
-
+        dialog.picker( _CATALOG_TEMPLATE, function ( e ) {
+            console.log( e.currentTarget.innerHTML );
+        }, true );
     };
 
     return View;

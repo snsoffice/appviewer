@@ -3,11 +3,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
     var _SELECTOR = '.dx-screen';
     var _CLOSE_BUTTON_SELECTOR = '.dx-toolbar button:nth-of-type(1)';
     var _HANGUP_BUTTON_SELECTOR = '.dx-toolbar button:nth-of-type(2)';
-
-    var _VIDEO_TEMPLATE = '                                            \
-        <div class="dx-video w-100 h-100 bg-dark">                     \
-          <video autoplay="autoplay"></video>                          \
-        </div>';
+    var _TOGGLE_BUTTON_SELECTOR = '.dx-view-tool button';
 
     var _TEMPLATE = '                                                                      \
         <div class="dx-toolbar">                                                           \
@@ -29,32 +25,19 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
           </button>                                                                        \
         </div>';
 
-    var _FRAME_DIALOG_TEMPLATE = '                                                            \
-        <div class="modal fade" id="screen-frame-dialog"                                      \
-             tabindex="-1" role="dialog" aria-hidden="true">                                  \
-          <div class="modal-dialog modal-dialog-centered" role="document">                    \
-            <div class="modal-content" style="background: transparent;">                      \
-              <div class="d-flex flex-column justify-content-center align-items-center">      \
-                <div class="p-0">                                                             \
-                  <button class="btn btn-sm btn-outline-secondary m-2" data-dismiss="dialog"  \
-                          type="button" view-type="plane" view-index="0">房屋平面图</button>  \
-                  <button class="btn btn-sm btn-outline-secondary m-2"                        \
-                          type="button" view-type="solid" view-index="0">房屋立体图</button>  \
-                  <button class="btn btn-sm btn-outline-secondary m-2"                        \
-                          type="button" view-type="plane" view-index="2">楼层平面图</button>  \
-                  <button class="btn btn-sm btn-outline-secondary m-2"                        \
-                          type="button" view-type="solid" view-index="2">楼层立体图</button>  \
-                  <button class="btn btn-sm btn-outline-secondary m-2"                        \
-                          type="button" view-type="plane" view-index="1">小区平面图</button>  \
-                  <button class="btn btn-sm btn-outline-secondary m-2"                        \
-                          type="button" view-type="solid" view-index="1">小区立体图</button>  \
-                </div>                                                                        \
-              </div>                                                                          \
-           </div>                                                                             \
-          </div>                                                                              \
+    var _VIDEO_TEMPLATE = '                         \
+        <div class="dx-video w-100 h-100 bg-dark">  \
+          <video autoplay="autoplay"></video>       \
         </div>';
 
-    var _FRAME_BUTTONS_SELECTOR = 'div.modal button';
+    var _FRAME_TEMPLATE = '                                                                \
+        <div class="text-center">                                                          \
+          <div class="border-bottom border-secondary text-secondary p-2 m-2">%TITLE%</div> \
+          %BUTTONS%                                                                        \
+        </div>';
+
+    var _BUTTON_TEMPLATE = '<button class="btn btn-sm btn-outline-secondary m-3" type="button" ' +
+        'data-spot="%SPOT%" data-type="%TYPE%" data-index="%INDEX%">%TITLE%</button>';
 
     var _LOCATION_MARKER_URL = 'images/location_marker.png';
     var _LOCATION_MARKER_HEADING_URL = 'images/location_marker_heading.png';
@@ -63,6 +46,8 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
 
     // .dx-mini
     var _DEFAULT_MAP_SIZE = [ 200, 150 ];
+
+    var fmt = null;
 
     Screen = function ( app, opt_options ) {
 
@@ -78,7 +63,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
         /**
          * 当前直播房子的数据
          * @private
-         * @type {Object} 属性包括 url, views, locations, callee
+         * @type {Object} 属性包括 url, frames, locations, callee
          */
         this._house = null;
 
@@ -195,7 +180,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
         }
 
         this._house = house;
-        this.buildHouseMap_( house.views );
+        this.buildHouseMap_( house.frames );
     };
 
     /**
@@ -269,10 +254,6 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
         this._element = document.querySelector( _SELECTOR );
         this._element.innerHTML = _TEMPLATE;
 
-        var div = document.createElement( 'DIV' );
-        div.innerHTML = _FRAME_DIALOG_TEMPLATE;
-        this._element.appendChild( div.firstElementChild );
-
         // 内部事件绑定
         var scope = this;
 
@@ -288,9 +269,9 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
             scope.hangup_();
         }, false );
 
-        Array.prototype.forEach.call( this._element.querySelectorAll( _FRAME_BUTTONS_SELECTOR ), function ( button ) {
-            button.addEventListener( 'click', scope.onChangeView_.bind( scope ), false );
-        } );
+        this._element.querySelector( _TOGGLE_BUTTON_SELECTOR ).addEventListener( 'click', function ( e ) {
+            scope.showViewSelector_();
+        }, false );
 
     };
 
@@ -353,12 +334,12 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
      *
      * @private
      */
-    Screen.prototype.buildHouseMap_ = function ( views ) {
+    Screen.prototype.buildHouseMap_ = function ( frames ) {
 
-        var view = views[ 0 ];
+        var frame = frames[ 0 ];
 
         var fmt = new ol.format.WKT();
-        var geometry = fmt.readGeometry( view.geometry );
+        var geometry = fmt.readGeometry( frame.geometry );
         var extent = geometry.getExtent();
 
         var size = this._map.getSize();
@@ -383,7 +364,7 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
         var source = new ol.source.ImageStatic( {
             crossOrigin: 'anonymous',
             imageExtent: extent,
-            url: view.url,
+            url: frame.url,
             imageLoadFunction: loadImage,
         } );
 
@@ -533,50 +514,86 @@ define( [ 'ifuture', 'config', 'logger', 'ol', 'app/dialog' ], function ( ifutur
     };
 
     /**
-     * 切换到其他视图
+     * 显示导航图选择对话框，选择新的导航图
      *
      * @private
      */
-    Screen.prototype.onChangeView_ = function ( e ) {
+    Screen.prototype.showViewSelector_ = function () {
 
-        var getViewData = function ( views, type ) {
-            for ( var i = 0; i < views.length; i ++ ) {
-                if ( views[ i ].type === type )
-                    return views[ i ];
-            }
-            return views[ 0 ];
-        };
-
-        var button = e.currentTarget;
-        var type = button.getAttribute( 'view-type' );
-        var index = parseInt( button.getAttribute( 'view-index' ) );
-
-        var view;
         var house = this._house;
-        var locations = house.locations;
-        var fmt = new ol.format.WKT();
-        if ( index === 0 ) {
-            view = getViewData( this._house.views, type );
-        }
-        else if ( locations && locations.length && locations.length >= index ) {
-            view = getViewData( locations.slice( - index )[ 0 ].views, type );
-        }
+        var houseLocations = house.locations;
+        var houseFrames = house.frames;
+        var items = [];
 
-        if ( view ) {
-            var geometry = fmt.readGeometry( view.geometry );
-            var extent = geometry.getExtent();
-            var url = view.url;
-            this.changeView_( url, extent );
-            this.dispatchEvent( new ifuture.Event( 'send:view', {
+        houseFrames.forEach( function ( frame, index ) {
+            items.push( _BUTTON_TEMPLATE
+                        .replace( '%SPOT%', '-1' )
+                        .replace( "%TYPE%", frame.type )
+                        .replace( "%INDEX%", index )
+                        .replace( "%TITLE%", frame.title ) );
+        } );
+        items = [ _FRAME_TEMPLATE
+                  .replace( '%TITLE%', '当前房子' )
+                  .replace( '%BUTTONS%', items.join( '' ) ) ];
+
+        houseLocations.forEach( function ( spot, spotIndex ) {
+            var buttons = [];
+            spot.frames.forEach( function ( frame, index ) {
+                buttons.push( _BUTTON_TEMPLATE
+                              .replace( '%SPOT%', spotIndex )
+                              .replace( "%TYPE%", frame.type )
+                              .replace( "%INDEX%", index )
+                              .replace( "%TITLE%", frame.title ) );
+            } )
+            items.push( _FRAME_TEMPLATE
+                        .replace( '%TITLE%', spot.title )
+                        .replace( '%BUTTONS%', buttons.join( '' ) ) );
+        } );
+
+        var scope = this;
+        dialog.picker( items.join( '' ), function ( e ) {
+
+            var button = e.currentTarget;
+            var type = button.getAttribute( 'data-type' );
+            if ( type === 'three' ) {
+                dialog.info( '暂时还不支持三维导航' );
+                return ;
+            }
+
+            var spotIndex = parseInt( button.getAttribute( 'data-spot' ) );
+            var index = parseInt( button.getAttribute( 'data-index' ) );
+            var frame = spotIndex < 0 ? houseFrames[ index ] : houseLocations[ spotIndex ].frames[ index ];
+            var url = frame.url;
+            var extent = scope.getFrameExtent_( frame );
+            if ( extent === undefined || ! url ) {
+                dialog.info( '导航图的设置不正确' );
+                return;
+            }
+
+            scope.changeView_( url, extent );
+            scope.dispatchEvent( new ifuture.Event( 'send:view', {
                 src: url,
                 extent: extent,
             } ) );
-        }
-        else {
-            dialog.info( '打开导航视图失败' );
-        }
+
+        } );
 
     };
+
+    /**
+     * 得到视图对应的区域
+     *
+     * @private
+     */
+    Screen.prototype.getFrameExtent_ = function ( frame ) {
+        if ( fmt === null )
+            fmt = new ol.format.WKT();
+        var geometry = fmt.readGeometry( frame.geometry );
+        if ( geometry ) {
+            return geometry.getExtent();
+        }
+    };
+
 
     return Screen;
 

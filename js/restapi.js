@@ -122,7 +122,7 @@ define( [ 'config', 'utils' ], function ( config, utils ) {
                 username: username,
                 email: email,
                 fullname: fullname,
-                sendPasswordReset: false,                
+                sendPasswordReset: false,
                 password: password,
             } ) );
 

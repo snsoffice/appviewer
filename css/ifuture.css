@@ -74,6 +74,12 @@
     overflow: auto;
 }
 
+.dx-item-selector {
+}
+
+.dx-item-selector button {
+    pointer-events: auto;
+}
 
 /*
  *

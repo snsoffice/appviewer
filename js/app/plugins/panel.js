@@ -178,14 +178,14 @@ define( [ 'ifuture', 'config', 'restapi', 'logger', 'app/dialog' ], function ( i
             return ;
         }
 
-        if ( this._data === null || ! this._data.views ) {
+        if ( this._data === null || ! this._data.frames ) {
             dialog.info( '无法观看直播，没有当前房屋的数据' );
             return ;
         }
 
         var argument = {
             url: this._url,
-            views: this._data.views,
+            frames: this._data.frames,
             locations: this._data.locations,
             callee: this._callee,
         };
@@ -206,14 +206,14 @@ define( [ 'ifuture', 'config', 'restapi', 'logger', 'app/dialog' ], function ( i
             return ;
         }
 
-        if ( this._data === null || ! this._data.views ) {
+        if ( this._data === null || ! this._data.frames ) {
             dialog.info( '无法直播，没有当前房屋的数据' );
             return ;
         }
 
         var argument = {
             url: this._url,
-            views: this._data.views,
+            frames: this._data.frames,
             locations: this._data.locations,
         };
 

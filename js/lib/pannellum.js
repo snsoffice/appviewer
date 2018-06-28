@@ -1409,8 +1409,8 @@ function render() {
             // console.log('Panorama north is ' + (-config.yaw - config.northOffset) + 'deg' );
             config.application.dispatchEvent( new ifuture.Event( 'helper:changed', {
                 name: 'visitor',
-                position: null,
-                yaw: -config.yaw - config.northOffset
+                coordinate: null,
+                direction: -config.yaw - config.northOffset
             } ) );
         }
     }

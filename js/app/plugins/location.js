@@ -201,15 +201,15 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
      * @private
      */
 
-    View.prototype.getViewData_ = function ( data ) {
+    View.prototype.getFrameData_ = function ( data ) {
 
-        var views = data.views;
-        if ( views && views.length ) {
-            for ( var i = 0; i < views.length; i ++ ) {
-                if ( views[ i ].type === 'solid' )
-                    return views[ i ];
+        var frames = data.frames;
+        if ( frames && frames.length ) {
+            for ( var i = 0; i < frames.length; i ++ ) {
+                if ( frames[ i ].type === 'solid' )
+                    return frames[ i ];
             }
-            return views[ 0 ];
+            return frames[ 0 ];
         }
 
     };
@@ -221,15 +221,15 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
      */
     View.prototype.buildMap_ = function () {
 
-        var view = this.getViewData_( this._data );
+        var frame = this.getFrameData_( this._data );
 
         var size = [ window.innerWidth, window.innerHeight - _PADDING_TOP ];
         var fmt = new ol.format.WKT();
-        var geometry = fmt.readGeometry( view.geometry );
+        var geometry = fmt.readGeometry( frame.geometry );
         var extent = geometry.getExtent();
 
         var element = document.createElement( 'div' );
-        element.innerHTML = _MARKER_TEMPLATE.replace( '%SRC%', view.url ).replace( '%TITLE%', view.name );
+        element.innerHTML = _MARKER_TEMPLATE.replace( '%SRC%', frame.url ).replace( '%TITLE%', frame.title );
         element = element.firstElementChild;
         var marker = new ol.Overlay({
             id: _HOUSE_MARKER_ID,
@@ -243,18 +243,18 @@ define( [ 'ifuture', 'config', 'ol' ], function ( ifuture, config, ol ) {
         this._extents.push( extent );
 
         var layers = [];
-        layers.push( this.buildImageLayer_( view.url, extent ) );
+        layers.push( this.buildImageLayer_( frame.url, extent ) );
 
         if ( this._data.locations && this._data.locations.length ) {
             this._data.locations.forEach( function ( building ) {
 
-                view = this.getViewData_( building );
-                if ( view === undefined )
+                frame = this.getFrameData_( building );
+                if ( frame === undefined )
                     return;
 
-                geometry = fmt.readGeometry( view.geometry );
+                geometry = fmt.readGeometry( frame.geometry );
                 extent = geometry.getExtent();
-                layers.push( this.buildImageLayer_( view.url, extent ) );
+                layers.push( this.buildImageLayer_( frame.url, extent ) );
                 this._extents.push( extent );
 
             }, this );

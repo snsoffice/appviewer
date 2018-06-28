@@ -124,7 +124,7 @@ define( [ 'ifuture', 'config', 'restapi' ], function ( ifuture, config, restapi 
             .replace( '%LOCATION%', metadata.house_location)
             .replace( '%TITLE%', data.title)
             .replace( '%DESCRIPTION%', data.description)
-            .replace( '%FLOOR%', metadata.floor)
+            .replace( '%FLOOR%', metadata.house_floor)
             .replace( '%TYPE%', metadata.house_type)
             .replace( '%AREA%', metadata.house_area);
 

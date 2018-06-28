@@ -1,6 +1,6 @@
-define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery', 'app/slider' ],
+define( [ 'ifuture', 'config', 'ol', 'pannellum', 'jquery', 'app/dialog', 'app/slider' ],
 
-function ( ifuture, config, ol, pannellum, jquery, Slider ) {
+function ( ifuture, config, ol, pannellum, jquery, dialog, Slider ) {
 
     var _TEMPLATE = '                                                                    \
         <div class="dx-tab bg-dark">                                                     \
@@ -264,7 +264,7 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
         }, false );
 
         this.app.on( 'helper:changed', function ( e ) {
-            this.changeMarker_( _MARKER_ID, e.argument.position, e.argument.yaw );
+            this.changeMarker_( _MARKER_ID, e.argument.coordinate, e.argument.direction );
         }, this );
 
     };
@@ -291,12 +291,12 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
         var firstScene;
         var scenes = {};
         this._data.features.forEach( function ( feature ) {
-            if ( feature.phase_type === 'panorama' ) {
+            if ( feature.type === 'panorama' ) {
                 scenes[ feature.name ] = {
                     name: feature.name,
                     panorama: feature.url,
                     coordinate: toCoordinate( feature.coordinate ),
-                    direction: feature.angle,
+                    direction: feature.direction,
                 };
                 if ( firstScene === undefined )
                     firstScene = scenes[ feature.name ];
@@ -304,7 +304,7 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
         } );
 
         if ( firstScene === undefined ) {
-            container.innerHTML = '<p class="text-center mt-5">房屋没有全景照片</p>';
+            dialog.info( "这里还没有全景照片" );
             this._panorama = null;
             return;
         }
@@ -342,18 +342,20 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
         this._slider = new Slider( container );
         this._slider.on( Slider.SLIDE_EVENT_NAME, this.onSlideEvent_, this );
 
+        var features = this._data.features;
+        if ( ! features.length )
+            return ;
+
         var images = [];
-        var index = 0;
-        this._data.features.forEach( function ( feature ) {
-            if ( feature.phase_type === 'photo' ) {
-                var poster = feature.url + '/@@images/image/mini';
+        features.forEach( function ( feature, index ) {
+            if ( feature.type === 'photo' ) {
                 images.push( _THUMBNAIL_TEMPLATE
-                             .replace( '%POSTER%', poster )
+                             .replace( '%POSTER%', feature.poster )
                              .replace( '%SRC%', feature.url )
                              .replace( '%TITLE%', feature.name )
                              .replace( '%COORDINATE%', feature.coordinate )
-                             .replace( '%DIRECTION%', feature.angle )
-                             .replace( '%INDEX%', index ++ ) );
+                             .replace( '%DIRECTION%', feature.direction )
+                             .replace( '%INDEX%', index ) );
             }
         } );
 
@@ -397,9 +399,9 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
             overlays: [ marker ],
         } );
 
-        var view = this._data.views[ 0 ];
+        var frame = this._data.frames[ 0 ];
         var fmt = new ol.format.WKT();
-        var geometry = fmt.readGeometry( view.geometry );
+        var geometry = fmt.readGeometry( frame.geometry );
         var extent = geometry.getExtent();
 
         var size = this._minimap.getSize();
@@ -424,7 +426,7 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
         var source = new ol.source.ImageStatic( {
             crossOrigin: 'anonymous',
             imageExtent: extent,
-            url: view.url,
+            url: frame.url,
             imageLoadFunction: loadImage,
         } );
 
@@ -515,7 +517,7 @@ function ( ifuture, config, ol, pannellum, jquery, Slider ) {
      * 修改视野
      *
      * @param {String} name 标志对象名称
-     * @param {Array.<number>} coordinate 所在的位置坐标
+     * @param {Array.<number>|null} coordinate 所在的位置坐标
      * @param {number} direction 和正北的角度差，角度值
      * @private
      */

@@ -1,5 +1,14 @@
 define( [ 'ifuture', 'jquery', 'db', 'config' ], function ( ifuture, $, db, config ) {
 
+    var _ITEM_SELECTOR_TEMPLATE = '                                           \
+        <div class="modal-dialog modal-dialog-centered" role="document">      \
+          <div class="dx-item-selector">                                      \
+            <div class="d-flex flex-row flex-wrap justify-content-center">    \
+              %BUTTONS%                                                       \
+            </div>                                                            \
+          </div>                                                              \
+        </div>';
+
     function createDialog( template ) {
 
         Array.prototype.forEach.call( document.querySelectorAll( '.dx-modal-container' ), function ( dialog ) {
@@ -249,6 +258,22 @@ define( [ 'ifuture', 'jquery', 'db', 'config' ], function ( ifuture, $, db, conf
 
     };
 
+
+    /**
+     * 弹出对话框，在中间显示 items 的所有选项，选中项目之后，调用 callback。
+     * 如果 opt_keep 为真，那么调用 callback 之后不关闭对话框，否则关闭对话框
+     * 点击其他任何空白区域都直接关闭对话框
+     */
+    var picker = function ( items, callback, opt_keep ) {
+        var dialog = createDialog( _ITEM_SELECTOR_TEMPLATE.replace( '%BUTTONS%', items ) );
+        $( dialog ).modal( 'show' );
+        $( 'button', dialog ).on( 'click', function ( e ) {
+            callback( e );
+            if ( ! opt_keep )
+                $( dialog ).modal( 'hide' );
+        } );
+    };
+
     return {
         login: login,
         signup: signup,
@@ -257,6 +282,7 @@ define( [ 'ifuture', 'jquery', 'db', 'config' ], function ( ifuture, $, db, conf
         warning: warning,
         acceptor: acceptor,
         caller: caller,
+        picker: picker,
     };
 
 } );

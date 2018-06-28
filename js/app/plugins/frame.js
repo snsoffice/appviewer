@@ -2,7 +2,7 @@ define( [ 'ifuture', 'config', 'app/slider' ], function ( ifuture, config, Slide
 
     var _TEMPLATE = '                     \
       <div class="dx-tab bg-secondary ">  \
-         %VIEWS%                          \
+         %FRAMES%                         \
          <ol class="carousel-indicators"> \
            %INDICATORS%                   \
          </ol>                            \
@@ -152,7 +152,7 @@ define( [ 'ifuture', 'config', 'app/slider' ], function ( ifuture, config, Slide
                     this.select_( index - 1 );
                     return true;
                 }
-                else if ( direction < 0 && index < this._data.views.length - 1 ) {
+                else if ( direction < 0 && index < this._data.frames.length - 1 ) {
                     this.select_( index + 1 );
                     return true;
                 }
@@ -169,20 +169,20 @@ define( [ 'ifuture', 'config', 'app/slider' ], function ( ifuture, config, Slide
     View.prototype.buildView_ = function () {
 
         var element = document.createElement( 'DIV' );
-        var views = this._data.views;
+        var frames = this._data.frames;
 
         var indicators = [];
         var results = [];
-        for ( var i = 0; i < views.length; i ++ ) {
+        for ( var i = 0; i < frames.length; i ++ ) {
             indicators.push( _INDICATOR_TEMPLATE.replace( '%INDEX%', i.toString() ) );
-            if ( views[ i ].type === 'three' )
-                results.push( _THREE_TEMPLATE.replace( '%SRC%', views[ i ].url ).replace( '%TITLE%', views[ i ].name ) );
+            if ( frames[ i ].type === 'three' )
+                results.push( _THREE_TEMPLATE.replace( '%SRC%', frames[ i ].url ).replace( '%TITLE%', frames[ i ].title ) );
             else
-                results.push( _FRAME_TEMPLATE.replace( '%SRC%', views[ i ].url ).replace( '%TITLE%', views[ i ].name ) );
+                results.push( _FRAME_TEMPLATE.replace( '%SRC%', frames[ i ].url ).replace( '%TITLE%', frames[ i ].title ) );
         }
 
         element.innerHTML = _TEMPLATE
-            .replace( '%VIEWS%', results.join( '' ) )
+            .replace( '%FRAMES%', results.join( '' ) )
             .replace( '%INDICATORS%', indicators.join( '' ) );
 
         element = element.firstElementChild;
