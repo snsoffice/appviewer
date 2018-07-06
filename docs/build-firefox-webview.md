@@ -738,3 +738,25 @@ lang.awk, 用于生成需要打包的中文文件
 ```
     /opt/Android/Sdk/platform-tools/adb logcat | grep -E \(GeckoBrowser\|GeckoApp\|GeckoTab\)
 ```
+
+## 调用分享接口
+
+菜单名称: R.id.share
+
+事件响应代码 mozilla-central/mobile/android/base/java/org/mozilla/gecko/customtabs/CustomTabsActivity.java
+
+line 534
+    /**
+     * Callback for Share menu item.
+     */
+    private void onShareClicked() {
+        if (!TextUtils.isEmpty(mCurrentUrl)) {
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_TEXT, mCurrentUrl);
+
+            Intent chooserIntent = Intent.createChooser(shareIntent, getString(R.string.share_title));
+            chooserIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(chooserIntent);
+        }
+    }
