@@ -353,7 +353,7 @@ brandFullName=远景网 天空版
 
     // onCreate Line 782
         final View splashLayout = LayoutInflater.from(this).inflate(R.layout.splash_screen, (ViewGroup)mGeckoLayout);
-        
+
 
     // Line 2972
                 public void onFinish() {
@@ -741,7 +741,7 @@ lang.awk, 用于生成需要打包的中文文件
 
 ## 调用分享接口
 
-菜单名称: R.id.share
+浏览器选项菜单名称: R.id.share
 
 事件响应代码 mozilla-central/mobile/android/base/java/org/mozilla/gecko/customtabs/CustomTabsActivity.java
 
@@ -760,3 +760,32 @@ line 534
             startActivity(chooserIntent);
         }
     }
+
+选中文本之后出现的上下文菜单中分享菜单标签 contextmenu.share
+
+事件代码 mozilla-central/mobile/android/modules/ActionBarHandler.jsm
+
+line 666
+
+    EventDispatcher.instance.sendRequest({
+          type: "Share:Text",
+          text: ActionBarHandler._getSelectedText(),
+          title: title,
+        });
+
+修改文件  `mozilla-central/mobile/android/chrome/content/browser.js`
+
+增加到 browser 的事件处理中 `case "DOMContentLoaded": {`
+
+大约在 4193 行
+
+``` javascript
+        Cu.exportFunction(function (title, text) {
+            GlobalEventDispatcher.sendRequest({
+                type: "Share:Text",
+                text: text,
+                title: title
+            });
+        }, this.browser.contentWindow, { defineAs: 'shareHouse' });
+
+```
